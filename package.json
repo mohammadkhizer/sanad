@@ -1,0 +1,17 @@
+{
+  "name": "sanad-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sanad - Trusted Religious Scholar Publishing and Community Learning Platform",
+  "scripts": {
+    "build": "pnpm -r --filter=!sanad-mobile run build",
+    "test": "pnpm -r --filter=@sanad/api run test",
+    "lint": "pnpm -r run lint",
+    "dev:api": "pnpm --filter=@sanad/api run dev",
+    "dev:mobile": "pnpm --filter=sanad-mobile start"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  },
+  "packageManager": "pnpm@10.28.2"
+}
