@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { ScholarApplication } from '../models/ScholarApplication';
 import { User } from '../models/User';
 import { AuditLog } from '../models/Moderation';
+import { storageService } from '../services/storage.service';
 import { ForbiddenError, NotFoundError, UnauthorizedError } from '../utils/errors';
 
 export async function listApplications(
@@ -151,6 +152,54 @@ export async function revokeScholar(
         message: 'Scholar status revoked successfully',
         user,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getCredentialDownloadUrl(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    const { id } = req.params;
+    const fileKey = req.query.fileKey as string;
+
+    if (!fileKey) {
+      res.status(400).json({ code: 'MISSING_FILE_KEY', message: 'fileKey query parameter is required' });
+      return;
+    }
+
+    const application = await ScholarApplication.findById(id);
+    if (!application) {
+      throw new NotFoundError('Scholar application not found');
+    }
+
+    const hasCredential = application.credentials.some((c) => c.fileKey === fileKey);
+    if (!hasCredential) {
+      throw new NotFoundError('The specified credential document is not associated with this application');
+    }
+
+    const downloadPayload = storageService.generateCredentialDownloadUrl(
+      fileKey,
+      req.user.roles
+    );
+
+    await AuditLog.create({
+      actorId: req.user._id,
+      action: 'scholar_credential:view',
+      targetType: 'scholar_application',
+      targetId: application.id,
+      meta: { fileKey },
+      ip: req.ip,
+    });
+
+    res.status(200).json({
+      success: true,
+      data: downloadPayload,
     });
   } catch (error) {
     next(error);

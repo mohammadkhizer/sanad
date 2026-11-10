@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
 import { ScholarApplication } from '../models/ScholarApplication';
 import { AuditLog } from '../models/Moderation';
+import { storageService } from '../services/storage.service';
 import { UnauthorizedError, ConflictError, NotFoundError, AppError } from '../utils/errors';
 
 export async function submitApplication(
@@ -87,19 +88,18 @@ export async function getCredentialUploadUrl(
   try {
     if (!req.user) throw new UnauthorizedError();
 
-    const fileId = crypto.randomUUID();
-    const fileKey = `credentials/${req.user.id}/${fileId}.pdf`;
+    const mimeType = (req.body?.mimeType as string) || 'application/pdf';
+    const extension = (req.body?.extension as string) || 'pdf';
 
-    // Simulated signed URL for private cloud storage (S3/Cloudflare R2)
-    const uploadUrl = `https://storage.sanad.app/upload/${fileKey}?expires=3600&sig=${crypto.randomBytes(16).toString('hex')}`;
+    const uploadPayload = storageService.generateCredentialUploadUrl(
+      req.user.id,
+      mimeType,
+      extension
+    );
 
     res.status(200).json({
       success: true,
-      data: {
-        fileKey,
-        uploadUrl,
-        expiresIn: 3600,
-      },
+      data: uploadPayload,
     });
   } catch (error) {
     next(error);
