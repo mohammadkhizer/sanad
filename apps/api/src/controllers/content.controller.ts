@@ -5,6 +5,7 @@ import { Post } from '../models/Post';
 import { Comment } from '../models/Comment';
 import { Like, Save } from '../models/Social';
 import { AuditLog } from '../models/Moderation';
+import { muxService } from '../services/mux.service';
 import {
   UnauthorizedError,
   ForbiddenError,
@@ -16,15 +17,15 @@ export async function getUploadUrl(req: Request, res: Response, next: NextFuncti
   try {
     if (!req.user) throw new UnauthorizedError();
 
-    const assetId = crypto.randomUUID();
-    // Direct upload URL structure (Mux or Cloudflare Stream compatible)
-    const uploadUrl = `https://video.sanad.app/uploads/${assetId}?token=${crypto.randomBytes(16).toString('hex')}`;
+    const postType = (req.query.type as 'reel' | 'video') || 'video';
+    const upload = muxService.createDirectUpload(req.user.id, postType);
 
     res.status(200).json({
       success: true,
       data: {
-        assetId,
-        uploadUrl,
+        assetId: upload.assetId,
+        uploadId: upload.uploadId,
+        uploadUrl: upload.uploadUrl,
         expiresIn: 1800,
       },
     });

@@ -8,6 +8,7 @@ import {
   CallSession,
 } from '../models/Communication';
 import { User } from '../models/User';
+import { livekitService } from '../services/livekit.service';
 import {
   UnauthorizedError,
   ForbiddenError,
@@ -249,10 +250,17 @@ export async function createCall(req: Request, res: Response, next: NextFunction
       startedAt: new Date(),
     });
 
+    const { token: callerToken } = livekitService.createCallToken(
+      req.user.id,
+      req.user.displayName,
+      roomName
+    );
+
     res.status(201).json({
       success: true,
       data: {
         callSession,
+        token: callerToken,
         roomName,
       },
     });
@@ -279,8 +287,15 @@ export async function respondCall(req: Request, res: Response, next: NextFunctio
       throw new ForbiddenError('Not a participant in this call session');
     }
 
+    let token: string | undefined;
     if (action === 'accept') {
       callSession.status = 'accepted';
+      const callToken = livekitService.createCallToken(
+        req.user.id,
+        req.user.displayName,
+        callSession.roomName
+      );
+      token = callToken.token;
     } else if (action === 'reject') {
       callSession.status = 'rejected';
       callSession.endedAt = new Date();
@@ -293,7 +308,10 @@ export async function respondCall(req: Request, res: Response, next: NextFunctio
 
     res.status(200).json({
       success: true,
-      data: callSession,
+      data: {
+        callSession,
+        token,
+      },
     });
   } catch (error) {
     next(error);

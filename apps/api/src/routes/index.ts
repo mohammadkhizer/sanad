@@ -7,6 +7,8 @@ import { liveRouter } from './live.routes';
 import { messagingRouter } from './messaging.routes';
 import { moderationRouter } from './moderation.routes';
 import { adminRouter } from './admin.routes';
+import { notificationRouter } from './notification.routes';
+import { webhookRouter } from './webhook.routes';
 import { getFeed } from '../controllers/content.controller';
 import { optionalAuth } from '../middlewares/auth';
 import { validateQuery } from '../middlewares/validate';
@@ -25,6 +27,7 @@ apiRouter.use('/conversations', messagingRouter);
 apiRouter.use('/calls', messagingRouter);
 apiRouter.use('/reports', moderationRouter);
 apiRouter.use('/admin', adminRouter);
+apiRouter.use('/notifications', notificationRouter);
+apiRouter.use('/webhooks', webhookRouter);
 
 export { apiRouter };
-

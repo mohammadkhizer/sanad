@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import crypto from 'crypto';
 import { LiveSession } from '../models/Communication';
+import { livekitService } from '../services/livekit.service';
 import { UnauthorizedError, ForbiddenError, NotFoundError } from '../utils/errors';
 
 export async function createLive(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -19,9 +19,11 @@ export async function createLive(req: Request, res: Response, next: NextFunction
       startedAt: new Date(),
     });
 
-    // In a production LiveKit setup, we would generate a token with publish permissions
-    // using livekit-server-sdk. Here we supply the deterministic credentials.
-    const hostToken = `mock-livekit-host-token-${crypto.randomBytes(16).toString('hex')}`;
+    const { token: hostToken } = livekitService.createHostToken(
+      req.user.id,
+      req.user.displayName,
+      roomName
+    );
 
     res.status(201).json({
       success: true,
@@ -101,8 +103,11 @@ export async function getViewerToken(
       throw new NotFoundError('Live session is not active');
     }
 
-    // Scoped viewer token (subscriber-only grant)
-    const viewerToken = `mock-livekit-viewer-token-${crypto.randomBytes(16).toString('hex')}`;
+    const { token: viewerToken } = livekitService.createViewerToken(
+      req.user.id,
+      req.user.displayName,
+      session.roomName
+    );
 
     res.status(200).json({
       success: true,
@@ -115,4 +120,3 @@ export async function getViewerToken(
     next(error);
   }
 }
-
