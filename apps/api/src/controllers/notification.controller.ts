@@ -72,3 +72,4 @@ export async function markAllAsRead(req: Request, res: Response, next: NextFunct
     next(error);
   }
 }
+

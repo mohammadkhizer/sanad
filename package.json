@@ -8,12 +8,16 @@
     "apps/*"
   ],
   "scripts": {
+    "start": "npx expo start apps/mobile -c",
+    "android": "npx expo start apps/mobile --android",
+    "ios": "npx expo start apps/mobile --ios",
+    "web": "npx expo start apps/mobile --web",
     "build:types": "npm --workspace=@sanad/types run build",
     "build:api": "npm --workspace=@sanad/api run build",
     "build": "npm run build:types && npm run build:api",
     "test": "npm --workspace=@sanad/api run test",
     "dev:api": "npm --workspace=@sanad/api run dev",
-    "dev:mobile": "npm --workspace=sanad-mobile start",
+    "dev:mobile": "npx expo start apps/mobile -c",
     "lint:api": "npm --workspace=@sanad/api run lint",
     "lint:mobile": "npm --workspace=sanad-mobile run lint"
   },
@@ -21,4 +25,3 @@
     "typescript": "^5.5.4"
   }
 }
-
