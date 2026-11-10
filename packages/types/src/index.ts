@@ -26,9 +26,12 @@ export const TwoFactorAuthSchema = z.object({
 });
 export type TwoFactorAuth = z.infer<typeof TwoFactorAuthSchema>;
 
+export const UsernameRegex = /^[a-z0-9_]{3,30}$/;
+
 export const UserSchema = z.object({
   id: z.string(),
   email: z.string().email(),
+  username: z.string().regex(UsernameRegex, 'Username must be 3-30 lowercase alphanumeric characters or underscores').optional(),
   phone: z.string().optional(),
   displayName: z.string().min(2).max(100),
   avatarUrl: z.string().url().optional(),
@@ -49,6 +52,7 @@ export type User = z.infer<typeof UserSchema>;
 // Auth Request Schemas
 export const RegisterRequestSchema = z.object({
   email: z.string().email(),
+  username: z.string().regex(UsernameRegex, 'Username must be 3-30 lowercase alphanumeric characters or underscores').optional(),
   password: z
     .string()
     .min(10, 'Password must be at least 10 characters long')
@@ -57,6 +61,11 @@ export const RegisterRequestSchema = z.object({
   phone: z.string().optional(),
 });
 export type RegisterRequest = z.infer<typeof RegisterRequestSchema>;
+
+export const CheckUsernameQuerySchema = z.object({
+  username: z.string().min(3).max(30),
+});
+export type CheckUsernameQuery = z.infer<typeof CheckUsernameQuerySchema>;
 
 export const LoginRequestSchema = z.object({
   email: z.string().email(),

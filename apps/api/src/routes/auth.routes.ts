@@ -9,6 +9,7 @@ import {
   setup2FA,
   verify2FA,
   deleteAccount,
+  checkUsername,
 } from '../controllers/auth.controller';
 import { authenticate } from '../middlewares/auth';
 import { validateBody } from '../middlewares/validate';
@@ -23,6 +24,7 @@ import {
 const router = Router();
 
 router.post('/register', validateBody(RegisterRequestSchema), register);
+router.get('/check-username', checkUsername);
 router.post('/verify-otp', validateBody(VerifyOtpRequestSchema), verifyOtp);
 router.post('/login', validateBody(LoginRequestSchema), login);
 router.post('/refresh', validateBody(RefreshTokenRequestSchema), refreshToken);

@@ -3,6 +3,7 @@ import { Role, UserStatus } from '@sanad/types';
 
 export interface IUser extends Document {
   email: string;
+  username?: string;
   phone?: string;
   passwordHash: string;
   displayName: string;
@@ -36,6 +37,14 @@ const UserSchema = new Schema<IUser>(
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
+      trim: true,
+      index: true,
+    },
+    username: {
+      type: String,
+      unique: true,
+      sparse: true,
       lowercase: true,
       trim: true,
       index: true,

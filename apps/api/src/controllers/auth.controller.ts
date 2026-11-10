@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { User } from '../models/User';
 import { RefreshToken } from '../models/RefreshToken';
 import { AuditLog } from '../models/Moderation';
+import { usernameService } from '../services/bloomFilter.service';
 import {
   hashPassword,
   verifyPassword,
@@ -51,16 +52,24 @@ async function createTokenPair(userId: string, roles: string[], tokenVersion: nu
 
 export async function register(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { email, password, displayName, phone } = req.body;
+    const { email, username, password, displayName, phone } = req.body;
 
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       throw new ConflictError('An account with this email already exists', 'EMAIL_EXISTS');
     }
 
+    if (username) {
+      const availability = await usernameService.checkAvailability(username);
+      if (!availability.available) {
+        throw new ConflictError(availability.reason || 'Username unavailable', 'USERNAME_UNAVAILABLE');
+      }
+    }
+
     const passwordHash = await hashPassword(password);
     const user = await User.create({
       email: email.toLowerCase(),
+      username: username ? username.toLowerCase() : undefined,
       phone,
       passwordHash,
       displayName,
@@ -68,6 +77,10 @@ export async function register(req: Request, res: Response, next: NextFunction):
       status: 'active',
       tokenVersion: 1,
     });
+
+    if (user.username) {
+      usernameService.registerUsername(user.username);
+    }
 
     const tokens = await createTokenPair(user.id, user.roles, user.tokenVersion);
 
@@ -391,6 +404,28 @@ export async function deleteAccount(req: Request, res: Response, next: NextFunct
     res.status(200).json({
       success: true,
       data: { message: 'Account successfully scheduled for deletion' },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function checkUsername(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const username = (req.query.username as string) || '';
+    const result = await usernameService.checkAvailability(username);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        username: username.toLowerCase(),
+        available: result.available,
+        reason: result.reason,
+      },
     });
   } catch (error) {
     next(error);
