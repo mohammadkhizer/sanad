@@ -55,3 +55,4 @@ export function errorHandler(
     message: 'An unexpected internal error occurred',
   });
 }
+

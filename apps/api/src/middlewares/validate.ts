@@ -24,3 +24,4 @@ export function validateQuery<T>(schema: ZodSchema<T>) {
     next();
   };
 }
+

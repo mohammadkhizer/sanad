@@ -22,3 +22,4 @@ export function generateAccessToken(userId: string, roles: Role[], tokenVersion:
 export function verifyAccessToken(token: string): JwtPayload {
   return jwt.verify(token, config.jwt.accessSecret) as JwtPayload;
 }
+

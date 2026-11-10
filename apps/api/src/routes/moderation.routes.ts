@@ -9,3 +9,4 @@ const router = Router();
 router.post('/', authenticate, validateBody(CreateReportSchema), createReport);
 
 export const moderationRouter = router;
+

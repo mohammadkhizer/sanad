@@ -26,3 +26,4 @@ router.post('/:id/block', authenticate, blockUser);
 router.delete('/:id/block', authenticate, unblockUser);
 
 export const usersRouter = router;
+

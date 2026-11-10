@@ -349,3 +349,4 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.fontSize.sm,
   },
 });
+

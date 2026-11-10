@@ -69,3 +69,4 @@ const BlockSchema = new Schema<IBlock>(
 BlockSchema.index({ blockerId: 1, blockedId: 1 }, { unique: true });
 
 export const Block = mongoose.model<IBlock>('Block', BlockSchema);
+

@@ -396,3 +396,4 @@ export async function deleteAccount(req: Request, res: Response, next: NextFunct
     next(error);
   }
 }
+

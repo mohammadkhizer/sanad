@@ -115,3 +115,4 @@ export async function getViewerToken(
     next(error);
   }
 }
+

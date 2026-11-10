@@ -70,3 +70,4 @@ export function decryptSecret(cipherText: string): string {
   decrypted += decipher.final('utf8');
   return decrypted;
 }
+

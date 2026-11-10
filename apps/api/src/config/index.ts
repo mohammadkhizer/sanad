@@ -15,3 +15,4 @@ export const config = {
   totpEncryptionKey: process.env.TOTP_ENCRYPTION_KEY || 'sanad_32_byte_totp_encryption_secret_key!',
   corsOrigin: process.env.CORS_ORIGIN || '*',
 };
+

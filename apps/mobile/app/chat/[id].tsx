@@ -247,3 +247,4 @@ const styles = StyleSheet.create({
     minWidth: 70,
   },
 });
+

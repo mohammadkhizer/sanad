@@ -124,3 +124,4 @@ export function require2FA(req: Request, _res: Response, next: NextFunction): vo
 
   next();
 }
+

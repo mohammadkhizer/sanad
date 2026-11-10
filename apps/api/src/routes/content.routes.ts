@@ -58,3 +58,4 @@ router.get('/:id/comments', optionalAuth, getComments);
 router.post('/:id/comments', authenticate, validateBody(CreateCommentSchema), createComment);
 
 export const contentRouter = router;
+

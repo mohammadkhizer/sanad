@@ -47,3 +47,4 @@ app.use((_req: Request, _res: Response, next) => {
 app.use(errorHandler);
 
 export { app };
+

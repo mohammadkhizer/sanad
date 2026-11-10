@@ -34,3 +34,4 @@ router.post('/2fa/setup', authenticate, setup2FA);
 router.post('/2fa/verify', authenticate, validateBody(TwoFactorVerifySchema), verify2FA);
 
 export const authRouter = router;
+

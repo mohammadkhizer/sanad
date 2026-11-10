@@ -24,3 +24,4 @@ router.post('/:id/end', authenticate, endLive);
 router.post('/:id/token', authenticate, getViewerToken);
 
 export const liveRouter = router;
+
