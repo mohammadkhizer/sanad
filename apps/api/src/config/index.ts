@@ -14,5 +14,20 @@ export const config = {
   },
   totpEncryptionKey: process.env.TOTP_ENCRYPTION_KEY || 'sanad_32_byte_totp_encryption_secret_key!',
   corsOrigin: process.env.CORS_ORIGIN || '*',
+  storage: {
+    endpoint: process.env.STORAGE_ENDPOINT || 'https://storage.sanad.app',
+    bucket: process.env.STORAGE_BUCKET || 'sanad-private-credentials',
+    accessKey: process.env.STORAGE_ACCESS_KEY || 'sanad_storage_access_key',
+    secretKey: process.env.STORAGE_SECRET_KEY || 'sanad_storage_secret_key',
+  },
+  mux: {
+    tokenId: process.env.MUX_TOKEN_ID || 'mock_mux_token_id',
+    tokenSecret: process.env.MUX_TOKEN_SECRET || 'mock_mux_token_secret',
+    webhookSecret: process.env.MUX_WEBHOOK_SECRET || 'mock_mux_webhook_secret_key_123',
+  },
+  livekit: {
+    apiKey: process.env.LIVEKIT_API_KEY || 'sanad_livekit_api_key',
+    apiSecret: process.env.LIVEKIT_API_SECRET || 'sanad_livekit_api_secret_key_very_long_and_secure',
+  },
 };
 
