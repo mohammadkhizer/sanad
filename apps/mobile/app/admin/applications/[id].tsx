@@ -8,6 +8,7 @@ import { Button } from '../../../src/components/Button';
 import { Input } from '../../../src/components/Input';
 import { Avatar } from '../../../src/components/Avatar';
 import { AppHeader } from '../../../src/components/AppHeader';
+import { AccessGuard } from '../../../src/components/AccessGuard';
 import { Icon } from '../../../src/components/Icon';
 import { api } from '../../../src/api';
 import { ScholarApplicationEntity } from '@sanad/shared';
@@ -67,7 +68,12 @@ export default function ApplicationReviewDetailScreen() {
   const applicantName = applicant?.displayName || 'Scholar Applicant';
 
   return (
-    <View style={styles.screen}>
+    <AccessGuard
+      requiredRole={['admin', 'moderator']}
+      title="Applicant Dossier"
+      subtitle="Moderation Clearance"
+    >
+      <View style={styles.screen}>
       <AppHeader
         title="Applicant Dossier"
         subtitle={applicantName}
@@ -172,6 +178,7 @@ export default function ApplicationReviewDetailScreen() {
         </Card>
       </ScrollView>
     </View>
+    </AccessGuard>
   );
 }
 

@@ -73,6 +73,7 @@ const authMock: AuthModule = {
       displayName: input.displayName,
       email: input.email,
       phone: input.phone,
+      dateOfBirth: input.dateOfBirth,
       roles: ['member'],
       status: 'active',
       createdAt: new Date().toISOString(),

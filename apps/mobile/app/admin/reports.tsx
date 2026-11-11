@@ -13,6 +13,7 @@ import { api } from '../../src/api';
 import { colors } from '../../src/theme/colors';
 import { Card } from '../../src/components/Card';
 import { AppHeader } from '../../src/components/AppHeader';
+import { AccessGuard } from '../../src/components/AccessGuard';
 import { Icon } from '../../src/components/Icon';
 import { EmptyState } from '../../src/components/EmptyState';
 import { ReportEntity } from '@sanad/shared';
@@ -29,7 +30,12 @@ export default function AdminReportsScreen() {
   const list = reports || [];
 
   return (
-    <View style={styles.screen}>
+    <AccessGuard
+      requiredRole={['admin', 'moderator']}
+      title="Trust and Safety"
+      subtitle="Moderation Clearance Required"
+    >
+      <View style={styles.screen}>
       <AppHeader
         title="Trust and Safety"
         subtitle="Reported Content and Conduct"
@@ -110,6 +116,7 @@ export default function AdminReportsScreen() {
         />
       )}
     </View>
+    </AccessGuard>
   );
 }
 

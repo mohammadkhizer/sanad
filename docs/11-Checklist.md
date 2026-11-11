@@ -40,7 +40,7 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [x] **Gate:** invalid config blocks startup; errors are consistent
 
 ## 3. Authentication
-- [x] Register and OTP verification (email/phone)
+- [x] Register and OTP verification (email/phone) with Date of Birth and minimum age validation (13+ years)
 - [x] Bloom filter username availability check on registration
 - [x] Password hashing with argon2
 - [x] Login with generic error messages (no user enumeration)
@@ -67,6 +67,7 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [x] Audit log for role and moderation actions
 - [x] Tests cover every cell of the permission matrix
 - [x] No endpoint is missing an auth/permission guard (route audit done)
+- [x] Mobile route guards and AccessGuard wrapper protecting scholar and administrative consoles
 - [x] **Gate:** member cannot call scholar endpoints; revoked scholar blocked immediately
 
 ## 5. Scholar Verification
@@ -87,9 +88,10 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [x] Theme tokens: 60% ivory, 30% emerald, 10% gold (light and dark)
 - [x] Gold used only as fill with dark text (contrast verified)
 - [x] i18n: English, Arabic, Urdu with RTL
-- [x] Auth screens complete (onboarding, login, register, OTP, 2FA, reset)
-- [x] Route guards by role; Create tab only for scholars
-- [x] Shared components: Button, Input, Card, Avatar, VerifiedBadge, Skeleton, EmptyState
+- [x] Auth screens complete (onboarding, login, register with DOB, OTP, 2FA, reset)
+- [x] Route guards by role; Create tab only for scholars; AccessGuard on admin/scholar screens
+- [x] Shared components: Button, Input, Card, Avatar, VerifiedBadge, Skeleton, EmptyState, AppHeader, Icon, AccessGuard
+- [x] Deprecated SafeAreaView warning resolved with react-native-safe-area-context
 - [x] Loading, empty and error states on every screen
 - [x] **Gate:** guests/members/scholars each see the correct UI
 
@@ -180,7 +182,7 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [x] Data export for users
 - [x] Consent for recording/live shown
 - [x] Data retention schedule documented
-- [x] Children's data stance defined (minimum age enforced)
+- [x] Children's data stance defined (minimum age 13 enforced on register schema and UI)
 - [x] Store privacy labels / data safety form accurate
 - [x] UGC requirements: report, block, moderation contact
 

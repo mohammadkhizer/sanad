@@ -49,6 +49,7 @@ export class AuthService {
       phone: input.phone,
       passwordHash,
       displayName: input.displayName,
+      dateOfBirth: input.dateOfBirth ? new Date(input.dateOfBirth) : undefined,
       roles: ['member'],
       status: 'active',
     });

@@ -7,6 +7,7 @@ import { Input } from '../../src/components/Input';
 import { Avatar } from '../../src/components/Avatar';
 import { VerifiedBadge } from '../../src/components/VerifiedBadge';
 import { AppHeader } from '../../src/components/AppHeader';
+import { AccessGuard } from '../../src/components/AccessGuard';
 import { Icon } from '../../src/components/Icon';
 import { api } from '../../src/api';
 import { UserEntity, Role } from '@sanad/shared';
@@ -71,7 +72,12 @@ export default function RoleManagementScreen() {
   };
 
   return (
-    <View style={styles.screen}>
+    <AccessGuard
+      requiredRole="admin"
+      title="Access Control"
+      subtitle="Administrator Clearance Required"
+    >
+      <View style={styles.screen}>
       <AppHeader
         title="Access Control"
         subtitle="Staff and Role Governance (RBAC)"
@@ -137,6 +143,7 @@ export default function RoleManagementScreen() {
         }
       />
     </View>
+    </AccessGuard>
   );
 }
 

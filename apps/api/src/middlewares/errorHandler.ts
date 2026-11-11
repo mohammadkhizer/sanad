@@ -25,15 +25,16 @@ export function errorHandler(
     return;
   }
 
-  if (err instanceof ZodError) {
+  if (err.name === 'ZodError' || err instanceof ZodError) {
+    const zodErr = err as ZodError;
     res.status(400).json({
       code: 'VALIDATION_ERROR',
       message: 'Request validation failed',
-      details: err.errors,
+      details: zodErr.errors,
       error: {
         code: 'VALIDATION_ERROR',
         message: 'Request validation failed',
-        details: err.errors,
+        details: zodErr.errors,
       },
     });
     return;

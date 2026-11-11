@@ -1,11 +1,11 @@
 # Graph Report - sanad  (2026-11-11)
 
 ## Corpus Check
-- 121 files · ~60,062 words
+- 123 files · ~61,057 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 320 nodes · 331 edges · 16 communities detected
+- 322 nodes · 332 edges · 16 communities detected
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 12 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
@@ -90,20 +90,20 @@ Cohesion: 0.25
 Nodes (1): MockRealtimeClient
 
 ### Community 10 - "Community 10"
+Cohesion: 0.25
+Nodes (2): useCan(), can()
+
+### Community 11 - "Community 11"
 Cohesion: 0.39
 Nodes (1): LiveController
 
-### Community 11 - "Community 11"
+### Community 12 - "Community 12"
 Cohesion: 0.25
 Nodes (1): ScholarController
 
-### Community 12 - "Community 12"
+### Community 13 - "Community 13"
 Cohesion: 0.25
 Nodes (1): UsersController
-
-### Community 13 - "Community 13"
-Cohesion: 0.29
-Nodes (2): useCan(), can()
 
 ### Community 14 - "Community 14"
 Cohesion: 0.47
@@ -130,13 +130,13 @@ Nodes (1): MockMediaSession
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 9`** (9 nodes): `MockRealtimeClient`, `.connect()`, `.disconnect()`, `.emit()`, `.joinRoom()`, `.leaveRoom()`, `.on()`, `.trigger()`, `realtime.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 10`** (8 nodes): `LiveController`, `.createLiveKitToken()`, `.endLive()`, `.getActiveLives()`, `.getViewerToken()`, `.initiateCall()`, `.respondCall()`, `.startLive()`
+- **Thin community `Community 10`** (9 nodes): `useCan.ts`, `useCan()`, `permissions.test.ts`, `permissions.ts`, `roles.ts`, `schemas.test.ts`, `schemas.ts`, `can()`, `createPaginatedResponseSchema()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 11`** (8 nodes): `ScholarController`, `.decideApplication()`, `.endorseScholar()`, `.getMyApplication()`, `.getUploadUrl()`, `.listApplications()`, `.revokeScholar()`, `.submitApplication()`
+- **Thin community `Community 11`** (8 nodes): `LiveController`, `.createLiveKitToken()`, `.endLive()`, `.getActiveLives()`, `.getViewerToken()`, `.initiateCall()`, `.respondCall()`, `.startLive()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 12`** (8 nodes): `UsersController`, `.blockUser()`, `.followUser()`, `.getMe()`, `.getUser()`, `.unblockUser()`, `.unfollowUser()`, `.updateMe()`
+- **Thin community `Community 12`** (8 nodes): `ScholarController`, `.decideApplication()`, `.endorseScholar()`, `.getMyApplication()`, `.getUploadUrl()`, `.listApplications()`, `.revokeScholar()`, `.submitApplication()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 13`** (8 nodes): `useCan.ts`, `useCan()`, `permissions.test.ts`, `permissions.ts`, `roles.ts`, `schemas.ts`, `can()`, `createPaginatedResponseSchema()`
+- **Thin community `Community 13`** (8 nodes): `UsersController`, `.blockUser()`, `.followUser()`, `.getMe()`, `.getUser()`, `.unblockUser()`, `.unfollowUser()`, `.updateMe()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 14`** (6 nodes): `MemoryRedisMock`, `.del()`, `.expire()`, `.get()`, `.incr()`, `.set()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -149,11 +149,11 @@ Nodes (1): MockMediaSession
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `AuthService` connect `Community 1` to `Community 0`?**
-  _High betweenness centrality (0.111) - this node is a cross-community bridge._
+  _High betweenness centrality (0.109) - this node is a cross-community bridge._
 - **Why does `handleLogout()` connect `Community 1` to `Community 8`?**
   _High betweenness centrality (0.044) - this node is a cross-community bridge._
 - **Why does `ContentController` connect `Community 5` to `Community 0`?**
-  _High betweenness centrality (0.039) - this node is a cross-community bridge._
+  _High betweenness centrality (0.038) - this node is a cross-community bridge._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.1 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**

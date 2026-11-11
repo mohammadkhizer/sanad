@@ -7,6 +7,7 @@ export interface IUser extends Document {
   phone?: string;
   passwordHash: string;
   displayName: string;
+  dateOfBirth?: Date;
   avatarUrl?: string;
   bio?: string;
   roles: Role[];
@@ -34,6 +35,7 @@ const userSchema = new Schema<IUser>(
     phone: { type: String, unique: true, sparse: true, trim: true },
     passwordHash: { type: String, required: true },
     displayName: { type: String, required: true, trim: true },
+    dateOfBirth: { type: Date },
     avatarUrl: { type: String },
     bio: { type: String, default: '' },
     roles: {

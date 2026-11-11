@@ -14,6 +14,7 @@ import { api } from '../../src/api';
 import { colors } from '../../src/theme/colors';
 import { Card } from '../../src/components/Card';
 import { AppHeader } from '../../src/components/AppHeader';
+import { AccessGuard } from '../../src/components/AccessGuard';
 import { Icon } from '../../src/components/Icon';
 import { EmptyState } from '../../src/components/EmptyState';
 import { ScholarApplicationEntity } from '@sanad/shared';
@@ -73,7 +74,12 @@ export default function ReviewQueueScreen() {
   };
 
   return (
-    <View style={styles.screen}>
+    <AccessGuard
+      requiredRole={['admin', 'moderator']}
+      title="Scholar Admissions"
+      subtitle="Moderation Clearance"
+    >
+      <View style={styles.screen}>
       <AppHeader
         title="Scholar Admissions"
         subtitle="Verification and Dossier Queue"
@@ -177,6 +183,7 @@ export default function ReviewQueueScreen() {
         />
       )}
     </View>
+    </AccessGuard>
   );
 }
 

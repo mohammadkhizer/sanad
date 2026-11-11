@@ -15,6 +15,20 @@ export const registerSchema = z.object({
     .min(10, 'Password must be at least 10 characters long')
     .max(128, 'Password cannot exceed 128 characters'),
   displayName: z.string().trim().min(2, 'Name must be at least 2 characters').max(50),
+  dateOfBirth: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date of birth must be in YYYY-MM-DD format')
+    .refine((dob) => {
+      const birthDate = new Date(dob);
+      if (isNaN(birthDate.getTime())) return false;
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age >= 13;
+    }, 'Must be at least 13 years old to register'),
 }).refine((data) => data.email || data.phone, {
   message: 'Either email or phone must be provided',
   path: ['email'],
@@ -231,6 +245,7 @@ export const userEntitySchema = z.object({
   displayName: z.string(),
   email: z.string().optional(),
   phone: z.string().optional(),
+  dateOfBirth: z.string().optional(),
   avatarUrl: z.string().optional(),
   bio: z.string().optional(),
   roles: z.array(z.enum(['guest', 'member', 'scholar', 'moderator', 'admin'])),

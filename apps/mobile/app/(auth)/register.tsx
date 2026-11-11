@@ -13,13 +13,37 @@ export default function RegisterScreen() {
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleRegister = async () => {
-    if (!displayName.trim() || (!email.trim() && !phone.trim()) || !password.trim()) {
-      setError('Please provide name, password, and email or phone');
+    if (!displayName.trim() || (!email.trim() && !phone.trim()) || !password.trim() || !dateOfBirth.trim()) {
+      setError('Please provide name, email or phone, date of birth, and password');
+      return;
+    }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth.trim())) {
+      setError('Date of birth must be in YYYY-MM-DD format (e.g. 2000-01-15)');
+      return;
+    }
+
+    const birthDate = new Date(dateOfBirth.trim());
+    if (isNaN(birthDate.getTime())) {
+      setError('Invalid date of birth provided');
+      return;
+    }
+
+    const today = new Date();
+    let calculatedAge = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      calculatedAge--;
+    }
+
+    if (calculatedAge < 13) {
+      setError('Learners must be at least 13 years of age to register on Sanad');
       return;
     }
 
@@ -37,6 +61,7 @@ export default function RegisterScreen() {
         displayName: displayName.trim(),
         email: email.trim() || undefined,
         phone: phone.trim() || undefined,
+        dateOfBirth: dateOfBirth.trim(),
         password,
       });
 
@@ -91,6 +116,19 @@ export default function RegisterScreen() {
             onChangeText={setPhone}
             keyboardType="phone-pad"
           />
+
+          <View>
+            <Input
+              label="Date of Birth (YYYY-MM-DD) *"
+              placeholder="e.g. 2000-01-15"
+              value={dateOfBirth}
+              onChangeText={setDateOfBirth}
+              maxLength={10}
+            />
+            <Text style={styles.hintText}>
+              Required for safety and compliance. Learners must be at least 13 years of age.
+            </Text>
+          </View>
 
           <Input
             label="Password (Minimum 10 Characters) *"
@@ -149,6 +187,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  hintText: {
+    fontSize: 11,
+    color: colors.light.textSecondary,
+    marginTop: 4,
+    lineHeight: 15,
   },
   submitBtn: {
     marginTop: 6,

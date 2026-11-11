@@ -7,6 +7,7 @@ import { Card } from '../../../src/components/Card';
 import { Button } from '../../../src/components/Button';
 import { Input } from '../../../src/components/Input';
 import { AppHeader } from '../../../src/components/AppHeader';
+import { AccessGuard } from '../../../src/components/AccessGuard';
 import { Icon } from '../../../src/components/Icon';
 import { api } from '../../../src/api';
 import { ReportEntity } from '@sanad/shared';
@@ -66,7 +67,12 @@ export default function ReportDetailActionScreen() {
   const isP0 = report.priority === 'P0';
 
   return (
-    <View style={styles.screen}>
+    <AccessGuard
+      requiredRole={['admin', 'moderator']}
+      title="Moderation Action"
+      subtitle="Moderation Clearance"
+    >
+      <View style={styles.screen}>
       <AppHeader
         title="Moderation Action"
         subtitle={`Incident ${id || 'rep_501'}`}
@@ -174,6 +180,7 @@ export default function ReportDetailActionScreen() {
         </Card>
       </ScrollView>
     </View>
+    </AccessGuard>
   );
 }
 

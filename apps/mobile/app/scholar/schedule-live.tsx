@@ -7,6 +7,7 @@ import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
 import { Card } from '../../src/components/Card';
 import { AppHeader } from '../../src/components/AppHeader';
+import { AccessGuard } from '../../src/components/AccessGuard';
 import { Icon } from '../../src/components/Icon';
 import { api } from '../../src/api';
 
@@ -41,7 +42,12 @@ export default function ScheduleLiveScreen() {
   });
 
   return (
-    <View style={styles.screen}>
+    <AccessGuard
+      requiredRole="scholar"
+      title="Schedule Halaqah"
+      subtitle="Accredited Scholar Portal"
+    >
+      <View style={styles.screen}>
       <AppHeader
         title="Schedule Halaqah"
         subtitle="Plan Live Interactive Session"
@@ -97,6 +103,7 @@ export default function ScheduleLiveScreen() {
         </Card>
       </ScrollView>
     </View>
+    </AccessGuard>
   );
 }
 

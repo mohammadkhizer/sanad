@@ -5,6 +5,7 @@ import { Card } from '../../src/components/Card';
 import { Button } from '../../src/components/Button';
 import { Input } from '../../src/components/Input';
 import { AppHeader } from '../../src/components/AppHeader';
+import { AccessGuard } from '../../src/components/AccessGuard';
 
 export default function AdminConfigScreen() {
   const [minStatementLen, setMinStatementLen] = useState('20');
@@ -19,7 +20,12 @@ export default function AdminConfigScreen() {
   };
 
   return (
-    <View style={styles.screen}>
+    <AccessGuard
+      requiredRole="admin"
+      title="Platform Policy"
+      subtitle="Security Clearance Required"
+    >
+      <View style={styles.screen}>
       <AppHeader
         title="Platform Policy"
         subtitle="Verification and Content Parameters"
@@ -107,6 +113,7 @@ export default function AdminConfigScreen() {
         />
       </ScrollView>
     </View>
+    </AccessGuard>
   );
 }
 

@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { colors } from '../../src/theme/colors';
 import { Card } from '../../src/components/Card';
 import { AppHeader } from '../../src/components/AppHeader';
+import { AccessGuard } from '../../src/components/AccessGuard';
 import { Icon } from '../../src/components/Icon';
 import { api } from '../../src/api';
 import { AuditLogEntity } from '@sanad/shared';
@@ -22,7 +23,12 @@ export default function AuditLogsScreen() {
   }) || [];
 
   return (
-    <View style={styles.screen}>
+    <AccessGuard
+      requiredRole="admin"
+      title="Audit Trail"
+      subtitle="Security Clearance Required"
+    >
+      <View style={styles.screen}>
       <AppHeader
         title="Audit Trail"
         subtitle="Immutable Platform Governance Log"
@@ -96,6 +102,7 @@ export default function AuditLogsScreen() {
         }
       />
     </View>
+    </AccessGuard>
   );
 }
 

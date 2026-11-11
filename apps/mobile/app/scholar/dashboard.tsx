@@ -5,6 +5,7 @@ import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
 import { Card } from '../../src/components/Card';
 import { AppHeader } from '../../src/components/AppHeader';
+import { AccessGuard } from '../../src/components/AccessGuard';
 import { Icon } from '../../src/components/Icon';
 import { colors } from '../../src/theme/colors';
 import { api } from '../../src/api';
@@ -65,7 +66,12 @@ export default function ScholarDashboardScreen() {
   };
 
   return (
-    <View style={styles.screen}>
+    <AccessGuard
+      requiredRole="scholar"
+      title="Scholar Studio"
+      subtitle="Accredited Scholar Portal"
+    >
+      <View style={styles.screen}>
       <AppHeader
         title="Scholar Studio"
         subtitle="Broadcast and Curriculum Control"
@@ -186,6 +192,7 @@ export default function ScholarDashboardScreen() {
         </Card>
       </ScrollView>
     </View>
+    </AccessGuard>
   );
 }
 

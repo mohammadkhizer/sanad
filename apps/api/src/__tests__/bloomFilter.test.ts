@@ -92,6 +92,7 @@ describe('Username Bloom Filter Availability Engine', () => {
           email: 'test_taken@example.com',
           password: 'Password12345!',
           displayName: 'Test Scholar',
+          dateOfBirth: '1990-01-01',
         });
 
       expect(res.status).toBe(409);
