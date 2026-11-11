@@ -1,27 +1,27 @@
 # Graph Report - .  (2026-11-11)
 
 ## Corpus Check
-- Corpus is ~28,697 words - fits in a single context window. You may not need a graph.
+- Corpus is ~32,424 words - fits in a single context window. You may not need a graph.
 
 ## Summary
-- 219 nodes · 267 edges · 13 communities detected
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 7 edges (avg confidence: 0.8)
+- 235 nodes · 276 edges · 13 communities detected
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 8 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
-- [[_COMMUNITY_app.ts  db.ts|app.ts / db.ts]]
-- [[_COMMUNITY_auth.controller.ts  auth.model.ts|auth.controller.ts / auth.model.ts]]
-- [[_COMMUNITY_login.tsx  otp.tsx|login.tsx / otp.tsx]]
-- [[_COMMUNITY_apiClient()  onRefreshed()|apiClient() / onRefreshed()]]
-- [[_COMMUNITY_errors.ts  AppError|errors.ts / AppError]]
-- [[_COMMUNITY_AuthController  .checkUsername()|AuthController / .checkUsername()]]
-- [[_COMMUNITY_ContentController  .addComment()|ContentController / .addComment()]]
-- [[_COMMUNITY_messaging.controller.ts  messaging.model.ts|messaging.controller.ts / messaging.model.ts]]
-- [[_COMMUNITY_auditLog.ts  moderation.model.ts|auditLog.ts / moderation.model.ts]]
-- [[_COMMUNITY_LiveController  .createLiveKitToken()|LiveController / .createLiveKitToken()]]
-- [[_COMMUNITY_ScholarController  .decideApplication()|ScholarController / .decideApplication()]]
-- [[_COMMUNITY_UsersController  .blockUser()|UsersController / .blockUser()]]
-- [[_COMMUNITY_MemoryRedisMock  .del()|MemoryRedisMock / .del()]]
+- [[_COMMUNITY_Community 1|Community 1]]
+- [[_COMMUNITY_Community 2|Community 2]]
+- [[_COMMUNITY_Community 3|Community 3]]
+- [[_COMMUNITY_Community 4|Community 4]]
+- [[_COMMUNITY_Community 5|Community 5]]
+- [[_COMMUNITY_Community 6|Community 6]]
+- [[_COMMUNITY_Community 7|Community 7]]
+- [[_COMMUNITY_Community 8|Community 8]]
+- [[_COMMUNITY_Community 9|Community 9]]
+- [[_COMMUNITY_Community 10|Community 10]]
+- [[_COMMUNITY_Community 11|Community 11]]
+- [[_COMMUNITY_Community 12|Community 12]]
+- [[_COMMUNITY_Community 13|Community 13]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `AuthController` - 12 edges
@@ -47,88 +47,88 @@
 
 ## Communities
 
-### Community 1 - "app.ts / db.ts"
+### Community 1 - "Community 1"
 Cohesion: 0.18
 Nodes (2): connectDB(), bootstrap()
 
-### Community 2 - "auth.controller.ts / auth.model.ts"
+### Community 2 - "Community 2"
 Cohesion: 0.2
 Nodes (2): BloomFilter, UsernameService
 
-### Community 3 - "login.tsx / otp.tsx"
-Cohesion: 0.18
-Nodes (3): AuthService, handleLogin(), handleVerify()
+### Community 3 - "Community 3"
+Cohesion: 0.15
+Nodes (4): AuthService, handleLogin(), handleVerify(), handleVerify()
 
-### Community 4 - "apiClient() / onRefreshed()"
-Cohesion: 0.17
-Nodes (5): apiClient(), onRefreshed(), handleSubmit(), handlePublish(), handleLogout()
-
-### Community 5 - "errors.ts / AppError"
+### Community 4 - "Community 4"
 Cohesion: 0.15
 Nodes (6): AppError, ConflictError, ForbiddenError, NotFoundError, UnauthorizedError, ValidationError
 
-### Community 6 - "AuthController / .checkUsername()"
+### Community 5 - "Community 5"
+Cohesion: 0.17
+Nodes (5): apiClient(), onRefreshed(), handleSubmit(), handlePublish(), handleLogout()
+
+### Community 6 - "Community 6"
 Cohesion: 0.18
 Nodes (1): AuthController
 
-### Community 7 - "ContentController / .addComment()"
+### Community 7 - "Community 7"
 Cohesion: 0.17
 Nodes (1): ContentController
 
-### Community 8 - "messaging.controller.ts / messaging.model.ts"
+### Community 8 - "Community 8"
 Cohesion: 0.18
 Nodes (1): MessagingController
 
-### Community 9 - "auditLog.ts / moderation.model.ts"
-Cohesion: 0.19
-Nodes (1): ModerationController
-
-### Community 10 - "LiveController / .createLiveKitToken()"
+### Community 9 - "Community 9"
 Cohesion: 0.39
 Nodes (1): LiveController
 
-### Community 11 - "ScholarController / .decideApplication()"
+### Community 10 - "Community 10"
 Cohesion: 0.25
 Nodes (1): ScholarController
 
-### Community 12 - "UsersController / .blockUser()"
+### Community 11 - "Community 11"
 Cohesion: 0.25
 Nodes (1): UsersController
 
-### Community 13 - "MemoryRedisMock / .del()"
+### Community 12 - "Community 12"
 Cohesion: 0.47
 Nodes (1): MemoryRedisMock
 
+### Community 13 - "Community 13"
+Cohesion: 0.33
+Nodes (1): ModerationController
+
 ## Knowledge Gaps
-- **Thin community `app.ts / db.ts`** (17 nodes): `app.ts`, `db.ts`, `env.ts`, `logger.ts`, `redis.ts`, `errorHandler.ts`, `requestId.ts`, `server.ts`, `bloomFilter.test.ts`, `health.test.ts`, `rbac.test.ts`, `connectDB()`, `disconnectDB()`, `errorHandler()`, `requestIdMiddleware()`, `bootstrap()`, `shutdown()`
+- **Thin community `Community 1`** (17 nodes): `app.ts`, `db.ts`, `env.ts`, `logger.ts`, `redis.ts`, `errorHandler.ts`, `requestId.ts`, `server.ts`, `bloomFilter.test.ts`, `health.test.ts`, `rbac.test.ts`, `connectDB()`, `disconnectDB()`, `errorHandler()`, `requestIdMiddleware()`, `bootstrap()`, `shutdown()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `auth.controller.ts / auth.model.ts`** (16 nodes): `auth.controller.ts`, `auth.model.ts`, `auth.service.ts`, `bloomFilter.service.ts`, `BloomFilter`, `.add()`, `.clear()`, `.constructor()`, `.getHashes()`, `.has()`, `UsernameService`, `.checkAvailability()`, `.constructor()`, `.getBloomFilter()`, `.initialize()`, `.registerUsername()`
+- **Thin community `Community 2`** (16 nodes): `auth.controller.ts`, `auth.model.ts`, `auth.service.ts`, `bloomFilter.service.ts`, `BloomFilter`, `.add()`, `.clear()`, `.constructor()`, `.getHashes()`, `.has()`, `UsernameService`, `.checkAvailability()`, `.constructor()`, `.getBloomFilter()`, `.initialize()`, `.registerUsername()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `AuthController / .checkUsername()`** (12 nodes): `AuthController`, `.checkUsername()`, `.deleteAccount()`, `.getSessions()`, `.login()`, `.logout()`, `.logoutAll()`, `.refresh()`, `.register()`, `.setup2FA()`, `.verify2FA()`, `.verifyOtp()`
+- **Thin community `Community 6`** (12 nodes): `AuthController`, `.checkUsername()`, `.deleteAccount()`, `.getSessions()`, `.login()`, `.logout()`, `.logoutAll()`, `.refresh()`, `.register()`, `.setup2FA()`, `.verify2FA()`, `.verifyOtp()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `ContentController / .addComment()`** (12 nodes): `ContentController`, `.addComment()`, `.createPost()`, `.deletePost()`, `.getComments()`, `.getFeed()`, `.getPostById()`, `.getUploadUrl()`, `.likePost()`, `.savePost()`, `.unlikePost()`, `.updatePost()`
+- **Thin community `Community 7`** (12 nodes): `ContentController`, `.addComment()`, `.createPost()`, `.deletePost()`, `.getComments()`, `.getFeed()`, `.getPostById()`, `.getUploadUrl()`, `.likePost()`, `.savePost()`, `.unlikePost()`, `.updatePost()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `messaging.controller.ts / messaging.model.ts`** (12 nodes): `messaging.controller.ts`, `messaging.model.ts`, `messaging.routes.ts`, `users.model.ts`, `socket.ts`, `MessagingController`, `.getConversations()`, `.getMessages()`, `.respondChatRequest()`, `.sendChatRequest()`, `.sendMessage()`, `setupSocketIO()`
+- **Thin community `Community 8`** (12 nodes): `messaging.controller.ts`, `messaging.model.ts`, `messaging.routes.ts`, `users.model.ts`, `socket.ts`, `MessagingController`, `.getConversations()`, `.getMessages()`, `.respondChatRequest()`, `.sendChatRequest()`, `.sendMessage()`, `setupSocketIO()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `auditLog.ts / moderation.model.ts`** (9 nodes): `auditLog.ts`, `moderation.model.ts`, `auditAction()`, `ModerationController`, `.createReport()`, `.getAuditLogs()`, `.handleReportAction()`, `.listReports()`, `.suspendUser()`
+- **Thin community `Community 9`** (8 nodes): `LiveController`, `.createLiveKitToken()`, `.endLive()`, `.getActiveLives()`, `.getViewerToken()`, `.initiateCall()`, `.respondCall()`, `.startLive()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `LiveController / .createLiveKitToken()`** (8 nodes): `LiveController`, `.createLiveKitToken()`, `.endLive()`, `.getActiveLives()`, `.getViewerToken()`, `.initiateCall()`, `.respondCall()`, `.startLive()`
+- **Thin community `Community 10`** (8 nodes): `ScholarController`, `.decideApplication()`, `.endorseScholar()`, `.getMyApplication()`, `.getUploadUrl()`, `.listApplications()`, `.revokeScholar()`, `.submitApplication()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `ScholarController / .decideApplication()`** (8 nodes): `ScholarController`, `.decideApplication()`, `.endorseScholar()`, `.getMyApplication()`, `.getUploadUrl()`, `.listApplications()`, `.revokeScholar()`, `.submitApplication()`
+- **Thin community `Community 11`** (8 nodes): `UsersController`, `.blockUser()`, `.followUser()`, `.getMe()`, `.getUser()`, `.unblockUser()`, `.unfollowUser()`, `.updateMe()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `UsersController / .blockUser()`** (8 nodes): `UsersController`, `.blockUser()`, `.followUser()`, `.getMe()`, `.getUser()`, `.unblockUser()`, `.unfollowUser()`, `.updateMe()`
+- **Thin community `Community 12`** (6 nodes): `MemoryRedisMock`, `.del()`, `.expire()`, `.get()`, `.incr()`, `.set()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `MemoryRedisMock / .del()`** (6 nodes): `MemoryRedisMock`, `.del()`, `.expire()`, `.get()`, `.incr()`, `.set()`
+- **Thin community `Community 13`** (6 nodes): `ModerationController`, `.createReport()`, `.getAuditLogs()`, `.handleReportAction()`, `.listReports()`, `.suspendUser()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `AuthService` connect `login.tsx / otp.tsx` to `auth.controller.ts / auth.model.ts`, `apiClient() / onRefreshed()`?**
-  _High betweenness centrality (0.166) - this node is a cross-community bridge._
-- **Why does `ContentController` connect `ContentController / .addComment()` to `auth.ts / rateLimiter.ts`?**
-  _High betweenness centrality (0.078) - this node is a cross-community bridge._
-- **Why does `AuthController` connect `AuthController / .checkUsername()` to `auth.controller.ts / auth.model.ts`?**
-  _High betweenness centrality (0.078) - this node is a cross-community bridge._
-- **Should `auth.ts / rateLimiter.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.12 - nodes in this community are weakly interconnected._
+- **Why does `AuthService` connect `Community 3` to `Community 2`, `Community 5`?**
+  _High betweenness centrality (0.156) - this node is a cross-community bridge._
+- **Why does `ContentController` connect `Community 7` to `Community 0`?**
+  _High betweenness centrality (0.069) - this node is a cross-community bridge._
+- **Why does `AuthController` connect `Community 6` to `Community 2`?**
+  _High betweenness centrality (0.069) - this node is a cross-community bridge._
+- **Should `Community 0` be split into smaller, more focused modules?**
+  _Cohesion score 0.11 - nodes in this community are weakly interconnected._

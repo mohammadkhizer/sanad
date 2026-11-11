@@ -28,7 +28,12 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          <Stack.Screen name="scholar/apply" options={{ presentation: 'modal', title: 'Apply as Scholar' }} />
+          <Stack.Screen name="scholar/apply" options={{ presentation: 'modal', title: 'Apply as Scholar', headerShown: true }} />
+          <Stack.Screen name="scholar/dashboard" options={{ headerShown: true, title: 'Scholar Panel' }} />
+          <Stack.Screen name="scholar/[id]" options={{ headerShown: true, title: 'Scholar Profile' }} />
+          <Stack.Screen name="post/[id]" options={{ headerShown: true, title: 'Lesson / Reel' }} />
+          <Stack.Screen name="settings/index" options={{ headerShown: true, title: 'Settings' }} />
+          <Stack.Screen name="settings/two-factor" options={{ headerShown: true, title: '2FA Setup' }} />
           <Stack.Screen name="chat/[id]" options={{ headerShown: true, title: 'Chat' }} />
           <Stack.Screen name="live/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="call/[id]" options={{ headerShown: false }} />

@@ -16,6 +16,7 @@ export default function AuthLayout() {
       <Stack.Screen name="register" options={{ title: 'Create Account' }} />
       <Stack.Screen name="otp" options={{ title: 'Verify OTP' }} />
       <Stack.Screen name="two-factor" options={{ title: 'Two-Factor Authentication' }} />
+      <Stack.Screen name="forgot-password" options={{ title: 'Forgot Password' }} />
     </Stack>
   );
 }

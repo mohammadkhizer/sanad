@@ -41,4 +41,5 @@ Thumbs.db
 
 # Graphify temporary caches
 graphify-out/.graphify_*
+graphify-out/cache/
 
