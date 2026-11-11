@@ -1,58 +1,52 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { theme } from '../../src/theme/colors';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
-import { apiFetch, ApiError } from '../../src/api/client';
-import { useAuthStore } from '../../src/store/authStore';
+import { colors } from '../../src/theme/colors';
+import { apiClient } from '../../src/api/client';
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const setAuth = useAuthStore((s) => s.setAuth);
 
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const handleRegister = async () => {
-    if (!displayName || !email || !password) {
-      setErrorMsg('Please complete all required fields.');
+    if (!displayName.trim() || (!email.trim() && !phone.trim()) || !password.trim()) {
+      setError('Please provide name, password, and email or phone');
       return;
     }
 
     if (password.length < 10) {
-      setErrorMsg('Password must be at least 10 characters long.');
+      setError('Password must be at least 10 characters long');
       return;
     }
 
-    setLoading(true);
-    setErrorMsg('');
-
     try {
-      const response = await apiFetch<any>('/auth/register', {
+      setLoading(true);
+      setError(null);
+
+      const res = await apiClient<{ message: string; identifier: string }>('/auth/register', {
         method: 'POST',
-        skipAuth: true,
         body: JSON.stringify({
-          displayName,
-          email,
+          displayName: displayName.trim(),
+          email: email.trim() || undefined,
+          phone: phone.trim() || undefined,
           password,
-          phone: phone || undefined,
         }),
       });
 
-      const { user, tokens } = response.data;
-      await setAuth(user, tokens.accessToken, tokens.refreshToken);
-      router.replace('/(tabs)/feed');
+      router.push({
+        pathname: '/(auth)/otp',
+        params: { identifier: res.identifier },
+      });
     } catch (err: any) {
-      if (err instanceof ApiError) {
-        setErrorMsg(err.message);
-      } else {
-        setErrorMsg('An error occurred during account creation.');
-      }
+      setError(err.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
@@ -60,68 +54,58 @@ export default function RegisterScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.formCard}>
+      <View style={styles.header}>
         <Text style={styles.title}>Join Sanad</Text>
-        <Text style={styles.subtext}>
-          Learn from verified scholars in an authenticated, respectful environment.
-        </Text>
+        <Text style={styles.subtitle}>Verified scholarship and trustworthy knowledge</Text>
+      </View>
 
-        {errorMsg ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{errorMsg}</Text>
-          </View>
-        ) : null}
+      <View style={styles.form}>
+        {Boolean(error) && <Text style={styles.errorBanner}>{error}</Text>}
 
         <Input
           label="Full Name"
-          placeholder="e.g. Abdullah bin Khalid"
+          placeholder="Abdullah Al-Mansoor"
           value={displayName}
           onChangeText={setDisplayName}
         />
 
         <Input
           label="Email Address"
-          placeholder="your.email@example.com"
-          keyboardType="email-address"
-          autoCapitalize="none"
+          placeholder="learner@example.com"
           value={email}
           onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
         />
 
         <Input
-          label="Phone Number (optional)"
+          label="Phone Number (Optional)"
           placeholder="+1234567890"
-          keyboardType="phone-pad"
           value={phone}
           onChangeText={setPhone}
+          keyboardType="phone-pad"
         />
 
         <Input
-          label="Password (min 10 characters)"
-          placeholder="Create a strong password"
-          secureTextEntry
+          label="Password"
+          placeholder="Min 10 characters"
           value={password}
           onChangeText={setPassword}
-          helperText="Requires at least 10 characters for platform security."
+          secureTextEntry
         />
 
         <Button
           title="Create Account"
-          variant="primary"
           onPress={handleRegister}
           loading={loading}
           style={styles.submitBtn}
         />
 
-        <View style={styles.switchRow}>
-          <Text style={styles.switchText}>Already registered?</Text>
-          <Button
-            title="Sign In"
-            variant="outline"
-            size="sm"
-            onPress={() => router.push('/(auth)/login')}
-            style={styles.switchBtn}
-          />
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Already have an account? </Text>
+          <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
+            <Text style={styles.footerLink}>Log In</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
@@ -131,57 +115,56 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    padding: theme.spacing.lg,
+    backgroundColor: colors.light.background,
+    padding: 24,
     justifyContent: 'center',
-    backgroundColor: theme.colors.background.light,
   },
-  formCard: {
-    backgroundColor: theme.colors.surface.light,
-    borderRadius: theme.radius.card,
-    padding: theme.spacing.lg,
-    borderWidth: 1,
-    borderColor: theme.colors.border.light,
+  header: {
+    marginBottom: 24,
+    alignItems: 'center',
   },
   title: {
-    fontSize: theme.typography.fontSize.xl,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
+    fontSize: 28,
+    fontWeight: '800',
+    color: colors.light.primary,
   },
-  subtext: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondaryLight,
+  subtitle: {
+    fontSize: 14,
+    color: colors.light.textSecondary,
     marginTop: 4,
-    marginBottom: theme.spacing.base,
+    textAlign: 'center',
   },
-  errorBox: {
-    backgroundColor: '#FDF2F2',
-    borderColor: theme.colors.semantic.error,
+  form: {
+    backgroundColor: colors.light.surface,
+    padding: 24,
+    borderRadius: 16,
     borderWidth: 1,
-    borderRadius: theme.radius.input,
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.base,
+    borderColor: colors.light.border,
   },
-  errorText: {
-    color: theme.colors.semantic.error,
-    fontSize: theme.typography.fontSize.sm,
+  errorBanner: {
+    backgroundColor: '#FEE2E2',
+    color: colors.light.error,
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    fontSize: 13,
   },
   submitBtn: {
-    marginTop: theme.spacing.sm,
+    marginTop: 8,
   },
-  switchRow: {
-    marginTop: theme.spacing.lg,
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border.light,
-    paddingTop: theme.spacing.base,
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 20,
   },
-  switchText: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondaryLight,
-    marginBottom: theme.spacing.sm,
+  footerText: {
+    color: colors.light.textSecondary,
+    fontSize: 14,
   },
-  switchBtn: {
-    width: '100%',
+  footerLink: {
+    color: colors.light.primary,
+    fontSize: 14,
+    fontWeight: '700',
   },
 });
 

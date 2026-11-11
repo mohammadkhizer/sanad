@@ -2,218 +2,193 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  FlatList,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
+  ActivityIndicator,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { theme } from '../../src/theme/colors';
-import { ScholarCard } from '../../src/components/ScholarCard';
+import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '../../src/api/client';
+import { colors } from '../../src/theme/colors';
+import { Card } from '../../src/components/Card';
+import { Avatar } from '../../src/components/Avatar';
+import { VerifiedBadge } from '../../src/components/VerifiedBadge';
 import { Input } from '../../src/components/Input';
-import { useAuthStore } from '../../src/store/authStore';
-
-const SPECIALTIES = ['All', 'Hadith', 'Fiqh', 'Tafsir', 'Aqeedah', 'Seerah', 'Ethics'];
-
-// Sample verified scholars catalogue for discovery
-const SAMPLE_SCHOLARS = [
-  {
-    id: 'scholar-1',
-    displayName: 'Dr. Ahmad Al-Qadi',
-    institution: 'Al-Azhar University, Faculty of Shariah',
-    specialties: ['Fiqh', 'Hadith', 'Ethics'],
-    avatarUrl: undefined,
-    isFollowing: false,
-  },
-  {
-    id: 'scholar-2',
-    displayName: 'Sheikh Omar Al-Madani',
-    institution: 'Islamic University of Madinah',
-    specialties: ['Hadith', 'Seerah'],
-    avatarUrl: undefined,
-    isFollowing: true,
-  },
-  {
-    id: 'scholar-3',
-    displayName: 'Ustadh Tariq Al-Hashimi',
-    institution: 'Zaytuna College & Research Institute',
-    specialties: ['Tafsir', 'Aqeedah'],
-    avatarUrl: undefined,
-    isFollowing: false,
-  },
-  {
-    id: 'scholar-4',
-    displayName: 'Dr. Maryam Al-Bukhari',
-    institution: 'Al-Qarawiyyin University',
-    specialties: ['Hadith Sciences', 'Women in Fiqh'],
-    avatarUrl: undefined,
-    isFollowing: false,
-  },
-];
+import { useRouter } from 'expo-router';
 
 export default function ExploreScreen() {
   const router = useRouter();
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-
   const [search, setSearch] = useState('');
-  const [selectedSpecialty, setSelectedSpecialty] = useState('All');
-  const [scholars, setScholars] = useState(SAMPLE_SCHOLARS);
 
-  const filteredScholars = scholars.filter((s) => {
-    const matchesSearch =
-      s.displayName.toLowerCase().includes(search.toLowerCase()) ||
-      s.institution.toLowerCase().includes(search.toLowerCase());
-    const matchesSpecialty =
-      selectedSpecialty === 'All' || s.specialties.includes(selectedSpecialty);
-    return matchesSearch && matchesSpecialty;
+  const { data: livesData } = useQuery<{ lives: any[] }>({
+    queryKey: ['activeLives'],
+    queryFn: () => apiClient<{ lives: any[] }>('/live'),
   });
 
-  const toggleFollow = (id: string) => {
-    if (!isAuthenticated) {
-      router.push('/(auth)/login');
-      return;
-    }
-    setScholars((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, isFollowing: !s.isFollowing } : s))
-    );
-  };
-
-  const handleRequestChat = (scholar: typeof SAMPLE_SCHOLARS[0]) => {
-    if (!isAuthenticated) {
-      router.push('/(auth)/login');
-      return;
-    }
-    Alert.prompt
-      ? Alert.prompt(
-          'Request Consultation',
-          `Submit a formal question or consultation request to ${scholar.displayName}:`,
-          [
-            { text: 'Cancel', style: 'cancel' },
-            {
-              text: 'Submit Request',
-              onPress: () => {
-                Alert.alert(
-                  'Request Submitted',
-                  'Your request has been delivered to the scholar for review.'
-                );
-              },
-            },
-          ]
-        )
-      : Alert.alert(
-          'Request Consultation',
-          `Would you like to send a 1:1 question request to ${scholar.displayName}?`,
-          [
-            { text: 'Cancel', style: 'cancel' },
-            {
-              text: 'Send Request',
-              onPress: () => {
-                Alert.alert(
-                  'Request Submitted',
-                  'Your consultation request has been forwarded to the scholar.'
-                );
-              },
-            },
-          ]
-        );
-  };
+  const lives = livesData?.lives || [];
 
   return (
-    <View style={styles.container}>
-      <View style={styles.searchSection}>
-        <Input
-          placeholder="Search verified scholars, faculties, or credentials..."
-          value={search}
-          onChangeText={setSearch}
-          containerStyle={styles.searchInputContainer}
-        />
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <Input
+        label="Search Knowledge"
+        placeholder="Search scholars, topics, fiqh, hadith..."
+        value={search}
+        onChangeText={setSearch}
+      />
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.filterScroll}
-          contentContainerStyle={styles.filterContainer}
-        >
-          {SPECIALTIES.map((spec) => {
-            const isSelected = selectedSpecialty === spec;
-            return (
-              <TouchableOpacity
-                key={spec}
-                style={[styles.filterPill, isSelected ? styles.filterPillActive : null]}
-                onPress={() => setSelectedSpecialty(spec)}
-              >
-                <Text
-                  style={[styles.filterText, isSelected ? styles.filterTextActive : null]}
-                >
-                  {spec}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+      {/* Active Live Streams Section */}
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Live Scholarly Circles</Text>
+        <Text style={styles.badgeLive}>[LIVE NOW]</Text>
       </View>
 
-      <FlatList
-        data={filteredScholars}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <ScholarCard
-            id={item.id}
-            displayName={item.displayName}
-            institution={item.institution}
-            specialties={item.specialties}
-            isFollowing={item.isFollowing}
-            onFollowPress={() => toggleFollow(item.id)}
-            onRequestChatPress={() => handleRequestChat(item)}
-          />
+      {lives.length === 0 ? (
+        <Card style={styles.emptyCard}>
+          <Text style={styles.emptyText}>
+            No live sessions active at this moment. Scheduled circles will appear here.
+          </Text>
+        </Card>
+      ) : (
+        lives.map((session) => (
+          <TouchableOpacity
+            key={session._id}
+            activeOpacity={0.8}
+            onPress={() => router.push(`/live/${session._id}`)}
+          >
+            <Card style={styles.liveCard}>
+              <View style={styles.liveRow}>
+                <Avatar
+                  name={session.hostId.displayName}
+                  url={session.hostId.avatarUrl}
+                  size={44}
+                />
+                <View style={styles.liveInfo}>
+                  <Text style={styles.liveTitle}>{session.title}</Text>
+                  <Text style={styles.liveHost}>
+                    {session.hostId.displayName}
+                  </Text>
+                  <Text style={styles.viewersCount}>
+                    {session.viewerCount} watching
+                  </Text>
+                </View>
+                <View style={styles.joinPill}>
+                  <Text style={styles.joinText}>Join</Text>
+                </View>
+              </View>
+            </Card>
+          </TouchableOpacity>
+        ))
+      )}
+
+      {/* Topics */}
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Featured Subjects</Text>
+      </View>
+
+      <View style={styles.topicsGrid}>
+        {['Quranic Exegesis (Tafsir)', 'Hadith Sciences', 'Islamic Jurisprudence (Fiqh)', 'Creed & Theology (Aqidah)', 'Spiritual Purification (Tazkiyah)'].map(
+          (topic, idx) => (
+            <Card key={idx} style={styles.topicCard}>
+              <Text style={styles.topicTitle}>{topic}</Text>
+              <Text style={styles.topicSub}>Verified lessons & reels</Text>
+            </Card>
+          )
         )}
-      />
-    </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.light,
+    backgroundColor: colors.light.background,
   },
-  searchSection: {
-    padding: theme.spacing.base,
-    backgroundColor: theme.colors.surface.light,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
+  content: {
+    padding: 16,
   },
-  searchInputContainer: {
-    marginBottom: theme.spacing.sm,
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 16,
+    marginBottom: 12,
   },
-  filterScroll: {
-    marginTop: 4,
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.light.primary,
   },
-  filterContainer: {
-    paddingRight: theme.spacing.base,
+  badgeLive: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.light.error,
+    letterSpacing: 0.5,
   },
-  filterPill: {
+  emptyCard: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: colors.light.textSecondary,
+    fontSize: 13,
+    textAlign: 'center',
+  },
+  liveCard: {
+    padding: 12,
+    marginBottom: 10,
+    borderColor: colors.light.accent,
+  },
+  liveRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  liveInfo: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  liveTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.light.text,
+  },
+  liveHost: {
+    fontSize: 13,
+    color: colors.light.primary,
+    marginTop: 2,
+  },
+  viewersCount: {
+    fontSize: 11,
+    color: colors.light.textMuted,
+    marginTop: 2,
+  },
+  joinPill: {
+    backgroundColor: colors.light.primary,
     paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: theme.radius.pill,
-    backgroundColor: '#EAE6DC',
-    marginRight: 8,
+    borderRadius: 999,
   },
-  filterPillActive: {
-    backgroundColor: theme.colors.brand.emerald,
-  },
-  filterText: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.text.primaryLight,
-    fontWeight: '600',
-  },
-  filterTextActive: {
+  joinText: {
     color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
   },
-  listContent: {
-    padding: theme.spacing.base,
+  topicsGrid: {
+    gap: 8,
+  },
+  topicCard: {
+    padding: 14,
+    marginBottom: 8,
+  },
+  topicTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.light.text,
+  },
+  topicSub: {
+    fontSize: 12,
+    color: colors.light.textSecondary,
+    marginTop: 4,
   },
 });
 

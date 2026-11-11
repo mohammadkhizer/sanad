@@ -1,82 +1,92 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
-import { Platform } from 'react-native';
-import { User, Role } from '@sanad/types';
-
-interface AuthState {
-  user: User | null;
-  accessToken: string | null;
-  refreshToken: string | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  setAuth: (user: User, accessToken: string, refreshToken: string) => Promise<void>;
-  updateUser: (user: Partial<User>) => void;
-  logout: () => Promise<void>;
-  loadStoredAuth: () => Promise<void>;
-}
+import { Role } from '@sanad/shared';
 
 const ACCESS_TOKEN_KEY = 'sanad_access_token';
 const REFRESH_TOKEN_KEY = 'sanad_refresh_token';
+const USER_DATA_KEY = 'sanad_user_data';
 
-async function setSecureItem(key: string, value: string): Promise<void> {
-  if (Platform.OS === 'web') {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(key, value);
-    }
-  } else {
-    await SecureStore.setItemAsync(key, value);
-  }
+export interface AuthUser {
+  id: string;
+  displayName: string;
+  email?: string;
+  phone?: string;
+  roles: Role[];
+  twoFactorEnabled?: boolean;
 }
 
-async function getSecureItem(key: string): Promise<string | null> {
-  if (Platform.OS === 'web') {
-    if (typeof localStorage !== 'undefined') {
-      return localStorage.getItem(key);
-    }
-    return null;
-  }
-  return await SecureStore.getItemAsync(key);
+interface AuthState {
+  user: AuthUser | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  login: (accessToken: string, refreshToken: string, user: AuthUser) => Promise<void>;
+  updateAccessToken: (token: string) => Promise<void>;
+  logout: () => Promise<void>;
+  initialize: () => Promise<void>;
 }
 
-async function removeSecureItem(key: string): Promise<void> {
-  if (Platform.OS === 'web') {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem(key);
-    }
-  } else {
-    await SecureStore.deleteItemAsync(key);
-  }
-}
-
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   accessToken: null,
   refreshToken: null,
-  isAuthenticated: false,
   isLoading: true,
+  isAuthenticated: false,
 
-  setAuth: async (user: User, accessToken: string, refreshToken: string) => {
-    await setSecureItem(ACCESS_TOKEN_KEY, accessToken);
-    await setSecureItem(REFRESH_TOKEN_KEY, refreshToken);
+  initialize: async () => {
+    try {
+      const [accessToken, refreshToken, rawUser] = await Promise.all([
+        SecureStore.getItemAsync(ACCESS_TOKEN_KEY),
+        SecureStore.getItemAsync(REFRESH_TOKEN_KEY),
+        SecureStore.getItemAsync(USER_DATA_KEY),
+      ]);
+
+      if (accessToken && refreshToken && rawUser) {
+        const user = JSON.parse(rawUser) as AuthUser;
+        set({
+          accessToken,
+          refreshToken,
+          user,
+          isAuthenticated: true,
+          isLoading: false,
+        });
+      } else {
+        set({ isLoading: false, isAuthenticated: false });
+      }
+    } catch {
+      set({ isLoading: false, isAuthenticated: false });
+    }
+  },
+
+  login: async (accessToken, refreshToken, user) => {
+    await Promise.all([
+      SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken),
+      SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken),
+      SecureStore.setItemAsync(USER_DATA_KEY, JSON.stringify(user)),
+    ]);
+
     set({
-      user,
       accessToken,
       refreshToken,
+      user,
       isAuthenticated: true,
       isLoading: false,
     });
   },
 
-  updateUser: (updatedFields: Partial<User>) => {
-    const current = get().user;
-    if (current) {
-      set({ user: { ...current, ...updatedFields } });
-    }
+  updateAccessToken: async (accessToken) => {
+    await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
+    set({ accessToken });
   },
 
   logout: async () => {
-    await removeSecureItem(ACCESS_TOKEN_KEY);
-    await removeSecureItem(REFRESH_TOKEN_KEY);
+    await Promise.all([
+      SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY),
+      SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY),
+      SecureStore.deleteItemAsync(USER_DATA_KEY),
+    ]);
+
     set({
       user: null,
       accessToken: null,
@@ -84,26 +94,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       isAuthenticated: false,
       isLoading: false,
     });
-  },
-
-  loadStoredAuth: async () => {
-    try {
-      const accessToken = await getSecureItem(ACCESS_TOKEN_KEY);
-      const refreshToken = await getSecureItem(REFRESH_TOKEN_KEY);
-
-      if (accessToken && refreshToken) {
-        set({
-          accessToken,
-          refreshToken,
-          isAuthenticated: true,
-          isLoading: false,
-        });
-      } else {
-        set({ isLoading: false });
-      }
-    } catch {
-      set({ isLoading: false });
-    }
   },
 }));
 

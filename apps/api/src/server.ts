@@ -1,30 +1,50 @@
-import http from 'http';
-import mongoose from 'mongoose';
-import { app } from './app';
-import { config } from './config';
-import { setupSocketIO } from './realtime/socket';
-import { usernameService } from './services/bloomFilter.service';
+import http from 'node:http';
+import { Server } from 'socket.io';
+import { app } from './app.js';
+import { env } from './config/env.js';
+import { logger } from './config/logger.js';
+import { connectDB, disconnectDB } from './config/db.js';
+import { setupSocketIO } from './realtime/socket.js';
+
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: env.CORS_ORIGIN === '*' ? true : env.CORS_ORIGIN.split(','),
+    credentials: true,
+  },
+});
+
+setupSocketIO(io);
 
 async function bootstrap() {
   try {
-    console.log('Connecting to MongoDB...');
-    await mongoose.connect(config.mongodbUri);
-    console.log('Connected to MongoDB successfully.');
-
-    await usernameService.initialize();
-    console.log('Username Bloom Filter initialized with reserved words and RBAC user catalogue.');
-
-    const server = http.createServer(app);
-    setupSocketIO(server);
-
-    server.listen(config.port, () => {
-      console.log(`Sanad API service listening on port ${config.port} in ${config.nodeEnv} mode`);
+    await connectDB();
+    server.listen(env.PORT, () => {
+      logger.info(`Sanad API server running on port ${env.PORT} in ${env.NODE_ENV} mode`);
     });
   } catch (error) {
-    console.error('Fatal initialization error:', error);
+    logger.error({ error }, 'Failed to bootstrap server');
     process.exit(1);
   }
 }
 
-bootstrap();
+async function shutdown(signal: string) {
+  logger.info(`${signal} received, closing server...`);
+  server.close(async () => {
+    logger.info('HTTP server closed');
+    await disconnectDB();
+    logger.info('Database connection closed. Exiting process.');
+    process.exit(0);
+  });
+}
+
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+
+if (process.env.NODE_ENV !== 'test') {
+  bootstrap();
+}
+
+export { server, io };
 

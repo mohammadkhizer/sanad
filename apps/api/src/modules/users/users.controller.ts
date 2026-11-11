@@ -1,0 +1,189 @@
+import { Request, Response, NextFunction } from 'express';
+import { UserModel } from '../auth/auth.model.js';
+import { FollowModel, BlockModel } from './users.model.js';
+import { NotFoundError, ConflictError } from '../../utils/errors.js';
+import mongoose from 'mongoose';
+
+export class UsersController {
+  async getMe(req: Request, res: Response, next: NextFunction) {
+    try {
+      const user = await UserModel.findById(req.user!.id)
+        .select('-passwordHash -twoFA.secretEnc -twoFA.backupCodes')
+        .exec();
+
+      if (!user) {
+        throw new NotFoundError('User not found');
+      }
+
+      const followerCount = await FollowModel.countDocuments({ followeeId: user._id });
+      const followingCount = await FollowModel.countDocuments({ followerId: user._id });
+
+      res.status(200).json({
+        user,
+        counts: {
+          followers: followerCount,
+          following: followingCount,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateMe(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { displayName, bio, avatarUrl, specialties, languages } = req.body;
+      const updateData: Record<string, unknown> = {};
+
+      if (displayName) updateData.displayName = displayName;
+      if (bio !== undefined) updateData.bio = bio;
+      if (avatarUrl) updateData.avatarUrl = avatarUrl;
+      if (specialties) updateData['scholarProfile.specialties'] = specialties;
+      if (languages) updateData['scholarProfile.languages'] = languages;
+
+      const user = await UserModel.findByIdAndUpdate(req.user!.id, { $set: updateData }, { new: true })
+        .select('-passwordHash -twoFA.secretEnc -twoFA.backupCodes')
+        .exec();
+
+      res.status(200).json({ user });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getUser(req: Request, res: Response, next: NextFunction) {
+    try {
+      const targetId = req.params.id;
+      if (!mongoose.Types.ObjectId.isValid(targetId)) {
+        throw new NotFoundError('User not found');
+      }
+
+      // Check block status if viewer is logged in
+      if (req.user) {
+        const isBlocked = await BlockModel.findOne({
+          $or: [
+            { blockerId: req.user.id, blockedId: targetId },
+            { blockerId: targetId, blockedId: req.user.id },
+          ],
+        });
+        if (isBlocked) {
+          throw new NotFoundError('User not found');
+        }
+      }
+
+      const user = await UserModel.findById(targetId)
+        .select('displayName avatarUrl bio roles scholarProfile createdAt')
+        .exec();
+
+      if (!user || user.status !== 'active') {
+        throw new NotFoundError('User not found');
+      }
+
+      const followerCount = await FollowModel.countDocuments({ followeeId: user._id });
+      const followingCount = await FollowModel.countDocuments({ followerId: user._id });
+
+      let isFollowing = false;
+      if (req.user) {
+        const followDoc = await FollowModel.findOne({
+          followerId: req.user.id,
+          followeeId: user._id,
+        });
+        isFollowing = Boolean(followDoc);
+      }
+
+      res.status(200).json({
+        user,
+        counts: {
+          followers: followerCount,
+          following: followingCount,
+        },
+        isFollowing,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async followUser(req: Request, res: Response, next: NextFunction) {
+    try {
+      const targetId = req.params.id;
+      if (targetId === req.user!.id) {
+        throw new ConflictError('Cannot follow yourself');
+      }
+
+      const targetObjectId = new mongoose.Types.ObjectId(targetId);
+      const followerObjectId = new mongoose.Types.ObjectId(req.user!.id);
+
+      await FollowModel.findOneAndUpdate(
+        { followerId: followerObjectId, followeeId: targetObjectId },
+        { followerId: followerObjectId, followeeId: targetObjectId },
+        { upsert: true, new: true }
+      );
+
+      res.status(200).json({ success: true, message: 'Followed successfully' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async unfollowUser(req: Request, res: Response, next: NextFunction) {
+    try {
+      const targetId = req.params.id;
+      await FollowModel.deleteOne({
+        followerId: new mongoose.Types.ObjectId(req.user!.id),
+        followeeId: new mongoose.Types.ObjectId(targetId),
+      });
+
+      res.status(200).json({ success: true, message: 'Unfollowed successfully' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async blockUser(req: Request, res: Response, next: NextFunction) {
+    try {
+      const targetId = req.params.id;
+      if (targetId === req.user!.id) {
+        throw new ConflictError('Cannot block yourself');
+      }
+
+      const blockerId = new mongoose.Types.ObjectId(req.user!.id);
+      const blockedId = new mongoose.Types.ObjectId(targetId);
+
+      await BlockModel.findOneAndUpdate(
+        { blockerId, blockedId },
+        { blockerId, blockedId },
+        { upsert: true, new: true }
+      );
+
+      // Remove mutual follows
+      await FollowModel.deleteMany({
+        $or: [
+          { followerId: blockerId, followeeId: blockedId },
+          { followerId: blockedId, followeeId: blockerId },
+        ],
+      });
+
+      res.status(200).json({ success: true, message: 'User blocked' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async unblockUser(req: Request, res: Response, next: NextFunction) {
+    try {
+      const targetId = req.params.id;
+      await BlockModel.deleteOne({
+        blockerId: new mongoose.Types.ObjectId(req.user!.id),
+        blockedId: new mongoose.Types.ObjectId(targetId),
+      });
+
+      res.status(200).json({ success: true, message: 'User unblocked' });
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+export const usersController = new UsersController();
+

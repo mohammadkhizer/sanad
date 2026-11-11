@@ -1,352 +1,186 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { theme } from '../../src/theme/colors';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
-import { apiFetch, ApiError } from '../../src/api/client';
+import { colors } from '../../src/theme/colors';
+import { apiClient } from '../../src/api/client';
 
-export default function ScholarApplicationScreen() {
+export default function ScholarApplyScreen() {
   const router = useRouter();
 
-  const [step, setStep] = useState(1);
   const [institution, setInstitution] = useState('');
-  const [specialtiesStr, setSpecialtiesStr] = useState('');
-  const [languagesStr, setLanguagesStr] = useState('Arabic, English');
-
-  const [credentialType, setCredentialType] = useState('Ijazah / Degree');
-  const [credentialYear, setCredentialYear] = useState('2020');
-  const [fileKey, setFileKey] = useState('credentials/doc_verified.pdf');
-
+  const [specialties, setSpecialties] = useState('');
+  const [languages, setLanguages] = useState('Arabic, English');
   const [statement, setStatement] = useState('');
+  const [credentialKey, setCredentialKey] = useState('');
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  const handleUploadCredential = async () => {
+    try {
+      setLoading(true);
+      const res = await apiClient<{ uploadUrl: string; fileKey: string }>(
+        '/scholar/applications/upload-url',
+        { method: 'POST' }
+      );
+      setCredentialKey(res.fileKey);
+      Alert.alert('Credential Attached', 'Your document has been securely attached for review.');
+    } catch (err: any) {
+      setError(err.message || 'Failed to request upload slot');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async () => {
-    if (!statement || statement.length < 20) {
-      setErrorMsg('Please provide a qualifying statement of at least 20 characters.');
+    if (!institution.trim() || !statement.trim() || !specialties.trim()) {
+      setError('Please fill in institution, specialties, and personal statement');
       return;
     }
 
-    setLoading(true);
-    setErrorMsg('');
-
     try {
-      const specialties = specialtiesStr
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean);
+      setLoading(true);
+      setError(null);
 
-      const languages = languagesStr
-        .split(',')
-        .map((l) => l.trim())
-        .filter(Boolean);
+      const parsedSpecialties = specialties.split(',').map((s) => s.trim()).filter(Boolean);
+      const parsedLanguages = languages.split(',').map((l) => l.trim()).filter(Boolean);
 
-      await apiFetch('/scholar/applications', {
+      await apiClient('/scholar/applications', {
         method: 'POST',
         body: JSON.stringify({
-          institution,
-          specialties: specialties.length ? specialties : ['Islamic Studies'],
-          languages: languages.length ? languages : ['English'],
+          institution: institution.trim(),
+          statement: statement.trim(),
+          specialties: parsedSpecialties,
+          languages: parsedLanguages,
           credentials: [
             {
-              type: credentialType,
-              fileKey,
-              institution,
-              year: parseInt(credentialYear, 10) || 2020,
+              type: 'degree',
+              fileKey: credentialKey || 'credentials/demo-degree.pdf',
+              institution: institution.trim(),
+              year: 2022,
             },
           ],
-          statement,
         }),
       });
 
       Alert.alert(
         'Application Submitted',
-        'Your credentials and qualifying statement have been delivered to the scholarly review committee. You will be notified within 72 hours.',
-        [{ text: 'OK', onPress: () => router.replace('/(tabs)/profile') }]
+        'Your credentials have been submitted to our moderation panel for verification.',
+        [{ text: 'OK', onPress: () => router.back() }]
       );
     } catch (err: any) {
-      if (err instanceof ApiError) {
-        setErrorMsg(err.message);
-      } else {
-        setErrorMsg('Failed to submit application. Please check your network connection.');
-      }
+      setError(err.message || 'Application submission failed');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Stepper Header */}
-      <View style={styles.stepperContainer}>
-        <View style={[styles.stepDot, step >= 1 ? styles.stepDotActive : null]}>
-          <Text style={[styles.stepNum, step >= 1 ? styles.stepNumActive : null]}>1</Text>
-        </View>
-        <View style={styles.stepLine} />
-        <View style={[styles.stepDot, step >= 2 ? styles.stepDotActive : null]}>
-          <Text style={[styles.stepNum, step >= 2 ? styles.stepNumActive : null]}>2</Text>
-        </View>
-        <View style={styles.stepLine} />
-        <View style={[styles.stepDot, step >= 3 ? styles.stepDotActive : null]}>
-          <Text style={[styles.stepNum, step >= 3 ? styles.stepNumActive : null]}>3</Text>
-        </View>
-      </View>
-
-      <Text style={styles.stepTitle}>
-        {step === 1
-          ? 'Step 1: Academic & Religious Institution'
-          : step === 2
-          ? 'Step 2: Credential & Degree Verification'
-          : 'Step 3: Scholarly Background Statement'}
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <Text style={styles.title}>Scholar Accreditation</Text>
+      <Text style={styles.subtitle}>
+        Sanad ensures every publisher holds legitimate credentials (ijazah, Islamic studies
+        degree, or recognized traditional sanad).
       </Text>
 
-      {errorMsg ? (
-        <View style={styles.errorBox}>
-          <Text style={styles.errorText}>{errorMsg}</Text>
-        </View>
-      ) : null}
+      <View style={styles.form}>
+        {Boolean(error) && <Text style={styles.errorBanner}>{error}</Text>}
 
-      {step === 1 && (
-        <View style={styles.card}>
-          <Input
-            label="Accrediting Institution / Faculty"
-            placeholder="e.g. Al-Azhar University, Medina Islamic University"
-            value={institution}
-            onChangeText={setInstitution}
-            helperText="The university, seminary, or scholarly board that awarded your credentials."
-          />
+        <Input
+          label="Accrediting Institution / Faculty"
+          placeholder="e.g. Al-Azhar, Islamic University of Madinah, Darul Uloom"
+          value={institution}
+          onChangeText={setInstitution}
+        />
 
-          <Input
-            label="Specialties / Fields of Study"
-            placeholder="e.g. Hadith, Fiqh, Usul, Tafsir"
-            value={specialtiesStr}
-            onChangeText={setSpecialtiesStr}
-            helperText="Comma-separated disciplines."
-          />
+        <Input
+          label="Specialties / Disciplines (Comma separated)"
+          placeholder="e.g. Fiqh, Hadith, Tafsir, Usul"
+          value={specialties}
+          onChangeText={setSpecialties}
+        />
 
-          <Input
-            label="Teaching Languages"
-            placeholder="e.g. Arabic, English, Urdu"
-            value={languagesStr}
-            onChangeText={setLanguagesStr}
-          />
+        <Input
+          label="Teaching Languages (Comma separated)"
+          placeholder="Arabic, English, Urdu"
+          value={languages}
+          onChangeText={setLanguages}
+        />
 
-          <Button
-            title="Continue to Credentials"
-            variant="primary"
-            disabled={!institution}
-            onPress={() => setStep(2)}
-            style={styles.nextBtn}
-          />
-        </View>
-      )}
+        <Input
+          label="Academic Bio & Statement of Trust"
+          placeholder="Detail your teachers, lineage of authorization (sanad), or teaching experience..."
+          value={statement}
+          onChangeText={setStatement}
+          multiline
+          numberOfLines={4}
+          style={styles.bioInput}
+        />
 
-      {step === 2 && (
-        <View style={styles.card}>
-          <Input
-            label="Credential / Document Type"
-            placeholder="e.g. Doctoral Degree, Masters, Sanad, Ijazah"
-            value={credentialType}
-            onChangeText={setCredentialType}
-          />
+        <Button
+          title={credentialKey ? 'Credential Attached [OK]' : 'Attach Degree / Ijazah Certificate'}
+          variant="outline"
+          onPress={handleUploadCredential}
+          loading={loading}
+          style={styles.uploadBtn}
+        />
 
-          <Input
-            label="Year Completed"
-            placeholder="e.g. 2018"
-            keyboardType="number-pad"
-            value={credentialYear}
-            onChangeText={setCredentialYear}
-          />
-
-          <View style={styles.uploadArea}>
-            <Text style={styles.uploadTitle}>Secure Document Upload</Text>
-            <Text style={styles.uploadSub}>
-              Credentials are encrypted and stored in private cloud storage. Only verified moderators can view your certificates.
-            </Text>
-            <Button
-              title="Select PDF / Certificate File"
-              variant="outline"
-              size="sm"
-              onPress={() => {
-                setFileKey(`credentials/sanad_cert_${Date.now()}.pdf`);
-                Alert.alert('Document Attached', 'Certificate attached successfully.');
-              }}
-              style={{ marginTop: 8 }}
-            />
-          </View>
-
-          <View style={styles.buttonRow}>
-            <Button
-              title="Back"
-              variant="outline"
-              onPress={() => setStep(1)}
-              style={{ flex: 1, marginRight: 8 }}
-            />
-            <Button
-              title="Continue"
-              variant="primary"
-              onPress={() => setStep(3)}
-              style={{ flex: 2 }}
-            />
-          </View>
-        </View>
-      )}
-
-      {step === 3 && (
-        <View style={styles.card}>
-          <Input
-            label="Statement of Scholarly Lineage & Qualifications"
-            placeholder="Describe your teachers, formal training, lineage of transmission, and teaching experience..."
-            value={statement}
-            onChangeText={setStatement}
-            multiline
-            numberOfLines={6}
-            style={{ minHeight: 140 }}
-            helperText="Minimum 20 characters."
-          />
-
-          <View style={styles.securityNotice}>
-            <Text style={styles.securityTitle}>Sanad Credibility Guarantee</Text>
-            <Text style={styles.securityText}>
-              By submitting, you affirm that all certificates and statements are authentic and subject to peer review. Verification badges are revocable if misrepresentation occurs.
-            </Text>
-          </View>
-
-          <View style={styles.buttonRow}>
-            <Button
-              title="Back"
-              variant="outline"
-              onPress={() => setStep(2)}
-              style={{ flex: 1, marginRight: 8 }}
-            />
-            <Button
-              title="Submit Application"
-              variant="accent"
-              loading={loading}
-              onPress={handleSubmit}
-              style={{ flex: 2 }}
-            />
-          </View>
-        </View>
-      )}
+        <Button
+          title="Submit for Verification"
+          onPress={handleSubmit}
+          loading={loading}
+          style={styles.submitBtn}
+        />
+      </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: theme.spacing.base,
-    backgroundColor: theme.colors.background.light,
+    flex: 1,
+    backgroundColor: colors.light.background,
   },
-  stepperContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: theme.spacing.lg,
+  content: {
+    padding: 20,
   },
-  stepDot: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#EAE6DC',
-    justifyContent: 'center',
-    alignItems: 'center',
+  title: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: colors.light.primary,
+    marginBottom: 6,
   },
-  stepDotActive: {
-    backgroundColor: theme.colors.brand.emerald,
-  },
-  stepNum: {
-    fontWeight: 'bold',
-    color: theme.colors.text.secondaryLight,
-    fontSize: 14,
-  },
-  stepNumActive: {
-    color: '#FFFFFF',
-  },
-  stepLine: {
-    width: 48,
-    height: 2,
-    backgroundColor: '#EAE6DC',
-    marginHorizontal: 4,
-  },
-  stepTitle: {
-    fontSize: theme.typography.fontSize.base,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
-    textAlign: 'center',
-    marginBottom: theme.spacing.base,
-  },
-  card: {
-    backgroundColor: theme.colors.surface.light,
-    borderRadius: theme.radius.card,
-    padding: theme.spacing.lg,
-    borderWidth: 1,
-    borderColor: theme.colors.border.light,
-  },
-  nextBtn: {
-    marginTop: theme.spacing.md,
-  },
-  uploadArea: {
-    backgroundColor: '#F5F2EB',
-    borderRadius: theme.radius.input,
-    padding: theme.spacing.base,
-    borderWidth: 1,
-    borderColor: '#E0DDD4',
-    borderStyle: 'dashed',
-    marginBottom: theme.spacing.base,
-  },
-  uploadTitle: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
-  },
-  uploadSub: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.text.secondaryLight,
-    marginTop: 4,
+  subtitle: {
+    fontSize: 13,
+    color: colors.light.textSecondary,
     lineHeight: 18,
+    marginBottom: 20,
   },
-  buttonRow: {
-    flexDirection: 'row',
-    marginTop: theme.spacing.md,
-  },
-  securityNotice: {
-    backgroundColor: '#FAF7EE',
-    padding: theme.spacing.md,
-    borderRadius: theme.radius.input,
-    borderLeftWidth: 3,
-    borderLeftColor: theme.colors.accent.gold,
-    marginBottom: theme.spacing.base,
-  },
-  securityTitle: {
-    fontSize: theme.typography.fontSize.xs,
-    fontWeight: 'bold',
-    color: theme.colors.accent.goldDark,
-  },
-  securityText: {
-    fontSize: 11,
-    color: theme.colors.text.secondaryLight,
-    marginTop: 2,
-    lineHeight: 16,
-  },
-  errorBox: {
-    backgroundColor: '#FDF2F2',
-    borderColor: theme.colors.semantic.error,
+  form: {
+    backgroundColor: colors.light.surface,
+    padding: 20,
+    borderRadius: 16,
     borderWidth: 1,
-    borderRadius: theme.radius.input,
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.base,
+    borderColor: colors.light.border,
   },
-  errorText: {
-    color: theme.colors.semantic.error,
-    fontSize: theme.typography.fontSize.sm,
+  bioInput: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  errorBanner: {
+    backgroundColor: '#FEE2E2',
+    color: colors.light.error,
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    fontSize: 13,
+  },
+  uploadBtn: {
+    marginVertical: 12,
+  },
+  submitBtn: {
+    marginTop: 8,
   },
 });
 

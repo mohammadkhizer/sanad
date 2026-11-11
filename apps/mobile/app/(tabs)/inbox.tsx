@@ -1,141 +1,96 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   FlatList,
   StyleSheet,
   TouchableOpacity,
-  Alert,
+  ActivityIndicator,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { theme } from '../../src/theme/colors';
-import { Button } from '../../src/components/Button';
-import { VerifiedBadge } from '../../src/components/VerifiedBadge';
-import { apiFetch } from '../../src/api/client';
+import { apiClient } from '../../src/api/client';
+import { colors } from '../../src/theme/colors';
+import { Avatar } from '../../src/components/Avatar';
+import { Card } from '../../src/components/Card';
+import { EmptyState } from '../../src/components/EmptyState';
 import { useAuthStore } from '../../src/store/authStore';
+import { useRouter } from 'expo-router';
 
 export default function InboxScreen() {
   const router = useRouter();
-  const user = useAuthStore((s) => s.user);
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-  const [activeTab, setActiveTab] = useState<'chats' | 'requests'>('chats');
-
-  const { data: conversations, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery<{ conversations: any[] }>({
     queryKey: ['conversations'],
-    queryFn: async () => {
-      const res = await apiFetch<any>('/conversations');
-      return res.data;
-    },
+    queryFn: () => apiClient<{ conversations: any[] }>('/conversations'),
     enabled: isAuthenticated,
   });
 
   if (!isAuthenticated) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.authTitle}>Direct Scholarly Consultations</Text>
-        <Text style={styles.authSub}>
-          Sign in to ask verified religious scholars personal questions, request 1:1 guidance, or view consultations.
-        </Text>
-        <Button
-          title="Sign In / Register"
-          variant="primary"
+      <View style={styles.center}>
+        <Text style={styles.title}>Inbox</Text>
+        <Text style={styles.sub}>Please log in to view your conversations and requests.</Text>
+        <TouchableOpacity
+          style={styles.loginPill}
           onPress={() => router.push('/(auth)/login')}
-          style={styles.authBtn}
-        />
+        >
+          <Text style={styles.loginText}>Log In</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
-  const isScholar = user?.roles?.includes('scholar');
+  if (isLoading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={colors.light.primary} />
+      </View>
+    );
+  }
+
+  const conversations = data?.conversations || [];
 
   return (
     <View style={styles.container}>
-      {isScholar && (
-        <View style={styles.segmentRow}>
-          <TouchableOpacity
-            style={[styles.segmentBtn, activeTab === 'chats' ? styles.segmentActive : null]}
-            onPress={() => setActiveTab('chats')}
-          >
-            <Text
-              style={[
-                styles.segmentText,
-                activeTab === 'chats' ? styles.segmentTextActive : null,
-              ]}
-            >
-              Active Chats
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.segmentBtn, activeTab === 'requests' ? styles.segmentActive : null]}
-            onPress={() => setActiveTab('requests')}
-          >
-            <Text
-              style={[
-                styles.segmentText,
-                activeTab === 'requests' ? styles.segmentTextActive : null,
-              ]}
-            >
-              Pending Requests
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
       <FlatList
-        data={conversations || []}
-        keyExtractor={(item) => item.id || item._id}
-        contentContainerStyle={styles.listContent}
+        data={conversations}
+        keyExtractor={(item) => item._id}
+        contentContainerStyle={styles.list}
         renderItem={({ item }) => {
-          const otherParticipant =
-            item.participants?.find((p: any) => p.id !== user?.id) || {
-              displayName: 'Scholar / Learner',
-            };
+          const otherParticipant = item.participants.find(
+            (p: any) => p._id !== user?.id
+          ) || { displayName: 'Participant' };
 
           return (
             <TouchableOpacity
-              style={styles.chatCard}
-              activeOpacity={0.85}
-              onPress={() => {
-                router.push({
-                  pathname: '/chat/[id]',
-                  params: {
-                    id: item.id || item._id,
-                    recipientName: otherParticipant.displayName,
-                  },
-                });
-              }}
+              activeOpacity={0.8}
+              onPress={() => router.push(`/chat/${item._id}`)}
             >
-              <View style={styles.avatar}>
-                <Text style={styles.avatarInitial}>
-                  {otherParticipant.displayName?.charAt(0).toUpperCase()}
-                </Text>
-              </View>
-
-              <View style={styles.chatInfo}>
-                <View style={styles.nameRow}>
-                  <Text style={styles.name}>{otherParticipant.displayName}</Text>
-                  {otherParticipant.scholarProfile?.verified && (
-                    <View style={styles.badgeWrap}>
-                      <VerifiedBadge size="sm" />
-                    </View>
-                  )}
+              <Card style={styles.convCard}>
+                <View style={styles.row}>
+                  <Avatar
+                    name={otherParticipant.displayName}
+                    url={otherParticipant.avatarUrl}
+                    size={48}
+                  />
+                  <View style={styles.info}>
+                    <Text style={styles.name}>{otherParticipant.displayName}</Text>
+                    <Text style={styles.lastMsg} numberOfLines={1}>
+                      {item.lastMessageText || 'Direct Q&A session started'}
+                    </Text>
+                  </View>
                 </View>
-                <Text style={styles.lastMessage} numberOfLines={1}>
-                  {item.lastMessage || 'Consultation session started'}
-                </Text>
-              </View>
+              </Card>
             </TouchableOpacity>
           );
         }}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>No Consultations Yet</Text>
-            <Text style={styles.emptySub}>
-              Members can initiate consultation requests directly from a scholar profile card in the Scholars tab.
-            </Text>
-          </View>
+          <EmptyState
+            title="No conversations yet"
+            subtitle="Engage in verified Q&A sessions with scholars. Send a request from any scholar profile."
+          />
         }
       />
     </View>
@@ -145,118 +100,61 @@ export default function InboxScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.light,
+    backgroundColor: colors.light.background,
   },
-  centerContainer: {
+  center: {
     flex: 1,
+    padding: 32,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: theme.spacing.xl,
+    backgroundColor: colors.light.background,
   },
-  authTitle: {
-    fontSize: theme.typography.fontSize.xl,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
+  title: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: colors.light.primary,
+    marginBottom: 8,
+  },
+  sub: {
+    fontSize: 14,
+    color: colors.light.textSecondary,
     textAlign: 'center',
+    marginBottom: 20,
   },
-  authSub: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondaryLight,
-    textAlign: 'center',
-    marginTop: theme.spacing.sm,
-    marginBottom: theme.spacing.lg,
-    lineHeight: 22,
+  loginPill: {
+    backgroundColor: colors.light.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 8,
   },
-  authBtn: {
-    width: 220,
-  },
-  segmentRow: {
-    flexDirection: 'row',
-    backgroundColor: theme.colors.surface.light,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
-  },
-  segmentBtn: {
-    flex: 1,
-    paddingVertical: theme.spacing.md,
-    alignItems: 'center',
-  },
-  segmentActive: {
-    borderBottomWidth: 2,
-    borderBottomColor: theme.colors.brand.emerald,
-  },
-  segmentText: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondaryLight,
-    fontWeight: '600',
-  },
-  segmentTextActive: {
-    color: theme.colors.brand.emerald,
-    fontWeight: 'bold',
-  },
-  listContent: {
-    padding: theme.spacing.base,
-  },
-  chatCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface.light,
-    padding: theme.spacing.base,
-    borderRadius: theme.radius.card,
-    marginBottom: theme.spacing.sm,
-    borderWidth: 1,
-    borderColor: theme.colors.border.light,
-  },
-  avatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: theme.colors.brand.emerald,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarInitial: {
+  loginText: {
     color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 16,
+    fontWeight: '700',
   },
-  chatInfo: {
-    flex: 1,
-    marginLeft: theme.spacing.md,
+  list: {
+    padding: 16,
   },
-  nameRow: {
+  convCard: {
+    padding: 12,
+    marginBottom: 8,
+  },
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  info: {
+    marginLeft: 12,
+    flex: 1,
   },
   name: {
-    fontSize: theme.typography.fontSize.base,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.light.text,
   },
-  badgeWrap: {
-    marginLeft: 6,
-  },
-  lastMessage: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.text.secondaryLight,
-    marginTop: 3,
-  },
-  emptyContainer: {
-    padding: theme.spacing.xl,
-    alignItems: 'center',
-    marginTop: 60,
-  },
-  emptyTitle: {
-    fontSize: theme.typography.fontSize.lg,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
-  },
-  emptySub: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondaryLight,
-    textAlign: 'center',
-    marginTop: theme.spacing.sm,
-    lineHeight: 20,
+  lastMsg: {
+    fontSize: 13,
+    color: colors.light.textSecondary,
+    marginTop: 4,
   },
 });
 

@@ -1,64 +1,61 @@
-# Sanad Monorepo
+# Sanad (سند)
 
-Sanad (Arabic: "chain of authority") is a trusted platform where only verified religious scholars publish, and the community learns, asks questions, and interacts within safe boundaries.
+> A verified-scholars-only social and learning platform.
 
 ## Architecture
 
-This repository is structured as a pnpm workspace monorepo conforming strictly to `docs/02-TRD.md` and `docs/03-SDD.md`:
+- **Mobile:** Expo (React Native) + TypeScript (strict) with Expo Router, Zustand, and TanStack Query.
+- **Backend:** Node.js 20 LTS + Express + TypeScript + Mongoose (MongoDB) + Redis + Socket.io.
+- **Shared:** `@sanad/shared` Zod schemas, role definitions, and RBAC matrix.
+- **Package Manager:** **npm only** (pnpm is prohibited).
+
+## Monorepo Layout
 
 ```
 sanad/
-├─ apps/
-│  ├─ mobile/        # Expo SDK 51/52 React Native Mobile Application
-│  └─ api/           # Node.js + Express + TypeScript API Service
-├─ packages/
-│  ├─ types/         # Shared Zod Schemas and TypeScript Data Contracts
-│  └─ config/        # Base TypeScript and ESLint Configurations
-├─ docs/             # PRD, TRD, SDD, API Spec, Security/RBAC, Design System
-├─ docker-compose.yml# Local MongoDB and Redis services
-└─ pnpm-workspace.yaml
+├── apps/
+│   ├── api/        # Express REST & Socket.io backend
+│   └── mobile/     # Expo React Native mobile application
+├── packages/
+│   └── shared/     # Shared Zod schemas, types, and RBAC matrix
+├── docs/           # System specifications (PRD, TRD, SDD, Security, etc.)
+└── docker-compose.yml # Local MongoDB and Redis
 ```
 
-## Security and RBAC Highlights
+## Quick Start
 
-- **Verified-Only Content Publication:** Only accounts possessing the `scholar` role and active Two-Factor Authentication (TOTP) can publish videos or reels.
-- **Separation of Duties:** Moderators review credentials and provide notes; only platform Administrators possess the authority to approve scholar status and issue the verified badge.
-- **Token Rotation & Session Revocation:** Rotating 30-day refresh tokens with automated reuse detection that revokes entire compromised token families immediately.
-- **Moderation and Audit Logging:** Every moderation action, application review, suspension, and account deletion is recorded in audit trails.
-- **Mobile UGC Compliance:** Complete reporting, user blocking, and in-app account deletion support.
+### 1. Prerequisites
 
-## Getting Started
+- Node.js >= 20.x, npm >= 10.x
+- Docker (for MongoDB and Redis)
 
-### Prerequisites
-- Node.js (v20 or v22)
-- pnpm (v9 or v10)
-- Docker (optional for local database services)
+### 2. Start Infrastructure
 
-### Installation
-```bash
-pnpm install
-pnpm --filter=@sanad/types run build
-```
-
-### Starting Databases
 ```bash
 docker compose up -d
 ```
 
-### Running Backend API
+### 3. Install & Build
+
 ```bash
-# Starts Express API on port 4000
-pnpm --filter=@sanad/api run dev
+npm install
+npm run build
 ```
 
-### Running Mobile App
+### 4. Run Development Servers
+
 ```bash
-# Starts Expo development server
-pnpm --filter=sanad-mobile start
+# Start API
+npm run dev:api
+
+# Start Mobile
+npm run dev:mobile
 ```
 
-### Running Test Suite
+### 5. Validation
+
 ```bash
-pnpm test
+npm run typecheck
+npm run test
 ```
 

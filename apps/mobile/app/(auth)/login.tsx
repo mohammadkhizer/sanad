@@ -1,54 +1,58 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { theme } from '../../src/theme/colors';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
-import { apiFetch, ApiError } from '../../src/api/client';
+import { colors } from '../../src/theme/colors';
+import { apiClient } from '../../src/api/client';
 import { useAuthStore } from '../../src/store/authStore';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const setAuth = useAuthStore((s) => s.setAuth);
+  const login = useAuthStore((state) => state.login);
 
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [requires2FA, setRequires2FA] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      setErrorMsg('Please enter both email and password.');
+    if (!identifier.trim() || !password.trim()) {
+      setError('Please provide email/phone and password');
       return;
     }
 
-    setLoading(true);
-    setErrorMsg('');
-
     try {
-      const response = await apiFetch<any>('/auth/login', {
+      setLoading(true);
+      setError(null);
+
+      const res = await apiClient<{
+        requires2FA?: boolean;
+        accessToken?: string;
+        refreshToken?: string;
+        user?: any;
+      }>('/auth/login', {
         method: 'POST',
-        skipAuth: true,
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          identifier: identifier.trim(),
+          password,
+          twoFactorCode: requires2FA ? twoFactorCode.trim() : undefined,
+        }),
       });
 
-      if (response.data.twoFactorRequired) {
-        router.push({
-          pathname: '/(auth)/two-factor',
-          params: { email, password },
-        });
+      if (res.requires2FA) {
+        setRequires2FA(true);
         return;
       }
 
-      const { user, tokens } = response.data;
-      await setAuth(user, tokens.accessToken, tokens.refreshToken);
-      router.replace('/(tabs)/feed');
-    } catch (err: any) {
-      if (err instanceof ApiError) {
-        setErrorMsg(err.message);
-      } else {
-        setErrorMsg('An error occurred during authentication.');
+      if (res.accessToken && res.refreshToken && res.user) {
+        await login(res.accessToken, res.refreshToken, res.user);
+        router.replace('/(tabs)/feed');
       }
+    } catch (err: any) {
+      setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -56,55 +60,58 @@ export default function LoginScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.brandBox}>
-        <Text style={styles.brandTitle}>Sanad</Text>
-        <Text style={styles.tagline}>Knowledge, with a chain of trust.</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Sanad</Text>
+        <Text style={styles.subtitle}>Knowledge, with a chain of trust</Text>
       </View>
 
-      <View style={styles.formCard}>
-        <Text style={styles.title}>Sign In</Text>
-
-        {errorMsg ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{errorMsg}</Text>
-          </View>
-        ) : null}
+      <View style={styles.form}>
+        {Boolean(error) && <Text style={styles.errorBanner}>{error}</Text>}
 
         <Input
-          label="Email Address"
-          placeholder="your.email@example.com"
-          keyboardType="email-address"
+          label="Email or Phone"
+          placeholder="scholar@example.com"
+          value={identifier}
+          onChangeText={setIdentifier}
           autoCapitalize="none"
-          value={email}
-          onChangeText={setEmail}
         />
 
         <Input
           label="Password"
-          placeholder="Enter your password"
-          secureTextEntry
+          placeholder="Min 10 characters"
           value={password}
           onChangeText={setPassword}
+          secureTextEntry
         />
+
+        {requires2FA && (
+          <Input
+            label="2FA Code"
+            placeholder="6-digit code"
+            value={twoFactorCode}
+            onChangeText={setTwoFactorCode}
+            keyboardType="number-pad"
+            maxLength={6}
+          />
+        )}
 
         <Button
-          title="Sign In"
-          variant="primary"
+          title={requires2FA ? 'Verify and Log In' : 'Log In'}
           onPress={handleLogin}
           loading={loading}
-          style={styles.loginBtn}
+          style={styles.submitBtn}
         />
 
-        <View style={styles.switchRow}>
-          <Text style={styles.switchText}>Do not have an account?</Text>
-          <Button
-            title="Create Account"
-            variant="outline"
-            size="sm"
-            onPress={() => router.push('/(auth)/register')}
-            style={styles.switchBtn}
-          />
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Do not have an account? </Text>
+          <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
+            <Text style={styles.footerLink}>Register</Text>
+          </TouchableOpacity>
         </View>
+
+        <TouchableOpacity style={styles.guestLink} onPress={() => router.replace('/(tabs)/feed')}>
+          <Text style={styles.guestText}>Continue as Guest (Read Only)</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -113,68 +120,65 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    padding: theme.spacing.lg,
+    backgroundColor: colors.light.background,
+    padding: 24,
     justifyContent: 'center',
-    backgroundColor: theme.colors.background.light,
   },
-  brandBox: {
+  header: {
+    marginBottom: 32,
     alignItems: 'center',
-    marginBottom: theme.spacing.xl,
-  },
-  brandTitle: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: theme.colors.brand.emerald,
-    letterSpacing: 2,
-  },
-  tagline: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondaryLight,
-    marginTop: 4,
-    fontStyle: 'italic',
-  },
-  formCard: {
-    backgroundColor: theme.colors.surface.light,
-    borderRadius: theme.radius.card,
-    padding: theme.spacing.lg,
-    borderWidth: 1,
-    borderColor: theme.colors.border.light,
   },
   title: {
-    fontSize: theme.typography.fontSize.xl,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
-    marginBottom: theme.spacing.base,
+    fontSize: 34,
+    fontWeight: '800',
+    color: colors.light.primary,
+    letterSpacing: 1,
   },
-  errorBox: {
-    backgroundColor: '#FDF2F2',
-    borderColor: theme.colors.semantic.error,
+  subtitle: {
+    fontSize: 15,
+    color: colors.light.textSecondary,
+    marginTop: 6,
+  },
+  form: {
+    backgroundColor: colors.light.surface,
+    padding: 24,
+    borderRadius: 16,
     borderWidth: 1,
-    borderRadius: theme.radius.input,
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.base,
+    borderColor: colors.light.border,
   },
-  errorText: {
-    color: theme.colors.semantic.error,
-    fontSize: theme.typography.fontSize.sm,
+  errorBanner: {
+    backgroundColor: '#FEE2E2',
+    color: colors.light.error,
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    fontSize: 13,
   },
-  loginBtn: {
-    marginTop: theme.spacing.sm,
+  submitBtn: {
+    marginTop: 8,
   },
-  switchRow: {
-    marginTop: theme.spacing.lg,
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  footerText: {
+    color: colors.light.textSecondary,
+    fontSize: 14,
+  },
+  footerLink: {
+    color: colors.light.primary,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  guestLink: {
+    marginTop: 16,
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border.light,
-    paddingTop: theme.spacing.base,
   },
-  switchText: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondaryLight,
-    marginBottom: theme.spacing.sm,
-  },
-  switchBtn: {
-    width: '100%',
+  guestText: {
+    color: colors.light.textMuted,
+    fontSize: 13,
+    textDecorationLine: 'underline',
   },
 });
 

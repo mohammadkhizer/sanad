@@ -1,40 +1,44 @@
-# Node and Package Managers
+# Dependencies
 node_modules/
-.pnpm-store/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+.pnp
+.pnp.js
 
-# Builds
+# Package managers lockfiles to avoid
+pnpm-lock.yaml
+pnpm-workspace.yaml
+yarn.lock
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Build outputs
 dist/
 build/
 .expo/
-.next/
-out/
+.expo-shared/
+web-build/
+*.tsbuildinfo
 
-# Environment and Secrets
-.env
-.env.local
-.env.*.local
-*.pem
-*.key
-
-# Operating System
-.DS_Store
-Thumbs.db
-
-# IDE and Editors
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Test Coverage
+# Logs & testing
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 coverage/
 .nyc_output/
 
-# Temporary
-tmp/
-temp/
+# OS and IDE files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Graphify temporary caches
+graphify-out/.graphify_*
 

@@ -4,149 +4,107 @@ import {
   Text,
   FlatList,
   StyleSheet,
+  TouchableOpacity,
   Alert,
   ActivityIndicator,
-  RefreshControl,
 } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { theme } from '../../src/theme/colors';
-import { Button } from '../../src/components/Button';
-import { apiFetch } from '../../src/api/client';
+import { apiClient } from '../../src/api/client';
+import { colors } from '../../src/theme/colors';
+import { Card } from '../../src/components/Card';
+import { EmptyState } from '../../src/components/EmptyState';
 
-export default function ReportsTriageScreen() {
+export default function AdminReportsScreen() {
   const queryClient = useQueryClient();
 
-  const { data: reports, isLoading, refetch, isRefetching } = useQuery({
+  const { data, isLoading } = useQuery<{ reports: any[] }>({
     queryKey: ['adminReports'],
-    queryFn: async () => {
-      const res = await apiFetch<any>('/admin/reports?status=pending');
-      return res.data;
-    },
+    queryFn: () => apiClient<{ reports: any[] }>('/admin/reports?status=pending'),
   });
 
   const actionMutation = useMutation({
-    mutationFn: async ({
-      id,
+    mutationFn: ({
+      reportId,
       action,
-      removeContent,
-      suspendUser,
+      reason,
     }: {
-      id: string;
-      action: 'resolve' | 'dismiss';
-      removeContent?: boolean;
-      suspendUser?: boolean;
-    }) => {
-      return apiFetch(`/admin/reports/${id}/action`, {
+      reportId: string;
+      action: string;
+      reason: string;
+    }) =>
+      apiClient(`/admin/reports/${reportId}/action`, {
         method: 'POST',
-        body: JSON.stringify({ action, removeContent, suspendUser }),
-      });
-    },
+        body: JSON.stringify({ action, reason }),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminReports'] });
-      Alert.alert('Report Processed', 'Moderation action executed and logged in audit trails.');
+      Alert.alert('Action Taken', 'The report has been resolved and logged.');
     },
     onError: (err: any) => {
-      Alert.alert('Action Error', err.message || 'Operation failed.');
+      Alert.alert('Error', err.message || 'Failed to take action');
     },
   });
 
-  const handleAction = (
-    id: string,
-    action: 'resolve' | 'dismiss',
-    removeContent: boolean = false,
-    suspendUser: boolean = false
-  ) => {
-    Alert.alert(
-      'Confirm Moderation Action',
-      `Execute ${action}${removeContent ? ' with content takedown' : ''}${
-        suspendUser ? ' and account suspension' : ''
-      }?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Proceed',
-          style: suspendUser ? 'destructive' : 'default',
-          onPress: () => actionMutation.mutate({ id, action, removeContent, suspendUser }),
-        },
-      ]
-    );
+  const handleTakeAction = (reportId: string, action: string) => {
+    actionMutation.mutate({
+      reportId,
+      action,
+      reason: `Moderator action ${action} executed per platform policy.`,
+    });
   };
+
+  if (isLoading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={colors.light.primary} />
+      </View>
+    );
+  }
+
+  const reports = data?.reports || [];
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Moderation & Safety Triage</Text>
-        <Text style={styles.headerSub}>
-          Protecting community harmony against sectarian conflict, hate speech, and unverified fatwas.
-        </Text>
-      </View>
-
-      {isLoading ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={theme.colors.brand.emerald} />
-        </View>
-      ) : (
-        <FlatList
-          data={reports || []}
-          keyExtractor={(item) => item.id || item._id}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={refetch}
-              tintColor={theme.colors.brand.emerald}
-            />
-          }
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.reasonBadge}>{item.reason?.toUpperCase()}</Text>
-                <Text style={styles.targetType}>Target: {item.targetType}</Text>
-              </View>
-
-              <Text style={styles.reporter}>
-                Reported by: {item.reporterId?.displayName || 'Community Member'}
+      <FlatList
+        data={reports}
+        keyExtractor={(item) => item._id}
+        contentContainerStyle={styles.list}
+        renderItem={({ item }) => (
+          <Card style={styles.reportCard}>
+            <View style={styles.headerRow}>
+              <Text style={styles.targetBadge}>
+                [{item.targetType.toUpperCase()}]
               </Text>
-
-              {item.details ? (
-                <Text style={styles.detailsBox}>Context: {item.details}</Text>
-              ) : null}
-
-              <View style={styles.actionRow}>
-                <Button
-                  title="Dismiss"
-                  variant="outline"
-                  size="sm"
-                  onPress={() => handleAction(item.id || item._id, 'dismiss')}
-                  style={{ flex: 1, marginRight: 6 }}
-                />
-                <Button
-                  title="Takedown Content"
-                  variant="danger"
-                  size="sm"
-                  onPress={() => handleAction(item.id || item._id, 'resolve', true, false)}
-                  style={{ flex: 1.2, marginRight: 6 }}
-                />
-                <Button
-                  title="Suspend User"
-                  variant="danger"
-                  size="sm"
-                  onPress={() => handleAction(item.id || item._id, 'resolve', true, true)}
-                  style={{ flex: 1.2 }}
-                />
-              </View>
+              <Text style={styles.statusBadge}>{item.status}</Text>
             </View>
-          )}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyTitle}>Reports Queue Clear</Text>
-              <Text style={styles.emptySub}>
-                Zero outstanding community safety flags.
-              </Text>
+
+            <Text style={styles.reasonText}>Reason: {item.reason}</Text>
+            <Text style={styles.targetIdText}>Target ID: {item.targetId}</Text>
+
+            <View style={styles.actionRow}>
+              <TouchableOpacity
+                style={[styles.btn, styles.removeBtn]}
+                onPress={() => handleTakeAction(item._id, 'remove_content')}
+              >
+                <Text style={styles.btnText}>Remove Content</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.btn, styles.suspendBtn]}
+                onPress={() => handleTakeAction(item._id, 'suspend')}
+              >
+                <Text style={styles.btnText}>Suspend User</Text>
+              </TouchableOpacity>
             </View>
-          }
-        />
-      )}
+          </Card>
+        )}
+        ListEmptyComponent={
+          <EmptyState
+            title="All Reports Cleared"
+            subtitle="No pending user reports requiring moderator intervention."
+          />
+        }
+      />
     </View>
   );
 }
@@ -154,91 +112,68 @@ export default function ReportsTriageScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.light,
-  },
-  header: {
-    backgroundColor: theme.colors.brand.emeraldDark,
-    padding: theme.spacing.base,
-  },
-  headerTitle: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: theme.typography.fontSize.base,
-  },
-  headerSub: {
-    color: '#C0D2CC',
-    fontSize: theme.typography.fontSize.xs,
-    marginTop: 2,
+    backgroundColor: colors.light.background,
   },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  listContent: {
-    padding: theme.spacing.base,
+  list: {
+    padding: 16,
   },
-  card: {
-    backgroundColor: theme.colors.surface.light,
-    borderRadius: theme.radius.card,
-    padding: theme.spacing.base,
-    borderWidth: 1,
-    borderColor: theme.colors.border.light,
-    marginBottom: theme.spacing.base,
+  reportCard: {
+    padding: 16,
+    marginBottom: 12,
   },
-  cardHeader: {
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
   },
-  reasonBadge: {
-    backgroundColor: '#FDF2F2',
-    color: theme.colors.semantic.error,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-    fontSize: 10,
-    fontWeight: 'bold',
+  targetBadge: {
+    color: colors.light.primary,
+    fontWeight: '800',
+    fontSize: 12,
   },
-  targetType: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.text.secondaryLight,
+  statusBadge: {
+    color: colors.light.warning,
+    fontWeight: '700',
+    fontSize: 12,
+    textTransform: 'uppercase',
+  },
+  reasonText: {
+    fontSize: 14,
+    color: colors.light.text,
     fontWeight: '600',
+    marginBottom: 4,
   },
-  reporter: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.text.secondaryLight,
-    marginTop: 2,
-  },
-  detailsBox: {
-    backgroundColor: '#F8F5EE',
-    padding: theme.spacing.sm,
-    borderRadius: 6,
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.text.primaryLight,
-    marginTop: 8,
-    fontStyle: 'italic',
+  targetIdText: {
+    fontSize: 12,
+    color: colors.light.textSecondary,
+    marginBottom: 12,
   },
   actionRow: {
     flexDirection: 'row',
-    marginTop: theme.spacing.md,
+    gap: 8,
   },
-  emptyContainer: {
-    padding: theme.spacing.xl,
+  btn: {
+    flex: 1,
+    height: 38,
+    borderRadius: 8,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 60,
   },
-  emptyTitle: {
-    fontSize: theme.typography.fontSize.lg,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
+  removeBtn: {
+    backgroundColor: colors.light.warning,
   },
-  emptySub: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondaryLight,
-    textAlign: 'center',
-    marginTop: theme.spacing.sm,
+  suspendBtn: {
+    backgroundColor: colors.light.error,
+  },
+  btnText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 12,
   },
 });
 

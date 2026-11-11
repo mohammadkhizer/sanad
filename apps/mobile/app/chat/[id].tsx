@@ -1,148 +1,120 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   FlatList,
   StyleSheet,
+  TextInput,
+  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { theme } from '../../src/theme/colors';
-import { Input } from '../../src/components/Input';
-import { Button } from '../../src/components/Button';
-import { apiFetch } from '../../src/api/client';
+import { apiClient } from '../../src/api/client';
+import { colors } from '../../src/theme/colors';
 import { useAuthStore } from '../../src/store/authStore';
 
-export default function ChatRoomScreen() {
-  const router = useRouter();
-  const { id: conversationId, recipientName } = useLocalSearchParams<{
-    id: string;
-    recipientName?: string;
-  }>();
+interface MessageItem {
+  _id: string;
+  senderId: {
+    _id: string;
+    displayName: string;
+  };
+  body: string;
+  createdAt: string;
+}
 
+export default function ChatScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
-  const user = useAuthStore((s) => s.user);
-  const [inputText, setInputText] = useState('');
 
-  const { data: messages } = useQuery({
-    queryKey: ['messages', conversationId],
-    queryFn: async () => {
-      const res = await apiFetch<any>(`/conversations/${conversationId}/messages`);
-      return res.data;
-    },
-    refetchInterval: 3000, // Light polling fallback alongside Socket.io
+  const [text, setText] = useState('');
+
+  const { data, isLoading } = useQuery<{ messages: MessageItem[] }>({
+    queryKey: ['messages', id],
+    queryFn: () => apiClient<{ messages: MessageItem[] }>(`/conversations/${id}/messages`),
+    refetchInterval: 4000,
   });
 
   const sendMutation = useMutation({
-    mutationFn: async (body: string) => {
-      return apiFetch(`/conversations/${conversationId}/messages`, {
+    mutationFn: (body: string) =>
+      apiClient(`/conversations/${id}/messages`, {
         method: 'POST',
         body: JSON.stringify({ body, type: 'text' }),
-      });
-    },
+      }),
     onSuccess: () => {
-      setInputText('');
-      queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+      setText('');
+      queryClient.invalidateQueries({ queryKey: ['messages', id] });
     },
   });
 
   const handleSend = () => {
-    if (!inputText.trim()) return;
-    sendMutation.mutate(inputText.trim());
+    if (!text.trim() || sendMutation.isPending) return;
+    sendMutation.mutate(text.trim());
   };
 
-  const handleStartCall = () => {
-    router.push({
-      pathname: '/call/[id]',
-      params: { id: conversationId },
-    });
-  };
+  const messages = data?.messages || [];
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      keyboardVerticalOffset={80}
     >
-      <View style={styles.topBar}>
-        <View>
-          <Text style={styles.partnerName}>{recipientName || 'Consultation Room'}</Text>
-          <Text style={styles.securityBadge}>Private Scholarly Consultation</Text>
+      {isLoading ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={colors.light.primary} />
         </View>
-
-        <Button
-          title="Video Call"
-          variant="accent"
-          size="sm"
-          pill
-          onPress={handleStartCall}
+      ) : (
+        <FlatList
+          data={messages}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.messageList}
+          renderItem={({ item }) => {
+            const isMine = item.senderId._id === user?.id;
+            return (
+              <View
+                style={[
+                  styles.messageBubble,
+                  isMine ? styles.myBubble : styles.theirBubble,
+                ]}
+              >
+                {!isMine && (
+                  <Text style={styles.senderName}>{item.senderId.displayName}</Text>
+                )}
+                <Text
+                  style={[
+                    styles.messageText,
+                    isMine ? styles.myText : styles.theirText,
+                  ]}
+                >
+                  {item.body}
+                </Text>
+              </View>
+            );
+          }}
         />
-      </View>
+      )}
 
-      <FlatList
-        data={messages || []}
-        keyExtractor={(item) => item.id || item._id}
-        contentContainerStyle={styles.messagesList}
-        renderItem={({ item }) => {
-          const isMe = item.senderId?.id === user?.id || item.senderId?._id === user?.id;
-
-          return (
-            <View
-              style={[
-                styles.messageBubble,
-                isMe ? styles.myBubble : styles.partnerBubble,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.messageText,
-                  isMe ? styles.myMessageText : styles.partnerMessageText,
-                ]}
-              >
-                {item.body}
-              </Text>
-              <Text
-                style={[
-                  styles.timeText,
-                  isMe ? styles.myTimeText : styles.partnerTimeText,
-                ]}
-              >
-                {new Date(item.createdAt).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </Text>
-            </View>
-          );
-        }}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyText}>
-              Consultation room initiated. Ask your question with proper Islamic etiquette.
-            </Text>
-          </View>
-        }
-      />
-
+      {/* Input bar */}
       <View style={styles.inputBar}>
-        <Input
-          placeholder="Type your question or response..."
-          value={inputText}
-          onChangeText={setInputText}
-          containerStyle={styles.inputContainer}
+        <TextInput
           style={styles.input}
+          placeholder="Type your question or response..."
+          placeholderTextColor={colors.light.textMuted}
+          value={text}
+          onChangeText={setText}
         />
-        <Button
-          title="Send"
-          variant="primary"
-          size="sm"
+        <TouchableOpacity
+          style={[styles.sendBtn, !text.trim() && styles.sendBtnDisabled]}
           onPress={handleSend}
-          loading={sendMutation.isPending}
-          style={styles.sendButton}
-        />
+          disabled={!text.trim() || sendMutation.isPending}
+        >
+          <Text style={styles.sendText}>Send</Text>
+        </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
@@ -151,100 +123,85 @@ export default function ChatRoomScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.light,
+    backgroundColor: colors.light.background,
   },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  center: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    padding: theme.spacing.base,
-    backgroundColor: theme.colors.surface.light,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
   },
-  partnerName: {
-    fontSize: theme.typography.fontSize.base,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
-  },
-  securityBadge: {
-    fontSize: 10,
-    color: theme.colors.text.secondaryLight,
-    marginTop: 2,
-  },
-  messagesList: {
-    padding: theme.spacing.base,
+  messageList: {
+    padding: 16,
     flexGrow: 1,
     justifyContent: 'flex-end',
   },
   messageBubble: {
     maxWidth: '80%',
-    padding: theme.spacing.md,
-    borderRadius: theme.radius.card,
-    marginBottom: theme.spacing.sm,
+    padding: 12,
+    borderRadius: 14,
+    marginBottom: 8,
   },
   myBubble: {
     alignSelf: 'flex-end',
-    backgroundColor: theme.colors.brand.emerald,
-    borderBottomRightRadius: 4,
+    backgroundColor: colors.light.primary,
+    borderBottomRightRadius: 2,
   },
-  partnerBubble: {
+  theirBubble: {
     alignSelf: 'flex-start',
-    backgroundColor: theme.colors.surface.light,
+    backgroundColor: colors.light.surface,
     borderWidth: 1,
-    borderColor: theme.colors.border.light,
-    borderBottomLeftRadius: 4,
+    borderColor: colors.light.border,
+    borderBottomLeftRadius: 2,
+  },
+  senderName: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.light.primary,
+    marginBottom: 4,
   },
   messageText: {
-    fontSize: theme.typography.fontSize.sm,
+    fontSize: 15,
     lineHeight: 20,
   },
-  myMessageText: {
+  myText: {
     color: '#FFFFFF',
   },
-  partnerMessageText: {
-    color: theme.colors.text.primaryLight,
-  },
-  timeText: {
-    fontSize: 9,
-    marginTop: 4,
-    alignSelf: 'flex-end',
-  },
-  myTimeText: {
-    color: 'rgba(255, 255, 255, 0.7)',
-  },
-  partnerTimeText: {
-    color: theme.colors.text.secondaryLight,
-  },
-  empty: {
-    padding: theme.spacing.xl,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.text.secondaryLight,
-    textAlign: 'center',
-    fontStyle: 'italic',
+  theirText: {
+    color: colors.light.text,
   },
   inputBar: {
     flexDirection: 'row',
-    padding: theme.spacing.sm,
-    backgroundColor: theme.colors.surface.light,
+    padding: 12,
+    backgroundColor: colors.light.surface,
     borderTopWidth: 1,
-    borderTopColor: theme.colors.border.light,
+    borderTopColor: colors.light.border,
     alignItems: 'center',
   },
-  inputContainer: {
-    flex: 1,
-    marginBottom: 0,
-    marginRight: 8,
-  },
   input: {
-    minHeight: 44,
-  },
-  sendButton: {
+    flex: 1,
+    backgroundColor: colors.light.background,
     height: 44,
-    minWidth: 70,
+    borderRadius: 22,
+    paddingHorizontal: 16,
+    fontSize: 15,
+    color: colors.light.text,
+  },
+  sendBtn: {
+    marginLeft: 10,
+    backgroundColor: colors.light.primary,
+    paddingHorizontal: 18,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sendBtnDisabled: {
+    backgroundColor: '#D1D5DB',
+  },
+  sendText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 14,
   },
 });
 

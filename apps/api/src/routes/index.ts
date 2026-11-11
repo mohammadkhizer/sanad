@@ -1,33 +1,23 @@
 import { Router } from 'express';
-import { authRouter } from './auth.routes';
-import { usersRouter } from './users.routes';
-import { scholarRouter } from './scholar.routes';
-import { contentRouter } from './content.routes';
-import { liveRouter } from './live.routes';
-import { messagingRouter } from './messaging.routes';
-import { moderationRouter } from './moderation.routes';
-import { adminRouter } from './admin.routes';
-import { notificationRouter } from './notification.routes';
-import { webhookRouter } from './webhook.routes';
-import { getFeed } from '../controllers/content.controller';
-import { optionalAuth } from '../middlewares/auth';
-import { validateQuery } from '../middlewares/validate';
-import { FeedQuerySchema } from '@sanad/types';
+import { authRouter } from '../modules/auth/auth.routes.js';
+import { usersRouter } from '../modules/users/users.routes.js';
+import { scholarRouter } from '../modules/scholar/scholar.routes.js';
+import { contentRouter } from '../modules/content/content.routes.js';
+import { liveRouter } from '../modules/live/live.routes.js';
+import { messagingRouter } from '../modules/messaging/messaging.routes.js';
+import { moderationRouter } from '../modules/moderation/moderation.routes.js';
+import { adminRouter } from '../modules/admin/admin.routes.js';
 
-const apiRouter = Router();
+const router = Router();
 
-apiRouter.use('/auth', authRouter);
-apiRouter.use('/users', usersRouter);
-apiRouter.use('/scholar', scholarRouter);
-apiRouter.use('/posts', contentRouter);
-apiRouter.get('/feed', optionalAuth, validateQuery(FeedQuerySchema), getFeed);
-apiRouter.use('/live', liveRouter);
-apiRouter.use('/chat', messagingRouter);
-apiRouter.use('/conversations', messagingRouter);
-apiRouter.use('/calls', messagingRouter);
-apiRouter.use('/reports', moderationRouter);
-apiRouter.use('/admin', adminRouter);
-apiRouter.use('/notifications', notificationRouter);
-apiRouter.use('/webhooks', webhookRouter);
+router.use('/auth', authRouter);
+router.use('/users', usersRouter);
+router.use('/scholar', scholarRouter);
+router.use('/', contentRouter);
+router.use('/', liveRouter);
+router.use('/', messagingRouter);
+router.use('/', moderationRouter);
+router.use('/admin', adminRouter);
 
-export { apiRouter };
+export const apiRouter = router;
+

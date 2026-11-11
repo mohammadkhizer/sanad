@@ -6,108 +6,58 @@ import {
   StyleSheet,
   ViewStyle,
   TextStyle,
-  StyleProp,
 } from 'react-native';
-import { theme } from '../theme/colors';
+import { colors } from '../theme/colors';
 
 interface ButtonProps {
   title: string;
   onPress: () => void;
   variant?: 'primary' | 'accent' | 'outline' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
-  pill?: boolean;
-  loading?: boolean;
   disabled?: boolean;
-  style?: StyleProp<ViewStyle>;
-  textStyle?: StyleProp<TextStyle>;
+  loading?: boolean;
+  style?: ViewStyle;
+  textStyle?: TextStyle;
 }
 
 export const Button: React.FC<ButtonProps> = ({
   title,
   onPress,
   variant = 'primary',
-  size = 'md',
-  pill = false,
-  loading = false,
   disabled = false,
+  loading = false,
   style,
   textStyle,
 }) => {
-  const getBackgroundColor = () => {
-    if (disabled) return '#D0D7DE';
-    switch (variant) {
-      case 'primary':
-        return theme.colors.brand.emerald;
-      case 'accent':
-        return theme.colors.accent.gold;
-      case 'outline':
-        return 'transparent';
-      case 'danger':
-        return theme.colors.semantic.error;
-    }
-  };
-
-  const getTextColor = () => {
-    if (disabled) return '#8C959F';
-    switch (variant) {
-      case 'primary':
-      case 'danger':
-        return theme.colors.text.onEmerald;
-      case 'accent':
-        return theme.colors.text.onGold;
-      case 'outline':
-        return theme.colors.brand.emerald;
-    }
-  };
-
-  const getPadding = () => {
-    switch (size) {
-      case 'sm':
-        return { paddingVertical: 8, paddingHorizontal: 12, minHeight: 36 };
-      case 'lg':
-        return { paddingVertical: 14, paddingHorizontal: 24, minHeight: 52 };
-      case 'md':
-      default:
-        return { paddingVertical: 11, paddingHorizontal: 16, minHeight: 44 }; // 44pt accessible min tap
-    }
-  };
+  const isAccent = variant === 'accent';
+  const isOutline = variant === 'outline';
+  const isDanger = variant === 'danger';
 
   return (
     <TouchableOpacity
+      activeOpacity={0.8}
       onPress={onPress}
       disabled={disabled || loading}
-      activeOpacity={0.8}
-      accessibilityRole="button"
       style={[
-        styles.base,
-        getPadding(),
-        {
-          backgroundColor: getBackgroundColor(),
-          borderRadius: pill ? theme.radius.pill : theme.radius.input,
-          borderColor:
-            variant === 'outline'
-              ? disabled
-                ? '#D0D7DE'
-                : theme.colors.brand.emerald
-              : 'transparent',
-          borderWidth: variant === 'outline' ? 1.5 : 0,
-        },
+        styles.button,
+        isAccent && styles.accentButton,
+        isOutline && styles.outlineButton,
+        isDanger && styles.dangerButton,
+        disabled && styles.disabledButton,
         style,
       ]}
     >
       {loading ? (
         <ActivityIndicator
-          color={getTextColor()}
-          size={size === 'sm' ? 'small' : 'small'}
+          size="small"
+          color={isAccent ? colors.light.accentText : isOutline ? colors.light.primary : '#FFFFFF'}
         />
       ) : (
         <Text
           style={[
             styles.text,
-            {
-              color: getTextColor(),
-              fontSize: size === 'sm' ? 13 : size === 'lg' ? 17 : 15,
-            },
+            isAccent && styles.accentText,
+            isOutline && styles.outlineText,
+            disabled && styles.disabledText,
             textStyle,
           ]}
         >
@@ -119,13 +69,43 @@ export const Button: React.FC<ButtonProps> = ({
 };
 
 const styles = StyleSheet.create({
-  base: {
+  button: {
+    backgroundColor: colors.light.primary,
+    height: 48,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'row',
+    paddingHorizontal: 20,
+  },
+  accentButton: {
+    backgroundColor: colors.light.accent,
+  },
+  outlineButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
+    borderColor: colors.light.primary,
+  },
+  dangerButton: {
+    backgroundColor: colors.light.error,
+  },
+  disabledButton: {
+    backgroundColor: '#D1D5DB',
+    borderColor: '#D1D5DB',
   },
   text: {
+    color: '#FFFFFF',
+    fontSize: 15,
     fontWeight: '600',
-    textAlign: 'center',
+  },
+  accentText: {
+    color: colors.light.accentText,
+    fontWeight: '700',
+  },
+  outlineText: {
+    color: colors.light.primary,
+  },
+  disabledText: {
+    color: '#9CA3AF',
   },
 });
+

@@ -4,172 +4,158 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  ActivityIndicator,
-  RefreshControl,
   TouchableOpacity,
-  Alert,
+  RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { theme } from '../../src/theme/colors';
-import { ReelCard } from '../../src/components/ReelCard';
-import { ReportModal } from '../../src/components/ReportModal';
-import { apiFetch } from '../../src/api/client';
+import { apiClient } from '../../src/api/client';
+import { colors } from '../../src/theme/colors';
+import { VerifiedBadge } from '../../src/components/VerifiedBadge';
+import { Avatar } from '../../src/components/Avatar';
+import { Card } from '../../src/components/Card';
+import { EmptyState } from '../../src/components/EmptyState';
 import { useAuthStore } from '../../src/store/authStore';
-import { ReportReason } from '@sanad/types';
+import { useRouter } from 'expo-router';
+
+interface PostItem {
+  _id: string;
+  type: 'reel' | 'video' | 'text';
+  caption: string;
+  tags: string[];
+  counts: {
+    likes: number;
+    comments: number;
+    views: number;
+    shares: number;
+  };
+  authorId: {
+    _id: string;
+    displayName: string;
+    avatarUrl?: string;
+    scholarProfile?: {
+      verified: boolean;
+      institution?: string;
+    };
+  };
+  createdAt: string;
+}
 
 export default function FeedScreen() {
-  const router = useRouter();
   const queryClient = useQueryClient();
-  const user = useAuthStore((s) => s.user);
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const router = useRouter();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-  const [reportingPostId, setReportingPostId] = useState<string | null>(null);
-
-  const { data, isLoading, refetch, isRefetching } = useQuery({
+  const { data, isLoading, refetch, isRefetching } = useQuery<{ posts: PostItem[] }>({
     queryKey: ['feed'],
-    queryFn: async () => {
-      const res = await apiFetch<any>('/feed?limit=20');
-      return res.data;
-    },
+    queryFn: () => apiClient<{ posts: PostItem[] }>('/feed?limit=20'),
   });
 
   const likeMutation = useMutation({
-    mutationFn: async ({ postId, isLiked }: { postId: string; isLiked: boolean }) => {
-      const method = isLiked ? 'DELETE' : 'POST';
-      return apiFetch(`/posts/${postId}/like`, { method });
-    },
+    mutationFn: (postId: string) =>
+      apiClient(`/posts/${postId}/like`, { method: 'POST' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['feed'] });
     },
   });
 
-  const saveMutation = useMutation({
-    mutationFn: async (postId: string) => {
-      return apiFetch(`/posts/${postId}/save`, { method: 'POST' });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['feed'] });
-    },
-  });
+  const renderPost = ({ item }: { item: PostItem }) => {
+    const isScholar = Boolean(item.authorId?.scholarProfile?.verified);
 
-  const submitReportMutation = useMutation({
-    mutationFn: async ({ reason, details }: { reason: ReportReason; details?: string }) => {
-      if (!reportingPostId) return;
-      return apiFetch('/reports', {
-        method: 'POST',
-        body: JSON.stringify({
-          targetType: 'post',
-          targetId: reportingPostId,
-          reason,
-          details,
-        }),
-      });
-    },
-    onSuccess: () => {
-      Alert.alert(
-        'Report Received',
-        'Thank you. Our moderation team reviews all reports against verified scholarly standards within 24 hours.'
-      );
-    },
-  });
+    return (
+      <Card style={styles.postCard}>
+        {/* Header */}
+        <View style={styles.authorRow}>
+          <Avatar name={item.authorId.displayName} url={item.authorId.avatarUrl} size={40} />
+          <View style={styles.authorInfo}>
+            <View style={styles.nameRow}>
+              <Text style={styles.authorName}>{item.authorId.displayName}</Text>
+              {isScholar && <VerifiedBadge size="small" />}
+            </View>
+            {Boolean(item.authorId.scholarProfile?.institution) && (
+              <Text style={styles.institution}>
+                {item.authorId.scholarProfile?.institution}
+              </Text>
+            )}
+          </View>
+        </View>
 
-  const isScholar = user?.roles?.includes('scholar');
+        {/* Media / Content placeholder */}
+        <View style={styles.mediaContainer}>
+          <Text style={styles.mediaTypeLabel}>
+            [{item.type.toUpperCase()}]
+          </Text>
+          <Text style={styles.captionText}>{item.caption}</Text>
+        </View>
+
+        {/* Tags */}
+        {item.tags?.length > 0 && (
+          <View style={styles.tagsRow}>
+            {item.tags.map((tag, idx) => (
+              <Text key={idx} style={styles.tagText}>
+                #{tag}
+              </Text>
+            ))}
+          </View>
+        )}
+
+        {/* Interaction Bar */}
+        <View style={styles.actionsBar}>
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={() => {
+              if (!isAuthenticated) {
+                router.push('/(auth)/login');
+                return;
+              }
+              likeMutation.mutate(item._id);
+            }}
+          >
+            <Text style={styles.actionLabel}>Like ({item.counts.likes})</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.actionBtn}>
+            <Text style={styles.actionLabel}>Comments ({item.counts.comments})</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.actionBtn}>
+            <Text style={styles.actionLabel}>Share</Text>
+          </TouchableOpacity>
+        </View>
+      </Card>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={colors.light.primary} />
+      </View>
+    );
+  }
+
+  const posts = data?.posts || [];
 
   return (
     <View style={styles.container}>
-      {isLoading ? (
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={theme.colors.brand.emerald} />
-          <Text style={styles.loadingText}>Loading verified scholarly feed...</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={data || []}
-          keyExtractor={(item) => item.id || item._id}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={refetch}
-              tintColor={theme.colors.brand.emerald}
-            />
-          }
-          renderItem={({ item }) => (
-            <ReelCard
-              id={item.id || item._id}
-              author={
-                item.authorId || {
-                  id: 'unknown',
-                  displayName: 'Verified Scholar',
-                  institution: 'Institution',
-                }
-              }
-              type={item.type || 'reel'}
-              caption={item.caption || ''}
-              tags={item.tags || []}
-              counts={
-                item.counts || {
-                  likes: 0,
-                  comments: 0,
-                  views: 0,
-                  shares: 0,
-                }
-              }
-              onLikePress={() => {
-                if (!isAuthenticated) {
-                  router.push('/(auth)/login');
-                  return;
-                }
-                likeMutation.mutate({ postId: item.id || item._id, isLiked: false });
-              }}
-              onCommentPress={() => {
-                Alert.alert('Comments', 'Scholarly discussions are moderated for etiquette.');
-              }}
-              onSavePress={() => {
-                if (!isAuthenticated) {
-                  router.push('/(auth)/login');
-                  return;
-                }
-                saveMutation.mutate(item.id || item._id);
-              }}
-              onSharePress={() => {
-                Alert.alert('Share Link', 'Link to verified lecture copied.');
-              }}
-              onReportPress={() => setReportingPostId(item.id || item._id)}
-            />
-          )}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyTitle}>No Published Content Yet</Text>
-              <Text style={styles.emptySub}>
-                Only verified religious scholars are permitted to publish content on Sanad.
-              </Text>
-            </View>
-          }
-        />
-      )}
-
-      {/* Floating Action Button for Verified Scholars */}
-      {isScholar && (
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={() => router.push('/scholar/upload')}
-          accessibilityRole="button"
-          accessibilityLabel="Publish new lecture or reel"
-        >
-          <Text style={styles.fabText}>+ Post</Text>
-        </TouchableOpacity>
-      )}
-
-      {/* Report Modal */}
-      <ReportModal
-        visible={!!reportingPostId}
-        targetType="post"
-        targetId={reportingPostId || ''}
-        onClose={() => setReportingPostId(null)}
-        onSubmit={async (reason, details) => {
-          await submitReportMutation.mutateAsync({ reason, details });
-        }}
+      <FlatList
+        data={posts}
+        keyExtractor={(item) => item._id}
+        renderItem={renderPost}
+        contentContainerStyle={styles.list}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={refetch}
+            tintColor={colors.light.primary}
+          />
+        }
+        ListEmptyComponent={
+          <EmptyState
+            title="No verified content yet"
+            subtitle="Verified scholars will publish authentic reels and lessons here."
+          />
+        }
       />
     </View>
   );
@@ -178,55 +164,89 @@ export default function FeedScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.light,
+    backgroundColor: colors.light.background,
   },
-  centerContainer: {
+  center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: theme.spacing.lg,
+    backgroundColor: colors.light.background,
   },
-  loadingText: {
-    color: theme.colors.text.secondaryLight,
-    marginTop: theme.spacing.md,
-    fontSize: theme.typography.fontSize.sm,
+  list: {
+    padding: 16,
   },
-  emptyContainer: {
-    padding: theme.spacing.xl,
+  postCard: {
+    padding: 16,
+    marginBottom: 16,
+  },
+  authorRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 60,
+    marginBottom: 12,
   },
-  emptyTitle: {
-    fontSize: theme.typography.fontSize.lg,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
+  authorInfo: {
+    marginLeft: 12,
+    flex: 1,
   },
-  emptySub: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondaryLight,
-    textAlign: 'center',
-    marginTop: theme.spacing.sm,
-    lineHeight: 20,
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 24,
-    backgroundColor: theme.colors.accent.gold,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderRadius: theme.radius.pill,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+  authorName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.light.text,
   },
-  fabText: {
-    color: theme.colors.text.onGold,
-    fontWeight: 'bold',
+  institution: {
+    fontSize: 12,
+    color: colors.light.textSecondary,
+    marginTop: 2,
+  },
+  mediaContainer: {
+    backgroundColor: colors.light.surfaceElevated,
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 12,
+  },
+  mediaTypeLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.light.primary,
+    marginBottom: 6,
+    letterSpacing: 0.5,
+  },
+  captionText: {
     fontSize: 15,
+    color: colors.light.text,
+    lineHeight: 22,
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 12,
+  },
+  tagText: {
+    color: colors.light.primary,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  actionsBar: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderTopColor: colors.light.border,
+    paddingTop: 12,
+    justifyContent: 'space-between',
+  },
+  actionBtn: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  actionLabel: {
+    fontSize: 13,
+    color: colors.light.textSecondary,
+    fontWeight: '600',
   },
 });
 

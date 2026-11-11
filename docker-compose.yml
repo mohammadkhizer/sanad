@@ -7,10 +7,10 @@ services:
     restart: always
     ports:
       - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
     environment:
       MONGO_INITDB_DATABASE: sanad
-    volumes:
-      - mongo-data:/data/db
 
   redis:
     image: redis:7.2-alpine
@@ -19,9 +19,9 @@ services:
     ports:
       - '6379:6379'
     volumes:
-      - redis-data:/data
+      - redis_data:/data
 
 volumes:
-  mongo-data:
-  redis-data:
+  mongo_data:
+  redis_data:
 

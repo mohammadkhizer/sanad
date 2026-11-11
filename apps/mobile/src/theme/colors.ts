@@ -1,79 +1,69 @@
-export const theme = {
-  colors: {
-    // 60% Backgrounds and Surfaces
-    background: {
-      light: '#F8F5EE', // Warm Ivory
-      dark: '#0E1512', // Night Green
-    },
-    surface: {
-      light: '#FFFFFF',
-      dark: '#141E1A',
-    },
-    // 30% Headers, Nav, Cards
-    brand: {
-      emerald: '#0F4C45', // Deep Emerald
-      emeraldDark: '#1B3B35',
-      emeraldLight: '#1B6B62',
-    },
-    // 10% CTAs, Badge, Accents
-    accent: {
-      gold: '#C9A227', // Antique Gold
-      goldLight: '#DFC05A',
-      goldDark: '#A68218',
-    },
-    // Text colors
-    text: {
-      primaryLight: '#1F2933', // on ivory/surface light
-      primaryDark: '#F2EFE6', // on night green
-      onEmerald: '#FFFFFF', // on deep emerald
-      onGold: '#1F2933', // WCAG AA compliant dark text on gold fill
-      secondaryLight: '#52606D',
-      secondaryDark: '#9AA5B1',
-      muted: '#7B8794',
-    },
+export const colors = {
+  light: {
+    // 60% Surfaces & backgrounds
+    background: '#F8F5EE',
+    surface: '#FFFFFF',
+    surfaceElevated: '#EDE8DC',
+
+    // 30% Headers, nav, cards
+    primary: '#0F4C45',
+    primaryDark: '#0A332E',
+    primaryLight: '#186A61',
+
+    // 10% Accents & badges (Antique Gold)
+    accent: '#C9A227',
+    accentDark: '#9E7E19',
+    accentText: '#1F2933', // Dark text on gold for WCAG AA compliance
+
+    // Typography
+    text: '#1F2933',
+    textSecondary: '#5C6A79',
+    textMuted: '#8C9BA5',
+    textInverse: '#FFFFFF',
+
+    // Borders & dividers
+    border: '#E2DCCF',
+    borderStrong: '#C5BCAC',
+
     // Semantic
-    semantic: {
-      success: '#2E7D5B',
-      warning: '#D98E04',
-      error: '#B3261E',
-      info: '#2F6F9F',
-    },
-    border: {
-      light: '#E4DFD5',
-      dark: '#263832',
-    },
+    success: '#2E7D5B',
+    warning: '#D98E04',
+    error: '#B3261E',
+    info: '#2F6F9F',
   },
-  spacing: {
-    xs: 4,
-    sm: 8,
-    md: 12,
-    base: 16,
-    lg: 24,
-    xl: 32,
-    xxl: 48,
+  dark: {
+    // 60% Surfaces & backgrounds (Night Green)
+    background: '#0E1512',
+    surface: '#16221E',
+    surfaceElevated: '#1D2D27',
+
+    // 30% Headers, nav, cards
+    primary: '#1B3B35',
+    primaryDark: '#122824',
+    primaryLight: '#2A584F',
+
+    // 10% Accents & badges (Antique Gold)
+    accent: '#C9A227',
+    accentDark: '#9E7E19',
+    accentText: '#1F2933',
+
+    // Typography
+    text: '#F2EFE6',
+    textSecondary: '#A2B0A9',
+    textMuted: '#687870',
+    textInverse: '#0E1512',
+
+    // Borders & dividers
+    border: '#24342D',
+    borderStrong: '#32473E',
+
+    // Semantic
+    success: '#38A169',
+    warning: '#DD6B20',
+    error: '#E53E3E',
+    info: '#3182CE',
   },
-  radius: {
-    input: 8,
-    card: 16,
-    pill: 999,
-  },
-  typography: {
-    fontSize: {
-      xs: 12,
-      sm: 14,
-      base: 16,
-      lg: 20,
-      xl: 24,
-      xxl: 32,
-    },
-    lineHeight: {
-      xs: 16,
-      sm: 20,
-      base: 24,
-      lg: 28,
-      xl: 32,
-      xxl: 40,
-    },
-  },
-};
+} as const;
+
+export type ThemeColors = typeof colors.light;
 

@@ -1,56 +1,79 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { theme } from '../../src/theme/colors';
+import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
-import { VerifiedBadge } from '../../src/components/VerifiedBadge';
-import { useAuthStore } from '../../src/store/authStore';
+import { colors } from '../../src/theme/colors';
+import { apiClient } from '../../src/api/client';
 
 export default function ScholarDashboardScreen() {
   const router = useRouter();
-  const user = useAuthStore((s) => s.user);
+
+  const [liveTitle, setLiveTitle] = useState('');
+  const [liveDesc, setLiveDesc] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleStartLive = async () => {
+    if (!liveTitle.trim()) {
+      setError('Please provide a title for your live circle');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const res = await apiClient<{ session: any; token: string }>('/live', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: liveTitle.trim(),
+          description: liveDesc.trim() || undefined,
+        }),
+      });
+
+      router.push(`/live/${res.session._id}`);
+    } catch (err: any) {
+      setError(err.message || 'Failed to start live stream');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.card}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Creator & Academic Studio</Text>
-          <VerifiedBadge size="md" showLabel />
-        </View>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <Text style={styles.title}>Scholar Control Panel</Text>
 
-        <Text style={styles.institution}>
-          Affiliation: {user?.scholarProfile?.institution || 'Verified Scholar'}
+      <View style={styles.form}>
+        <Text style={styles.sectionTitle}>Start Live Circle</Text>
+        <Text style={styles.sectionSubtitle}>
+          Broadcast live video lectures to your followers with real-time moderated chat.
         </Text>
 
-        <View style={styles.statsRow}>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>1.2K</Text>
-            <Text style={styles.statLabel}>Students Following</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>48</Text>
-            <Text style={styles.statLabel}>Published Lectures</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>12</Text>
-            <Text style={styles.statLabel}>Consultations</Text>
-          </View>
-        </View>
+        {Boolean(error) && <Text style={styles.errorBanner}>{error}</Text>}
 
-        <View style={styles.actionsBox}>
-          <Button
-            title="Publish New Reel / Video"
-            variant="primary"
-            onPress={() => router.push('/scholar/upload')}
-            style={styles.actionBtn}
-          />
-          <Button
-            title="Consultation Inquiries"
-            variant="accent"
-            onPress={() => router.push('/(tabs)/inbox')}
-            style={styles.actionBtn}
-          />
-        </View>
+        <Input
+          label="Live Circle Title"
+          placeholder="e.g. Explanation of Sahih Al-Bukhari Book of Knowledge"
+          value={liveTitle}
+          onChangeText={setLiveTitle}
+        />
+
+        <Input
+          label="Description (Optional)"
+          placeholder="Topics covered, Q&A guidelines..."
+          value={liveDesc}
+          onChangeText={setLiveDesc}
+          multiline
+        />
+
+        <Button
+          title="Go Live Now"
+          variant="accent"
+          onPress={handleStartLive}
+          loading={loading}
+          style={styles.liveBtn}
+        />
       </View>
     </ScrollView>
   );
@@ -58,59 +81,47 @@ export default function ScholarDashboardScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: theme.spacing.base,
-    backgroundColor: theme.colors.background.light,
+    flex: 1,
+    backgroundColor: colors.light.background,
   },
-  card: {
-    backgroundColor: theme.colors.surface.light,
-    borderRadius: theme.radius.card,
-    padding: theme.spacing.lg,
-    borderWidth: 1,
-    borderColor: theme.colors.border.light,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: theme.spacing.xs,
+  content: {
+    padding: 20,
   },
   title: {
-    fontSize: theme.typography.fontSize.lg,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
+    fontSize: 24,
+    fontWeight: '800',
+    color: colors.light.primary,
+    marginBottom: 20,
   },
-  institution: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondaryLight,
-    marginBottom: theme.spacing.base,
+  form: {
+    backgroundColor: colors.light.surface,
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.light.border,
   },
-  statsRow: {
-    flexDirection: 'row',
-    backgroundColor: '#FAF7EE',
-    borderRadius: theme.radius.input,
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.lg,
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.light.text,
+    marginBottom: 4,
   },
-  statBox: {
-    flex: 1,
-    alignItems: 'center',
+  sectionSubtitle: {
+    fontSize: 13,
+    color: colors.light.textSecondary,
+    marginBottom: 16,
+    lineHeight: 18,
   },
-  statNumber: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: theme.colors.brand.emerald,
+  errorBanner: {
+    backgroundColor: '#FEE2E2',
+    color: colors.light.error,
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    fontSize: 13,
   },
-  statLabel: {
-    fontSize: 11,
-    color: theme.colors.text.secondaryLight,
-    marginTop: 2,
-    textAlign: 'center',
-  },
-  actionsBox: {
-    gap: 10,
-  },
-  actionBtn: {
-    marginBottom: 8,
+  liveBtn: {
+    marginTop: 8,
   },
 });
 

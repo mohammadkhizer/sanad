@@ -1,122 +1,120 @@
-import { Server as HttpServer } from 'http';
 import { Server, Socket } from 'socket.io';
-import { verifyAccessToken } from '../utils/tokens';
-import { User } from '../models/User';
-import { Conversation, Message } from '../models/Communication';
+import { verifyAccessToken } from '../utils/tokens.js';
+import { ConversationModel, MessageModel } from '../modules/messaging/messaging.model.js';
+import { BlockModel } from '../modules/users/users.model.js';
+import { logger } from '../config/logger.js';
+import mongoose from 'mongoose';
 
-export function setupSocketIO(httpServer: HttpServer): Server {
-  const io = new Server(httpServer, {
-    cors: {
-      origin: '*',
-      methods: ['GET', 'POST'],
-    },
-  });
+interface AuthenticatedSocket extends Socket {
+  userId?: string;
+  userRoles?: string[];
+}
 
+export function setupSocketIO(io: Server): void {
   // Authentication middleware
-  io.use(async (socket: Socket, next) => {
+  io.use(async (socket: AuthenticatedSocket, next) => {
+    const token = socket.handshake.auth?.token || socket.handshake.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+      return next(new Error('Authentication token required'));
+    }
+
     try {
-      const token =
-        socket.handshake.auth?.token ||
-        socket.handshake.headers?.authorization?.replace('Bearer ', '');
-
-      if (!token) {
-        return next(new Error('Authentication token missing'));
-      }
-
-      const payload = verifyAccessToken(token);
-      const user = await User.findById(payload.sub);
-      if (!user || user.status !== 'active') {
-        return next(new Error('User inactive or not found'));
-      }
-
-      (socket as any).user = user;
+      const payload = await verifyAccessToken(token);
+      socket.userId = payload.sub;
+      socket.userRoles = payload.roles;
       next();
     } catch {
-      next(new Error('Authentication failed'));
+      next(new Error('Invalid or expired socket token'));
     }
   });
 
-  io.on('connection', (socket: Socket) => {
-    const user = (socket as any).user;
-    if (!user) return;
+  io.on('connection', (socket: AuthenticatedSocket) => {
+    const userId = socket.userId!;
+    logger.info({ userId, socketId: socket.id }, 'Socket client connected');
 
-    // Join personal room for targeted notifications (calls, chat requests)
-    socket.join(`user:${user.id}`);
-
-    // Broadcast presence
-    io.emit('presence', { userId: user.id, status: 'online' });
+    // Join personal user room for targeted notifications/calls
+    socket.join(`user:${userId}`);
 
     // Join conversation room
     socket.on('conversation:join', async ({ conversationId }: { conversationId: string }) => {
-      const conv = await Conversation.findById(conversationId);
-      if (conv && conv.participants.some((p) => p.toString() === user.id)) {
-        socket.join(`conversation:${conversationId}`);
+      try {
+        if (!mongoose.Types.ObjectId.isValid(conversationId)) return;
+        const conv = await ConversationModel.findById(conversationId).exec();
+        if (conv && conv.participants.some((p: any) => p.toString() === userId)) {
+          socket.join(`conversation:${conversationId}`);
+        }
+      } catch (err) {
+        logger.warn({ err }, 'Failed to join conversation room');
       }
     });
 
-    // Leave conversation room
-    socket.on('conversation:leave', ({ conversationId }: { conversationId: string }) => {
-      socket.leave(`conversation:${conversationId}`);
-    });
+    // Send realtime message
+    socket.on('message:send', async (data: { conversationId: string; body: string }) => {
+      try {
+        if (!data.conversationId || !data.body?.trim()) return;
 
-    // Typing event
-    socket.on(
-      'typing',
-      ({ conversationId, isTyping }: { conversationId: string; isTyping: boolean }) => {
-        socket.to(`conversation:${conversationId}`).emit('typing', {
-          conversationId,
-          userId: user.id,
-          displayName: user.displayName,
-          isTyping,
+        const conv = await ConversationModel.findById(data.conversationId).exec();
+        if (!conv || !conv.participants.some((p: any) => p.toString() === userId)) {
+          return socket.emit('error', { message: 'Not authorized in conversation' });
+        }
+
+        // Check block
+        const otherParticipant = conv.participants.find((p: any) => p.toString() !== userId);
+        if (otherParticipant) {
+          const blocked = await BlockModel.findOne({
+            $or: [
+              { blockerId: userId, blockedId: otherParticipant },
+              { blockerId: otherParticipant, blockedId: userId },
+            ],
+          });
+          if (blocked) {
+            return socket.emit('error', { message: 'User blocked' });
+          }
+        }
+
+        const msg = await MessageModel.create({
+          conversationId: conv._id,
+          senderId: userId,
+          body: data.body.trim(),
+          readBy: [userId],
         });
-      }
-    );
 
-    // Live chat room join
-    socket.on('live:join', ({ liveSessionId }: { liveSessionId: string }) => {
-      socket.join(`live:${liveSessionId}`);
+        conv.lastMessageAt = new Date();
+        conv.lastMessageText = data.body.trim();
+        await conv.save();
+
+        io.to(`conversation:${data.conversationId}`).emit('message:new', msg);
+      } catch (err) {
+        logger.error({ err }, 'Error in message:send socket event');
+      }
     });
 
-    socket.on('live:leave', ({ liveSessionId }: { liveSessionId: string }) => {
-      socket.leave(`live:${liveSessionId}`);
+    // Typing indicators
+    socket.on('typing:start', ({ conversationId }: { conversationId: string }) => {
+      socket.to(`conversation:${conversationId}`).emit('typing', { conversationId, userId, isTyping: true });
     });
 
-    // Live chat message broadcast
-    socket.on(
-      'live:chat:send',
-      ({ liveSessionId, message }: { liveSessionId: string; message: string }) => {
-        io.to(`live:${liveSessionId}`).emit('live:chat', {
-          liveSessionId,
-          user: {
-            id: user.id,
-            displayName: user.displayName,
-            avatarUrl: user.avatarUrl,
-            scholar: user.roles.includes('scholar'),
-          },
-          message,
-          timestamp: new Date().toISOString(),
-        });
-      }
-    );
+    socket.on('typing:stop', ({ conversationId }: { conversationId: string }) => {
+      socket.to(`conversation:${conversationId}`).emit('typing', { conversationId, userId, isTyping: false });
+    });
 
-    // Call ringing signaling
-    socket.on('call:ring', ({ calleeId, callSessionId, roomName }: any) => {
-      io.to(`user:${calleeId}`).emit('call:ring', {
-        callSessionId,
-        caller: {
-          id: user.id,
-          displayName: user.displayName,
-          avatarUrl: user.avatarUrl,
-        },
-        roomName,
+    // Live stream chat
+    socket.on('live:join', ({ liveId }: { liveId: string }) => {
+      socket.join(`live:${liveId}`);
+    });
+
+    socket.on('live:message', ({ liveId, text }: { liveId: string; text: string }) => {
+      if (!text?.trim()) return;
+      io.to(`live:${liveId}`).emit('live:chat', {
+        userId,
+        text: text.trim(),
+        timestamp: new Date().toISOString(),
       });
     });
 
     socket.on('disconnect', () => {
-      io.emit('presence', { userId: user.id, status: 'offline' });
+      logger.info({ userId, socketId: socket.id }, 'Socket client disconnected');
     });
   });
-
-  return io;
 }
 

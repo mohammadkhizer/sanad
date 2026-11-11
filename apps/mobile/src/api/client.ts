@@ -1,134 +1,75 @@
 import { useAuthStore } from '../store/authStore';
-import { ApiErrorResponse } from '@sanad/types';
 
-declare const process: {
-  env: {
-    EXPO_PUBLIC_API_URL?: string;
-    [key: string]: string | undefined;
-  };
-};
-
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-
-interface RequestOptions extends RequestInit {
-  skipAuth?: boolean;
-}
-
-export class ApiError extends Error {
-  code: string;
-  statusCode: number;
-  details?: unknown;
-
-  constructor(errorResponse: ApiErrorResponse, statusCode: number) {
-    super(errorResponse.message || 'API request failed');
-    this.name = 'ApiError';
-    this.code = errorResponse.code || 'UNKNOWN_ERROR';
-    this.statusCode = statusCode;
-    this.details = errorResponse.details;
-  }
-}
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 let isRefreshing = false;
-let failedQueue: Array<{
-  resolve: (value?: unknown) => void;
-  reject: (reason?: unknown) => void;
-}> = [];
+let refreshSubscribers: ((token: string) => void)[] = [];
 
-const processQueue = (error: Error | null) => {
-  failedQueue.forEach((promise) => {
-    if (error) {
-      promise.reject(error);
-    } else {
-      promise.resolve();
-    }
-  });
-  failedQueue = [];
-};
+function subscribeTokenRefresh(cb: (token: string) => void) {
+  refreshSubscribers.push(cb);
+}
 
-export async function apiFetch<T>(
-  endpoint: string,
-  options: RequestOptions = {}
-): Promise<T> {
-  const { skipAuth = false, headers: customHeaders, ...restOptions } = options;
-  const store = useAuthStore.getState();
+function onRefreshed(token: string) {
+  refreshSubscribers.forEach((cb) => cb(token));
+  refreshSubscribers = [];
+}
 
-  const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
-
+export async function apiClient<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const authState = useAuthStore.getState();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(customHeaders as Record<string, string>),
+    ...(options.headers as Record<string, string>),
   };
 
-  if (!skipAuth && store.accessToken) {
-    headers['Authorization'] = `Bearer ${store.accessToken}`;
+  if (authState.accessToken) {
+    headers['Authorization'] = `Bearer ${authState.accessToken}`;
   }
 
-  const response = await fetch(url, {
-    headers,
-    ...restOptions,
-  });
+  const url = `${BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 
-  // Handle Token Expiration and Refresh Rotation
-  if (response.status === 401 && !skipAuth && store.refreshToken) {
+  let res = await fetch(url, { ...options, headers });
+
+  // Handle 401 auto-refresh token rotation
+  if (res.status === 401 && authState.refreshToken) {
     if (!isRefreshing) {
       isRefreshing = true;
       try {
-        const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        const refreshRes = await fetch(`${BASE_URL}/auth/refresh`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refreshToken: store.refreshToken }),
+          body: JSON.stringify({ refreshToken: authState.refreshToken }),
         });
 
-        if (refreshResponse.ok) {
-          const refreshData = await refreshResponse.json();
-          const newTokens = refreshData.data.tokens;
-          if (store.user) {
-            await store.setAuth(store.user, newTokens.accessToken, newTokens.refreshToken);
-          }
-          processQueue(null);
-
-          // Retry original request with new access token
-          headers['Authorization'] = `Bearer ${newTokens.accessToken}`;
-          const retryResponse = await fetch(url, { headers, ...restOptions });
-          return handleResponse<T>(retryResponse);
+        if (refreshRes.ok) {
+          const data = await refreshRes.json();
+          await authState.updateAccessToken(data.accessToken);
+          onRefreshed(data.accessToken);
         } else {
-          // Token refresh failed or compromised; clear auth
-          await store.logout();
-          processQueue(new Error('Session expired'));
+          await authState.logout();
+          throw new Error('Session expired');
         }
-      } catch (err: any) {
-        await store.logout();
-        processQueue(err);
+      } catch (err) {
+        await authState.logout();
+        throw err;
       } finally {
         isRefreshing = false;
       }
-    } else {
-      // Wait for refresh to complete then retry
-      return new Promise<T>((resolve, reject) => {
-        failedQueue.push({
-          resolve: async () => {
-            try {
-              const currentToken = useAuthStore.getState().accessToken;
-              headers['Authorization'] = `Bearer ${currentToken}`;
-              const retryResponse = await fetch(url, { headers, ...restOptions });
-              resolve(await handleResponse<T>(retryResponse));
-            } catch (retryError) {
-              reject(retryError);
-            }
-          },
-          reject,
-        });
-      });
     }
+
+    // Wait for the new token
+    const retryToken = await new Promise<string>((resolve) => {
+      subscribeTokenRefresh((token) => resolve(token));
+    });
+
+    headers['Authorization'] = `Bearer ${retryToken}`;
+    res = await fetch(url, { ...options, headers });
   }
 
-  return handleResponse<T>(response);
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || data.error?.message || 'Network request failed');
+  }
+
+  return data as T;
 }
 
-async function handleResponse<T>(response: Response): Promise<T> {
-  const json = await response.json();
-  if (!response.ok) {
-    throw new ApiError(json, response.status);
-  }
-  return json;
-}

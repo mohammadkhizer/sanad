@@ -1,73 +1,65 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Text } from 'react-native';
-import { theme } from '../../src/theme/colors';
+import { useAuthStore } from '../../src/store/authStore';
+import { colors } from '../../src/theme/colors';
 
-export default function TabLayout() {
+export default function TabsLayout() {
+  const user = useAuthStore((state) => state.user);
+  const isScholar = Boolean(user?.roles?.includes('scholar') || user?.roles?.includes('admin'));
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: theme.colors.accent.gold,
-        tabBarInactiveTintColor: '#A0B2AC',
+        headerShown: true,
+        headerStyle: { backgroundColor: colors.light.background },
+        headerTintColor: colors.light.primary,
+        headerTitleStyle: { fontWeight: '700' },
+        headerShadowVisible: false,
         tabBarStyle: {
-          backgroundColor: theme.colors.brand.emerald,
-          borderTopColor: theme.colors.brand.emeraldDark,
+          backgroundColor: colors.light.surface,
+          borderTopColor: colors.light.border,
           height: 60,
           paddingBottom: 8,
           paddingTop: 8,
         },
-        headerStyle: {
-          backgroundColor: theme.colors.brand.emerald,
-        },
-        headerTintColor: theme.colors.text.onEmerald,
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
+        tabBarActiveTintColor: colors.light.primary,
+        tabBarInactiveTintColor: colors.light.textMuted,
       }}
     >
       <Tabs.Screen
         name="feed"
         options={{
           title: 'Feed',
-          tabBarLabel: ({ color }) => (
-            <Text style={{ color, fontSize: 11, fontWeight: '600' }}>Feed</Text>
-          ),
+          tabBarLabel: 'Feed',
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Scholars',
-          tabBarLabel: ({ color }) => (
-            <Text style={{ color, fontSize: 11, fontWeight: '600' }}>Scholars</Text>
-          ),
+          title: 'Explore',
+          tabBarLabel: 'Explore',
         }}
       />
       <Tabs.Screen
-        name="live"
+        name="create"
         options={{
-          title: 'Live',
-          tabBarLabel: ({ color }) => (
-            <Text style={{ color, fontSize: 11, fontWeight: '600' }}>Live</Text>
-          ),
+          title: 'Publish',
+          tabBarLabel: 'Publish',
+          href: isScholar ? '/(tabs)/create' : null,
         }}
       />
       <Tabs.Screen
         name="inbox"
         options={{
           title: 'Inbox',
-          tabBarLabel: ({ color }) => (
-            <Text style={{ color, fontSize: 11, fontWeight: '600' }}>Inbox</Text>
-          ),
+          tabBarLabel: 'Inbox',
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
-          tabBarLabel: ({ color }) => (
-            <Text style={{ color, fontSize: 11, fontWeight: '600' }}>Profile</Text>
-          ),
+          tabBarLabel: 'Profile',
         }}
       />
     </Tabs>
