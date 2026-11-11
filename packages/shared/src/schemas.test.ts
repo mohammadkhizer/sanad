@@ -43,3 +43,4 @@ describe('Registration Schema & Age Compliance', () => {
     assert.strictEqual(result.success, false);
   });
 });
+
