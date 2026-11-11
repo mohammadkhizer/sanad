@@ -6,14 +6,33 @@ Tick items as you complete them. Do not start the next phase until the current p
 
 ---
 
+## Architecture Implementation Status (Frontend and Backend Overview)
+
+| Subsystem / Domain | Frontend Status (apps/mobile) | Backend Status (apps/api + packages/shared) | Integration Status |
+| :--- | :--- | :--- | :--- |
+| **Project Setup & Core** | Expo SDK 58, React Native 0.88, TypeScript Strict, i18n RTL | Node v22, npm workspaces, strict engine guards, CI test suite | Shared schemas, npm workspaces verified |
+| **Design System & UI Kit** | 60:30:10 palette (Ivory/Emerald/Gold), Pure Vector Icons, Safe Area Insets | Centralized error JSON formats, structured logging | Zero deprecated SafeAreaView warnings |
+| **Authentication & Profile** | Onboarding, Login, Register (with DOB 13+), OTP, 2FA, Password Reset | Argon2, 15m Access JWT, Rotating Refresh Token, TOTP 2FA, Bloom Filter | Mock Adapter active; HTTP Adapter stubs ready |
+| **RBAC & Authorization** | AccessGuard wrapper, useCan hook, dynamic scholar/admin views | authenticate, requireRole, requirePermission, DB revocation | Role claims and instant revocation enforced |
+| **Scholar Verification** | Multi-step dossier, document picker, status tracker, appeal UI | Application model, review endpoints, audit trail, 2FA gating | Mock Adapter active; Cloud storage signing pending |
+| **Curriculum & Reels** | Following/Discover feeds, Reels pager, video trimmer UI, comment controls | Post model, upload signing controller, cursor pagination, rate limits | Mock Adapter active; Mux webhook secret pending |
+| **Social Engagements** | Likes, bookmarks, shares, replies, blocking, mute, report modal | Atomic increment counters, block list filtering, report schemas | Mock Adapter active; HTTP Adapter stubs ready |
+| **Scholarly Inquiries (Chat)**| Conversation list, message bubble UI, inquiry requests, attachments | Socket.io server, Redis adapter, block checks, read receipts | Mock Realtime active; Socket.io client cutover pending |
+| **Live Halaqah & Calls** | Schedule halaqah UI, host/viewer rooms, in-call signaling UI | LiveKit token generation, role grants, call signaling state | Mock MediaSession active; LiveKit cloud link pending |
+| **Moderation & Admin** | Triage queues (P0/P1/P2), dossier review, role management, audit viewer | Moderation routes, audit logging, suspension, scholar revocation | AccessGuard enforced; Mobile Admin operational |
+| **Notifications & System** | In-app notification list, category preferences, quiet hours settings | Device token registry, preferences endpoints | BullMQ workers & push dispatchers pending |
+| **Legal, Privacy & Compliance**| In-app deletion, data export, terms modal, 13+ age compliance | Data retention policies, NoSQL sanitization, rate limiters | Legal documents finalized in docs/ |
+
+---
+
 **Build order:** Setup → **Frontend on mock data** → Backend modules (each one switches the app from mock to real) → Hardening → Release.
 ## 0. Pre-Development
 - [x] PRD reviewed and approved (`01-PRD.md`)
 - [x] Target tradition(s) and accepted credential types decided
 - [x] Chat/call policy decided (free DM vs request-only)
 - [x] App name "Sanad" availability checked (domain, App Store, Play Store, trademark)
-- [x] Apple Developer and Google Play accounts created
-- [x] Accounts created: Expo/EAS, MongoDB Atlas, Redis host, Mux, LiveKit, Cloudflare R2/S3, Sentry, SMS/email provider
+- [ ] Apple Developer and Google Play accounts created
+- [ ] Accounts created: Expo/EAS, MongoDB Atlas, Redis host, Mux, LiveKit, Cloudflare R2/S3, Sentry, SMS/email provider
 - [x] Privacy policy and terms of service drafted
 - [x] Content policy approved (`08-Content-Policy.md`)
 
@@ -59,7 +78,7 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [x] Shared UI kit: Button, Input, Card, Avatar, VerifiedBadge, Chip, BottomSheet, Toast, Skeleton, EmptyState, ErrorState, OfflineBanner
 
 ### 2.3 Auth and onboarding screens
-- [x] Onboarding, Login, Register, OTP, Forgot/Reset
+- [x] Onboarding, Login, Register (with Date of Birth & 13+ age validation), OTP, Forgot/Reset
 - [x] 2FA setup (QR, backup codes) and 2FA challenge
 - [x] Tokens kept in `expo-secure-store` (not AsyncStorage)
 - [x] Form validation with shared Zod schemas and clear inline errors
@@ -129,7 +148,7 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [x] Screen-reader labels, 44pt touch targets, dynamic font sizes, reduce-motion
 - [x] Contrast AA in light and dark
 - [x] Dev menu: latency slider, force-error, empty-data toggle
-- [x] Component tests (jest-expo + React Native Testing Library) for core components and guards
+- [x] Component tests (mockApi test suite) for core components and guards
 - [ ] Tested on a low-end Android device and a small-screen iPhone
 - [x] **Gate:** entire app demoable with no backend; every role's UI correct; all mocks pass shared schemas; LTR and RTL both clean
 
@@ -159,8 +178,8 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [ ] Optional Google/Apple sign-in (Apple required if any social login on iOS)
 - [x] Tokens stored in `expo-secure-store` (not AsyncStorage)
 - [x] Auto-refresh interceptor on 401
-- [x] App `auth` module switched from mock to HTTP; mock and http adapters pass the same contract tests
-- [x] Phase 2 auth screens verified against the real API
+- [ ] App `auth` module switched from mock to HTTP; mock and http adapters pass the same contract tests (Frontend cutover to live backend pending)
+- [ ] Phase 2 auth screens verified against the real API (Frontend verification against live server pending)
 - [x] **Gate:** token reuse test fails safely; 2FA enforced
 
 ## 5. RBAC and Authorization
@@ -180,29 +199,29 @@ Tick items as you complete them. Do not start the next phase until the current p
 
 ## 6. Scholar Verification
 - [x] Application model and endpoints (submit, status, queue, approve, reject)
-- [x] Pre-signed uploads (private bucket, short expiry, type/size limits)
-- [x] Virus scanning on uploaded credentials
+- [ ] Pre-signed uploads (private bucket, short expiry, type/size limits) (AWS S3/Cloudflare R2 live bucket pending)
+- [ ] Virus scanning on uploaded credentials (ClamAV container pending)
 - [x] Credential files visible only to moderators/admins
 - [x] Optional peer endorsement
 - [x] Rejection requires reason and second-reviewer confirmation
 - [x] Approval grants role, badge, forces 2FA enrolment
 - [x] Re-application and appeal flow
-- [x] Re-verification job scheduled
+- [ ] Re-verification job scheduled (Cron scheduler pending)
 - [x] Retention and deletion of credential documents
-- [x] App `verification` module switched to HTTP; stepper, status and review screens work on real endpoints
+- [ ] App `verification` module switched to HTTP; stepper, status and review screens work on real endpoints (Frontend cutover to live backend pending)
 - [x] **Gate:** full apply → approve → post works; unapproved cannot post
 
 ## 7. Content, Reels and Video
 - [x] Post model and Mux direct upload flow
-- [x] Mux webhook signature verified
+- [ ] Mux webhook signature verified (Live Mux webhook secret pending)
 - [x] Limits enforced client and server (Reel 90s/100MB; video 60min/2GB)
 - [x] Following, Discover and per-scholar feeds with cursor pagination
 - [x] Reels pager with preloading, mute and captions toggle
 - [x] Upload progress, retry and failure handling
-- [x] Thumbnails generated
+- [ ] Thumbnails generated (Mux background processing pending)
 - [x] Probation/pending moderation for new scholars (if enabled)
-- [x] App `content` module switched to HTTP; sample videos replaced by Mux playback; Create flow uses direct upload
-- [ ] **Gate:** Reel starts in under 3s on mid-range Android
+- [ ] App `content` module switched to HTTP; sample videos replaced by Mux playback; Create flow uses direct upload (Frontend cutover to live backend pending)
+- [ ] **Gate:** Reel starts in under 3s on mid-range Android (Physical device benchmark pending)
 
 ## 8. Social Interactions
 - [x] Like, comment, follow, save, share
@@ -210,7 +229,7 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [x] Block and mute enforced server-side everywhere
 - [x] Atomic counters; no drift under rapid taps
 - [x] Per-action rate limits
-- [x] App `social` module switched to HTTP; optimistic updates roll back on server rejection
+- [ ] App `social` module switched to HTTP; optimistic updates roll back on server rejection (Frontend cutover to live backend pending)
 - [x] **Gate:** blocked users fully invisible to each other
 
 ## 9. Chat
@@ -223,7 +242,7 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [x] Image attachments (type/size limits, scanned)
 - [x] Report message action
 - [x] Missed-message sync after reconnect
-- [x] App `chat` and realtime client switched to Socket.io; reconnect verified against Phase 2 chat screens
+- [ ] App `chat` and realtime client switched to Socket.io; reconnect verified against Phase 2 chat screens (Frontend cutover to live backend pending)
 - [x] **Gate:** outsiders cannot join rooms; message order preserved
 
 ## 10. Live Streaming and Video Calls
@@ -238,7 +257,7 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [x] Camera/mic permission handling and denial UX
 - [ ] Tested: poor network, Wi-Fi ↔ mobile switch, background/foreground, call interruptions
 - [ ] Tested on real iOS and Android devices (dev build)
-- [x] Placeholder `MediaSession` replaced with LiveKit; Phase 2 screens need only minor layout changes
+- [ ] Placeholder `MediaSession` replaced with LiveKit; Phase 2 screens need only minor layout changes (Frontend cutover to LiveKit pending)
 - [x] **Gate:** viewer cannot publish; moderator can end stream
 
 ## 11. Moderation and Admin
@@ -250,17 +269,17 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [x] Appeals reviewed by a different moderator
 - [x] Admin: role assignment, config, audit log viewer
 - [x] Basic analytics (reports, backlog, active scholars)
-- [x] App `moderation` module switched to HTTP; report, queue, review, audit and role screens verified
+- [ ] App `moderation` module switched to HTTP; report, queue, review, audit and role screens verified (Frontend cutover to live backend pending)
 - [x] **Gate:** SLAs from `08-Content-Policy.md` measurable
 
 ## 12. Notifications
 - [x] Push token registration per device
-- [x] Worker queue (BullMQ) for sending
+- [ ] Worker queue (BullMQ) for sending (BullMQ queue workers pending)
 - [x] Events: follower, comment, live start, chat request, application result
 - [x] User preferences and quiet hours
 - [x] Deep links verified
 - [x] Token cleanup on logout/invalid
-- [x] App `notifications` module switched to HTTP; preferences screen and deep links verified
+- [ ] App `notifications` module switched to HTTP; preferences screen and deep links verified (Frontend cutover to live backend pending)
 - [x] **Gate:** opted-out users receive nothing; links open correct screens
 
 ## 13. Security Hardening
@@ -285,8 +304,8 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [x] Data export for users
 - [x] Consent for recording/live shown
 - [x] Data retention schedule documented
-- [x] Children's data stance defined (minimum age enforced)
-- [x] Store privacy labels / data safety form accurate
+- [x] Children's data stance defined (minimum age enforced via Date of Birth 13+ validation)
+- [ ] Store privacy labels / data safety form accurate
 - [x] UGC requirements: report, block, moderation contact
 
 ## 15. Quality and Performance
@@ -348,7 +367,7 @@ Tick items as you complete them. Do not start the next phase until the current p
 ### 18.4 Admin dashboard and alerts
 - [x] Live queues: applications and reports
 - [x] Views: suspicious logins, top offenders, moderator activity
-- [ ] Alerts to Slack or email on spikes (failed logins, reports, errors)
+- [ ] Alerts to Slack or email on spikes (failed logins, reports, errors) (Slack webhook/email alert worker pending)
 - [x] Audit log viewer with filters (actor, action, target, date)
 - [x] **Gate:** a forced token-reuse and a mass-report test both raise alerts and appear in the audit log
 
@@ -378,8 +397,8 @@ Tick items as you complete them. Do not start the next phase until the current p
 
 ### 19.3 Review process
 - [x] Reviewer checklist: document authenticity, name/date/seal consistency
-- [x] Contact issuing institution or teacher where possible
-- [x] Check public evidence of teaching or publications
+- [ ] Contact issuing institution or teacher where possible (Manual operational process)
+- [ ] Check public evidence of teaching or publications (Manual operational process)
 - [x] Impersonation check against known scholars
 - [x] Duplicate-application check
 - [ ] Optional short video interview supported
@@ -389,16 +408,16 @@ Tick items as you complete them. Do not start the next phase until the current p
 
 ### 19.4 After approval, re-verification and revocation
 - [x] On approval: `scholar` role granted, 2FA setup forced, badge shown, posting unlocked
-- [x] Yearly re-verification cycle scheduled
+- [ ] Yearly re-verification cycle scheduled (Cron scheduler pending)
 - [x] Complaint-triggered re-verification supported
 - [x] Instant revocation: active sessions lose scholar permissions within 60 s; live streams end
 - [x] Every decision audit-logged and applicant notified
 
 ### 19.5 Credential document protection
-- [x] Private, encrypted bucket; no public URLs
-- [x] Short-lived signed URLs only
+- [ ] Private, encrypted bucket; no public URLs (AWS S3/Cloudflare R2 live bucket pending)
+- [ ] Short-lived signed URLs only (S3 presigned live URLs pending)
 - [x] Every document access logged
-- [x] Retention: files deleted or redacted after a set period (for example 90 days after decision); decision record kept
+- [x] Retention: files deleted or redacted after a set period; decision record kept
 - [x] **Gate:** apply → review → approve → post works end to end; unapproved and revoked users cannot post; documents unreachable without a signed URL
 
 ---
@@ -411,7 +430,7 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [ ] Home page with store download links
 - [ ] "How verification works" page
 - [ ] Scholar application info and FAQ
-- [x] Legal pages published: Terms, Privacy, Code of Conduct, Content Policy (see section 21)
+- [x] Legal pages published: Terms, Privacy, Code of Conduct, Content Policy (in `docs/`)
 - [ ] Contact and support page
 - [ ] Report-abuse form
 - [ ] Account deletion page (required for Google Play)
@@ -426,10 +445,10 @@ Tick items as you complete them. Do not start the next phase until the current p
 
 ### 20.3 Admin and moderation web panel
 - [ ] Separate web app from the public site
-- [x] Application review screen
-- [x] Report queue
-- [x] User and role management
-- [x] Audit log viewer
+- [ ] Application review screen (Web app pending; Mobile admin operational)
+- [ ] Report queue (Web app pending; Mobile admin operational)
+- [ ] User and role management (Web app pending; Mobile admin operational)
+- [ ] Audit log viewer (Web app pending; Mobile admin operational)
 - [x] RBAC enforced server-side; mandatory 2FA for staff
 - [ ] Optional IP allowlist
 - [ ] **Gate:** all store-required URLs resolve; deep links open the app; admin panel inaccessible without staff role + 2FA
@@ -478,10 +497,10 @@ Tick items as you complete them. Do not start the next phase until the current p
 *Extends phase 12.*
 
 ### 22.1 Channels
-- [x] Push via `expo-notifications` (APNs and FCM)
-- [x] In-app notification inbox
-- [x] Email (security, legal, application updates)
-- [x] SMS for OTP only
+- [x] Push via `expo-notifications` (APNs and FCM) (Client config prepared)
+- [x] In-app notification inbox (Frontend UI done)
+- [ ] Email (security, legal, application updates) (Backend mailer worker pending)
+- [ ] SMS for OTP only (Backend SMS provider pending)
 
 ### 22.2 Categories and user control
 - [x] Security: new device, 2FA change (cannot be disabled)
@@ -496,21 +515,21 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [x] Per-category preferences screen and quiet hours
 
 ### 22.3 Pipeline
-- [x] API event triggers the notification service
+- [ ] API event triggers the notification service (Backend event dispatchers pending)
 - [x] Preferences and quiet hours checked
 - [x] Localised templates (English first; RTL-ready languages)
-- [x] Jobs queued with BullMQ on Redis
-- [x] Workers send to Expo Push, email provider, SMS provider
-- [x] Delivery log saved; retries with backoff on failure
-- [x] Deep-link payload opens the correct screen
-- [x] Low-priority items batched ("12 people liked your Reel")
+- [ ] Jobs queued with BullMQ on Redis (BullMQ queue workers pending)
+- [ ] Workers send to Expo Push, email provider, SMS provider (Push/Email/SMS workers pending)
+- [ ] Delivery log saved; retries with backoff on failure (Worker delivery log pending)
+- [x] Deep-link payload opens the correct screen (Frontend deep links configured)
+- [ ] Low-priority items batched ("12 people liked your Reel") (Batch worker pending)
 
 ### 22.4 Devices and permissions
 - [x] Device tokens stored per device
 - [x] Token removed on logout and on invalid-token response
 - [x] Permission prompt shown after first valuable moment, not at launch
 - [ ] Incoming-call push is high priority with native call UI (extra native work scoped)
-- [x] **Gate:** opted-out categories send nothing; mandatory categories always send; links open correct screens on iOS and Android
+- [ ] **Gate:** opted-out categories send nothing; mandatory categories always send; links open correct screens on iOS and Android (Live worker gate pending)
 
 ---
 
