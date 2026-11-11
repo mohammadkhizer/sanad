@@ -5,20 +5,20 @@ import {
   FlatList,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { api } from '../../src/api';
 import { colors } from '../../src/theme/colors';
 import { Card } from '../../src/components/Card';
+import { AppHeader } from '../../src/components/AppHeader';
+import { Icon } from '../../src/components/Icon';
 import { EmptyState } from '../../src/components/EmptyState';
 import { ReportEntity } from '@sanad/shared';
 
 export default function AdminReportsScreen() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const [priorityFilter, setPriorityFilter] = useState<'all' | 'P0' | 'P1' | 'P2'>('all');
 
   const { data: reports, isLoading } = useQuery<ReportEntity[]>({
@@ -29,7 +29,13 @@ export default function AdminReportsScreen() {
   const list = reports || [];
 
   return (
-    <View style={styles.container}>
+    <View style={styles.screen}>
+      <AppHeader
+        title="Trust and Safety"
+        subtitle="Reported Content and Conduct"
+        showBack
+      />
+
       {/* Priority Filter Bar */}
       <View style={styles.filterBar}>
         {(['all', 'P0', 'P1', 'P2'] as const).map((p) => {
@@ -39,9 +45,10 @@ export default function AdminReportsScreen() {
               key={p}
               style={[styles.filterBtn, isSelected && styles.filterBtnActive]}
               onPress={() => setPriorityFilter(p)}
+              activeOpacity={0.7}
             >
               <Text style={[styles.filterText, isSelected && styles.filterTextActive]}>
-                {p === 'all' ? 'All Priority' : `[${p} PRIORITY]`}
+                {p === 'all' ? 'All Reports' : `${p} Priority`}
               </Text>
             </TouchableOpacity>
           );
@@ -64,12 +71,15 @@ export default function AdminReportsScreen() {
               <Card style={styles.reportCard}>
                 <TouchableOpacity
                   onPress={() => router.push(`/admin/reports/${item._id}`)}
+                  activeOpacity={0.7}
                 >
                   <View style={styles.headerRow}>
                     <View style={[styles.priorityBadge, isP0 ? styles.p0Badge : styles.p1Badge]}>
-                      <Text style={styles.priorityText}>[{item.priority}]</Text>
+                      <Text style={styles.priorityText}>{item.priority}</Text>
                     </View>
-                    <Text style={styles.targetTypeBadge}>[{item.targetType.toUpperCase()}]</Text>
+                    <View style={styles.typeBadge}>
+                      <Text style={styles.targetTypeBadge}>{item.targetType.toUpperCase()}</Text>
+                    </View>
                     <Text style={styles.statusText}>{item.status.toUpperCase()}</Text>
                   </View>
 
@@ -82,7 +92,10 @@ export default function AdminReportsScreen() {
                     <Text style={styles.dateText}>
                       {new Date(item.createdAt).toLocaleDateString()}
                     </Text>
-                    <Text style={styles.actionPromptText}>{'Review & Enforce >'}</Text>
+                    <View style={styles.reviewAction}>
+                      <Text style={styles.actionPromptText}>Review and Enforce</Text>
+                      <Icon name="chevron-right" size={14} color={colors.light.primary} />
+                    </View>
                   </View>
                 </TouchableOpacity>
               </Card>
@@ -101,7 +114,7 @@ export default function AdminReportsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.light.background,
   },
@@ -115,13 +128,16 @@ const styles = StyleSheet.create({
   },
   filterBtn: {
     flex: 1,
-    paddingVertical: 8,
-    borderRadius: 6,
-    backgroundColor: colors.light.surfaceElevated,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: colors.light.background,
+    borderWidth: 1,
+    borderColor: colors.light.border,
     alignItems: 'center',
   },
   filterBtnActive: {
     backgroundColor: colors.light.primary,
+    borderColor: colors.light.primaryDark,
   },
   filterText: {
     fontSize: 11,
@@ -141,17 +157,18 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   reportCard: {
-    padding: 14,
-    gap: 6,
+    padding: 16,
+    borderRadius: 14,
+    gap: 8,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   priorityBadge: {
-    paddingHorizontal: 6,
+    paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
   },
@@ -159,33 +176,39 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light.error,
   },
   p1Badge: {
-    backgroundColor: colors.light.warning,
+    backgroundColor: colors.light.accent,
   },
   priorityText: {
     color: '#FFFFFF',
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: '800',
   },
+  typeBadge: {
+    backgroundColor: 'rgba(15, 76, 69, 0.08)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
   targetTypeBadge: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
     color: colors.light.primary,
   },
   statusText: {
     marginLeft: 'auto',
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
     color: colors.light.textMuted,
   },
   reasonText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
     color: colors.light.text,
   },
   summaryText: {
     fontSize: 12,
     color: colors.light.textSecondary,
-    lineHeight: 17,
+    lineHeight: 18,
   },
   footerRow: {
     flexDirection: 'row',
@@ -193,12 +216,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderTopWidth: 1,
     borderTopColor: colors.light.border,
-    paddingTop: 8,
+    paddingTop: 10,
     marginTop: 4,
   },
   dateText: {
     fontSize: 11,
     color: colors.light.textMuted,
+  },
+  reviewAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   actionPromptText: {
     fontSize: 12,

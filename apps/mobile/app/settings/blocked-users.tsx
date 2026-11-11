@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { colors } from '../../src/theme/colors';
 import { Avatar } from '../../src/components/Avatar';
+import { AppHeader } from '../../src/components/AppHeader';
 import { api } from '../../src/api';
 
 interface BlockedItem {
@@ -19,7 +20,7 @@ export default function BlockedUsersScreen() {
   const [blockedList, setBlockedList] = useState<BlockedItem[]>(mockBlocked);
 
   const handleUnblock = (id: string, name: string) => {
-    Alert.alert('Unblock User', `Do you want to unblock ${name}?`, [
+    Alert.alert('Unblock User', `Do you want to restore access for ${name}?`, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Unblock',
@@ -33,46 +34,59 @@ export default function BlockedUsersScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.headerNotice}>
-        Blocked accounts cannot view your profile, send consultation inquiries, or comment on your lessons.
-      </Text>
-
-      <FlatList
-        data={blockedList}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <View style={styles.row}>
-            <View style={styles.userInfo}>
-              <Avatar name={item.displayName} size={40} />
-              <View>
-                <Text style={styles.name}>{item.displayName}</Text>
-                <Text style={styles.reasonText}>{item.reason}</Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              style={styles.unblockBtn}
-              onPress={() => handleUnblock(item.id, item.displayName)}
-            >
-              <Text style={styles.unblockBtnText}>Unblock</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>You have not blocked any accounts.</Text>
-          </View>
-        }
+    <View style={styles.screen}>
+      <AppHeader
+        title="Blocked Accounts"
+        subtitle="Safety and Privacy Controls"
+        showBack
       />
+
+      <View style={styles.content}>
+        <Text style={styles.headerNotice}>
+          Blocked accounts cannot view your profile, send consultation inquiries, or comment on your lessons.
+        </Text>
+
+        <FlatList
+          data={blockedList}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+          renderItem={({ item }) => (
+            <View style={styles.row}>
+              <View style={styles.userInfo}>
+                <Avatar name={item.displayName} size={42} />
+                <View style={styles.nameDetails}>
+                  <Text style={styles.name}>{item.displayName}</Text>
+                  <Text style={styles.reasonText}>{item.reason}</Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={styles.unblockBtn}
+                onPress={() => handleUnblock(item.id, item.displayName)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.unblockBtnText}>Unblock</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyTitle}>No Blocked Accounts</Text>
+              <Text style={styles.emptyText}>You have not restricted any Sanad members.</Text>
+            </View>
+          }
+        />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.light.background,
+  },
+  content: {
+    flex: 1,
     padding: 16,
   },
   headerNotice: {
@@ -82,7 +96,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   list: {
-    gap: 12,
+    gap: 10,
   },
   row: {
     flexDirection: 'row',
@@ -90,7 +104,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: colors.light.surface,
     padding: 12,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.light.border,
   },
@@ -100,18 +114,21 @@ const styles = StyleSheet.create({
     gap: 12,
     flex: 1,
   },
+  nameDetails: {
+    flex: 1,
+  },
   name: {
     fontSize: 14,
     fontWeight: '700',
     color: colors.light.text,
   },
   reasonText: {
-    fontSize: 12,
-    color: colors.light.textSecondary,
+    fontSize: 11,
+    color: colors.light.textMuted,
     marginTop: 2,
   },
   unblockBtn: {
-    backgroundColor: colors.light.surfaceElevated,
+    backgroundColor: colors.light.background,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
@@ -121,15 +138,20 @@ const styles = StyleSheet.create({
   unblockBtnText: {
     fontSize: 12,
     fontWeight: '700',
-    color: colors.light.text,
+    color: colors.light.primary,
   },
   emptyContainer: {
-    padding: 32,
+    padding: 40,
     alignItems: 'center',
+    gap: 6,
+  },
+  emptyTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.light.primary,
   },
   emptyText: {
     color: colors.light.textSecondary,
     fontSize: 13,
   },
 });
-

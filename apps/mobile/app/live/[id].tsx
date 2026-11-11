@@ -6,14 +6,15 @@ import {
   TouchableOpacity,
   FlatList,
   TextInput,
-  SafeAreaView,
   Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { api, realtime } from '../../src/api';
 import { colors } from '../../src/theme/colors';
 import { useAuthStore } from '../../src/store/authStore';
+import { Icon } from '../../src/components/Icon';
 import { ReportModal } from '../../src/components/ReportModal';
 import { LiveSessionEntity } from '@sanad/shared';
 
@@ -27,11 +28,12 @@ export default function LiveRoomScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const insets = useSafeAreaInsets();
 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    { id: '1', user: 'Zaid', text: 'Peace be upon you, honored Sheikh.' },
-    { id: '2', user: 'Fatima', text: 'Can you clarify the chain of transmission mentioned?' },
-    { id: '3', user: 'Hamza', text: 'May Allah reward your tireless teaching.' },
+    { id: '1', user: 'Zaid al-Dimashqi', text: 'Peace be upon you, honored Sheikh.' },
+    { id: '2', user: 'Fatima Zahra', text: 'Can you clarify the chain of transmission mentioned for this narration?' },
+    { id: '3', user: 'Hamza Farooq', text: 'May Allah reward your tireless dedication to transmission sciences.' },
   ]);
   const [comment, setComment] = useState('');
   const [isMuted, setIsMuted] = useState(false);
@@ -62,7 +64,7 @@ export default function LiveRoomScreen() {
     if (!comment.trim()) return;
     const newMsg: ChatMessage = {
       id: Date.now().toString(),
-      user: user?.displayName || 'Learner',
+      user: user?.displayName || 'Student',
       text: comment.trim(),
     };
     setChatMessages((prev) => [...prev, newMsg]);
@@ -71,8 +73,8 @@ export default function LiveRoomScreen() {
 
   const handleEndSession = () => {
     Alert.alert(
-      'End Broadcast',
-      'Are you sure you want to conclude this live circle? A recording will be archived.',
+      'Conclude Broadcast',
+      'Are you sure you want to conclude this live halaqah? The recording will be archived into the permanent curriculum.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -80,7 +82,7 @@ export default function LiveRoomScreen() {
           style: 'destructive',
           onPress: async () => {
             await api.live.endLiveSession(id || 'live_401');
-            Alert.alert('Session Concluded', 'Live circle ended and saved to archives.');
+            Alert.alert('Halaqah Concluded', 'Live circle ended and archived into your profile.');
             router.replace('/(tabs)/feed');
           },
         },
@@ -89,83 +91,91 @@ export default function LiveRoomScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Video Viewport Area */}
+    <View style={[styles.screen, { paddingTop: insets.top || 16 }]}>
+      {/* Viewport Area */}
       <View style={styles.videoPlayer}>
-        {/* Top Header Overlay */}
-        <View style={styles.liveBadgeRow}>
+        {/* Top Floating Header */}
+        <View style={styles.topOverlayBar}>
           <View style={styles.liveBadge}>
-            <Text style={styles.liveText}>[LIVE CIRCLE]</Text>
+            <View style={styles.livePulse} />
+            <Text style={styles.liveText}>LIVE HALAQAH</Text>
           </View>
-          <Text style={styles.viewerCount}>{viewerCount} Watching</Text>
+
+          <View style={styles.viewerBadge}>
+            <Text style={styles.viewerCount}>{viewerCount} Students</Text>
+          </View>
 
           {isHost ? (
             <TouchableOpacity style={styles.endPill} onPress={handleEndSession}>
               <Text style={styles.endPillText}>End Broadcast</Text>
             </TouchableOpacity>
           ) : (
-            <View style={styles.viewerHeaderBtns}>
+            <View style={styles.viewerActions}>
               <TouchableOpacity
-                style={styles.reportPill}
+                style={styles.actionCircle}
                 onPress={() => setReportModalVisible(true)}
               >
-                <Text style={styles.reportPillText}>[REPORT]</Text>
+                <Icon name="shield" size={16} color="#FFFFFF" />
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.closeBtn}
+                style={styles.actionCircle}
                 onPress={() => router.back()}
               >
-                <Text style={styles.closeText}>Leave</Text>
+                <Icon name="close" size={16} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
           )}
         </View>
 
-        {/* Video Surface Preview */}
+        {/* Video Center Stage */}
         <View style={styles.videoCenter}>
-          <Text style={styles.videoHostText}>
+          <Text style={styles.videoTitle}>
             {session?.title || 'Live Scholarly Study Circle'}
           </Text>
-          <Text style={styles.videoSubText}>
-            Host: {typeof session?.hostId === 'object' ? session.hostId.displayName : 'Verified Scholar'}
+          <Text style={styles.videoHost}>
+            Instructor: {typeof session?.hostId === 'object' ? session.hostId.displayName : 'Accredited Scholar'}
           </Text>
-          <Text style={styles.webrtcText}>
-            WebRTC Engine: LiveKit Room ({session?.roomName || 'sanad-live-room'})
-          </Text>
+          <View style={styles.webrtcPill}>
+            <Icon name="lock" size={12} color={colors.light.accent} />
+            <Text style={styles.webrtcText}>LiveKit WebRTC · sanad-room-101</Text>
+          </View>
         </View>
 
-        {/* Host In-Stream Controls */}
+        {/* Host Stream Controls */}
         {isHost && (
           <View style={styles.hostControls}>
             <TouchableOpacity
               style={[styles.hostControlBtn, isMuted && styles.hostControlBtnActive]}
               onPress={() => setIsMuted(!isMuted)}
             >
-              <Text style={styles.hostControlText}>{isMuted ? '[MIC MUTED]' : '[MIC ON]'}</Text>
+              <Icon name={isMuted ? 'mic-off' : 'mic'} size={18} color="#FFFFFF" />
+              <Text style={styles.hostControlText}>{isMuted ? 'Muted' : 'Mic On'}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.hostControlBtn, isVideoOff && styles.hostControlBtnActive]}
               onPress={() => setIsVideoOff(!isVideoOff)}
             >
-              <Text style={styles.hostControlText}>{isVideoOff ? '[CAM OFF]' : '[CAM ON]'}</Text>
+              <Icon name="camera" size={18} color="#FFFFFF" />
+              <Text style={styles.hostControlText}>{isVideoOff ? 'Video Off' : 'Video On'}</Text>
             </TouchableOpacity>
           </View>
         )}
       </View>
 
-      {/* Live Chat & Q&A Stream */}
-      <View style={styles.chatSection}>
+      {/* Interactive Q&A and Questions Panel */}
+      <View style={[styles.chatSection, { paddingBottom: insets.bottom || 16 }]}>
         <View style={styles.chatHeader}>
-          <Text style={styles.chatHeaderTitle}>Live Questions & Dialogue</Text>
-          <Text style={styles.chatRules}>Sectarian hostility is strictly filtered</Text>
+          <Text style={styles.chatHeaderTitle}>Scholarly Q&A Dialogue</Text>
+          <Text style={styles.chatRules}>Adhere to authenticated references</Text>
         </View>
 
         <FlatList
           data={chatMessages}
           keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.chatListContent}
           renderItem={({ item }) => (
             <View style={styles.chatRow}>
-              <Text style={styles.chatUser}>{item.user}: </Text>
+              <Text style={styles.chatUser}>{item.user}</Text>
               <Text style={styles.chatMessage}>{item.text}</Text>
             </View>
           )}
@@ -175,16 +185,17 @@ export default function LiveRoomScreen() {
         <View style={styles.chatInputRow}>
           <TextInput
             style={styles.chatInput}
-            placeholder="Ask a scholarly question respectfully..."
+            placeholder="Submit a question to the halaqah..."
             placeholderTextColor={colors.light.textMuted}
             value={comment}
             onChangeText={setComment}
           />
           <TouchableOpacity
-            style={styles.sendPill}
+            style={[styles.sendBtn, !comment.trim() && styles.sendBtnDisabled]}
             onPress={handleSendComment}
+            disabled={!comment.trim()}
           >
-            <Text style={styles.sendPillText}>Send</Text>
+            <Icon name="send" size={16} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       </View>
@@ -197,192 +208,215 @@ export default function LiveRoomScreen() {
           onClose={() => setReportModalVisible(false)}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: '#0E1512',
+    backgroundColor: '#071613',
   },
   videoPlayer: {
-    flex: 0.55,
-    backgroundColor: '#122824',
-    position: 'relative',
+    flex: 0.52,
+    backgroundColor: '#0C221D',
     justifyContent: 'space-between',
     padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#183D35',
   },
-  liveBadgeRow: {
+  topOverlayBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    zIndex: 10,
-    marginTop: 8,
   },
   liveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     backgroundColor: colors.light.error,
     paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-  },
-  liveText: {
-    color: '#FFFFFF',
-    fontWeight: '800',
-    fontSize: 10,
-  },
-  viewerCount: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 12,
-  },
-  viewerHeaderBtns: {
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
-  },
-  reportPill: {
-    paddingHorizontal: 6,
     paddingVertical: 4,
-  },
-  reportPillText: {
-    color: colors.light.error,
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  closeBtn: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
     borderRadius: 6,
   },
-  closeText: {
+  livePulse: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#FFFFFF',
+  },
+  liveText: {
+    fontSize: 10,
+    fontWeight: '800',
     color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  viewerBadge: {
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  viewerCount: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   endPill: {
     backgroundColor: colors.light.error,
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 5,
     borderRadius: 6,
   },
   endPillText: {
-    color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  viewerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  actionCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   videoCenter: {
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 16,
+    gap: 6,
+    paddingHorizontal: 20,
   },
-  videoHostText: {
+  videoTitle: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '800',
     textAlign: 'center',
   },
-  videoSubText: {
+  videoHost: {
     color: colors.light.accent,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
   },
+  webrtcPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(15, 76, 69, 0.5)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+    marginTop: 6,
+  },
   webrtcText: {
-    color: '#A2B0A9',
-    fontSize: 10,
+    color: '#C6DDD8',
+    fontSize: 11,
     fontFamily: 'monospace',
-    marginTop: 4,
   },
   hostControls: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 12,
-    marginBottom: 8,
   },
   hostControlBtn: {
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#32473E',
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
   },
   hostControlBtnActive: {
     backgroundColor: colors.light.error,
   },
   hostControlText: {
-    color: '#FFFFFF',
     fontSize: 11,
     fontWeight: '700',
+    color: '#FFFFFF',
   },
   chatSection: {
-    flex: 0.45,
-    backgroundColor: colors.light.surface,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    padding: 12,
-    justifyContent: 'space-between',
+    flex: 0.48,
+    backgroundColor: colors.light.background,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
   },
   chatHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingBottom: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.light.border,
   },
   chatHeaderTitle: {
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: 13,
+    fontWeight: '700',
     color: colors.light.primary,
   },
   chatRules: {
-    fontSize: 10,
-    color: colors.light.textSecondary,
+    fontSize: 11,
+    color: colors.light.textMuted,
   },
   chatList: {
     flex: 1,
-    marginVertical: 8,
+  },
+  chatListContent: {
+    padding: 14,
+    gap: 10,
   },
   chatRow: {
-    flexDirection: 'row',
-    marginBottom: 6,
-    flexWrap: 'wrap',
+    backgroundColor: colors.light.surface,
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.light.border,
   },
   chatUser: {
+    fontSize: 11,
     fontWeight: '700',
     color: colors.light.primary,
-    fontSize: 12,
+    marginBottom: 2,
   },
   chatMessage: {
+    fontSize: 13,
     color: colors.light.text,
-    fontSize: 12,
-    flex: 1,
+    lineHeight: 18,
   },
   chatInputRow: {
     flexDirection: 'row',
-    gap: 8,
     alignItems: 'center',
+    padding: 12,
+    gap: 8,
+    borderTopWidth: 1,
+    borderTopColor: colors.light.border,
+    backgroundColor: colors.light.surface,
   },
   chatInput: {
     flex: 1,
-    backgroundColor: colors.light.surfaceElevated,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 12,
-    color: colors.light.text,
-  },
-  sendPill: {
-    backgroundColor: colors.light.primary,
+    backgroundColor: colors.light.background,
+    borderRadius: 18,
     paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 8,
+    paddingVertical: 8,
+    fontSize: 13,
+    color: colors.light.text,
+    borderWidth: 1,
+    borderColor: colors.light.border,
   },
-  sendPillText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 12,
+  sendBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.light.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sendBtnDisabled: {
+    opacity: 0.5,
   },
 });

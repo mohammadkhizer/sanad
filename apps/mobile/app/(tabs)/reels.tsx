@@ -9,20 +9,23 @@ import {
   TouchableWithoutFeedback,
   Share,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { api } from '../../src/api';
 import { colors } from '../../src/theme/colors';
 import { VerifiedBadge } from '../../src/components/VerifiedBadge';
 import { Avatar } from '../../src/components/Avatar';
+import { Icon } from '../../src/components/Icon';
 import { PostEntity } from '@sanad/shared';
 
 const { height: WINDOW_HEIGHT } = Dimensions.get('window');
-const REEL_HEIGHT = WINDOW_HEIGHT - 60; // minus bottom tab bar
+const REEL_HEIGHT = WINDOW_HEIGHT - 64; // minus bottom tab bar
 
 export default function ReelsScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const insets = useSafeAreaInsets();
   const [isMuted, setIsMuted] = useState(false);
   const [showCaptions, setShowCaptions] = useState(true);
   const lastTapRef = useRef<number>(0);
@@ -34,6 +37,13 @@ export default function ReelsScreen() {
 
   const likeMutation = useMutation({
     mutationFn: (postId: string) => api.content.likePost(postId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reels'] });
+    },
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: (postId: string) => api.content.savePost(postId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reels'] });
     },
@@ -69,10 +79,10 @@ export default function ReelsScreen() {
           <View style={styles.videoPlayerArea}>
             <View style={styles.videoPlaceholder}>
               <View style={styles.playBadge}>
-                <Text style={styles.playBadgeText}>[PLAYING HLS STREAM]</Text>
+                <Icon name="play" size={28} color="#FFFFFF" />
               </View>
               <Text style={styles.videoMetaText}>
-                Mux Playback ID: {item.playbackId || 'hls_stream_verified_sanad'}
+                HLS Stream Verified
               </Text>
             </View>
 
@@ -85,29 +95,31 @@ export default function ReelsScreen() {
           </View>
 
           {/* Top Bar Controls */}
-          <View style={styles.topControls}>
-            <Text style={styles.topHeader}>Sanad Short Lessons</Text>
+          <View style={[styles.topControls, { paddingTop: insets.top || 16 }]}>
+            <Text style={styles.topHeader}>Short Lessons</Text>
             <View style={styles.topButtonsRow}>
               <TouchableOpacity
-                style={styles.pillButton}
+                style={[styles.pillButton, showCaptions && styles.pillButtonActive]}
                 onPress={() => setShowCaptions(!showCaptions)}
               >
-                <Text style={styles.pillButtonText}>
-                  {showCaptions ? '[CC ON]' : '[CC OFF]'}
+                <Text style={[styles.pillButtonText, showCaptions && styles.pillButtonTextActive]}>
+                  CC
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.pillButton}
+                style={[styles.pillButton, isMuted && styles.pillButtonActive]}
                 onPress={() => setIsMuted(!isMuted)}
               >
-                <Text style={styles.pillButtonText}>
-                  {isMuted ? '[MUTED]' : '[AUDIO ON]'}
-                </Text>
+                <Icon
+                  name={isMuted ? 'volume-mute' : 'volume-high'}
+                  size={16}
+                  color="#FFFFFF"
+                />
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* Right Action Rail */}
+          {/* Right Action Rail with Vector Icons */}
           <View style={styles.rightRail}>
             <TouchableOpacity
               style={styles.railItem}
@@ -115,7 +127,7 @@ export default function ReelsScreen() {
             >
               <Avatar name={authorName} url={author?.avatarUrl} size={48} />
               <View style={styles.railBadge}>
-                <VerifiedBadge size="small" />
+                <VerifiedBadge size="small" showLabel={false} />
               </View>
             </TouchableOpacity>
 
@@ -124,9 +136,11 @@ export default function ReelsScreen() {
               onPress={() => likeMutation.mutate(item._id)}
             >
               <View style={[styles.iconCircle, item.isLiked && styles.iconCircleActive]}>
-                <Text style={[styles.iconText, item.isLiked && styles.iconTextActive]}>
-                  {item.isLiked ? '[LIKED]' : '[LIKE]'}
-                </Text>
+                <Icon
+                  name={item.isLiked ? 'heart' : 'heart-outline'}
+                  size={24}
+                  color={item.isLiked ? '#B3261E' : '#FFFFFF'}
+                />
               </View>
               <Text style={styles.railCount}>{item.counts.likes}</Text>
             </TouchableOpacity>
@@ -136,51 +150,58 @@ export default function ReelsScreen() {
               onPress={() => router.push(`/post/${item._id}`)}
             >
               <View style={styles.iconCircle}>
-                <Text style={styles.iconText}>[COMMENTS]</Text>
+                <Icon name="comment" size={22} color="#FFFFFF" />
               </View>
               <Text style={styles.railCount}>{item.counts.comments}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.railItem} onPress={() => handleShare(item)}>
-              <View style={styles.iconCircle}>
-                <Text style={styles.iconText}>[SHARE]</Text>
-              </View>
-              <Text style={styles.railCount}>{item.counts.shares}</Text>
-            </TouchableOpacity>
-
             <TouchableOpacity
               style={styles.railItem}
-              onPress={() => api.content.savePost(item._id)}
+              onPress={() => saveMutation.mutate(item._id)}
             >
-              <View style={styles.iconCircle}>
-                <Text style={styles.iconText}>[SAVE]</Text>
+              <View style={[styles.iconCircle, item.isSaved && styles.iconCircleActive]}>
+                <Icon
+                  name={item.isSaved ? 'bookmark' : 'bookmark-outline'}
+                  size={22}
+                  color={item.isSaved ? colors.light.accent : '#FFFFFF'}
+                />
               </View>
+              <Text style={styles.railCount}>Save</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.railItem} onPress={() => handleShare(item)}>
+              <View style={styles.iconCircle}>
+                <Icon name="share" size={22} color="#FFFFFF" />
+              </View>
+              <Text style={styles.railCount}>Share</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Bottom Info Bar */}
+          {/* Bottom Scholar Info Overlay */}
           <View style={styles.bottomInfo}>
             <TouchableOpacity
               onPress={() => router.push(`/scholar/${author?._id || 'usr_scholar_1'}`)}
             >
-              <View style={styles.authorRow}>
-                <Text style={styles.authorName}>{authorName}</Text>
+              <View style={styles.bottomAuthorRow}>
+                <Text style={styles.bottomAuthorName}>{authorName}</Text>
                 <VerifiedBadge size="small" />
               </View>
-              <Text style={styles.institutionText}>{institution}</Text>
+              <Text style={styles.bottomInstitution}>{institution}</Text>
             </TouchableOpacity>
 
-            <Text style={styles.captionText} numberOfLines={2}>
+            <Text style={styles.bottomCaption} numberOfLines={2}>
               {item.caption}
             </Text>
 
-            <View style={styles.tagsRow}>
-              {item.tags.map((tag, idx) => (
-                <Text key={idx} style={styles.tagPill}>
-                  #{tag}
-                </Text>
-              ))}
-            </View>
+            {item.tags && item.tags.length > 0 && (
+              <View style={styles.tagsContainer}>
+                {item.tags.map((tag) => (
+                  <Text key={tag} style={styles.bottomTag}>
+                    #{tag}
+                  </Text>
+                ))}
+              </View>
+            )}
           </View>
         </View>
       </TouchableWithoutFeedback>
@@ -191,8 +212,8 @@ export default function ReelsScreen() {
     <View style={styles.container}>
       <FlatList
         data={data?.items || []}
-        renderItem={renderReel}
         keyExtractor={(item) => item._id}
+        renderItem={renderReel}
         pagingEnabled
         showsVerticalScrollIndicator={false}
         snapToInterval={REEL_HEIGHT}
@@ -206,7 +227,7 @@ export default function ReelsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0E1512',
+    backgroundColor: '#07100D',
   },
   reelContainer: {
     height: REEL_HEIGHT,
@@ -230,48 +251,51 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   playBadge: {
-    backgroundColor: colors.light.accent,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    marginBottom: 8,
-  },
-  playBadgeText: {
-    color: '#1F2933',
-    fontWeight: '800',
-    fontSize: 12,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(15, 76, 69, 0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.light.accent,
+    marginBottom: 12,
   },
   videoMetaText: {
-    color: '#A2B0A9',
-    fontSize: 11,
-    fontFamily: 'monospace',
+    color: '#D0DDD7',
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
   captionsContainer: {
     position: 'absolute',
-    bottom: 120,
+    bottom: 150,
     left: 20,
     right: 80,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    padding: 10,
-    borderRadius: 8,
+    backgroundColor: 'rgba(7, 16, 13, 0.75)',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(201, 162, 39, 0.3)',
   },
   captionsText: {
     color: '#FFFFFF',
-    fontSize: 13,
-    lineHeight: 18,
-    fontWeight: '600',
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
   topControls: {
+    paddingHorizontal: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 54,
-    paddingHorizontal: 16,
     zIndex: 10,
   },
   topHeader: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '800',
     letterSpacing: 0.5,
   },
@@ -280,97 +304,100 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   pillButton: {
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 14,
+    backgroundColor: 'rgba(15, 76, 69, 0.7)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#32473E',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pillButtonActive: {
+    backgroundColor: colors.light.accent,
+    borderColor: colors.light.accent,
   },
   pillButtonText: {
     color: '#FFFFFF',
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  pillButtonTextActive: {
+    color: colors.light.accentText,
   },
   rightRail: {
     position: 'absolute',
-    right: 12,
-    bottom: 80,
+    right: 14,
+    bottom: 40,
     alignItems: 'center',
     gap: 16,
     zIndex: 10,
   },
   railItem: {
     alignItems: 'center',
+    position: 'relative',
   },
   railBadge: {
-    marginTop: -8,
+    position: 'absolute',
+    bottom: -4,
   },
   iconCircle: {
-    backgroundColor: 'rgba(27, 59, 53, 0.85)',
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#32473E',
-    minWidth: 44,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(15, 76, 69, 0.75)',
+    justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    marginBottom: 4,
   },
   iconCircleActive: {
-    backgroundColor: colors.light.accent,
-    borderColor: colors.light.accentDark,
-  },
-  iconText: {
-    color: '#FFFFFF',
-    fontSize: 9,
-    fontWeight: '800',
-  },
-  iconTextActive: {
-    color: '#1F2933',
+    backgroundColor: 'rgba(201, 162, 39, 0.3)',
+    borderColor: colors.light.accent,
   },
   railCount: {
     color: '#FFFFFF',
     fontSize: 11,
     fontWeight: '700',
-    marginTop: 3,
   },
   bottomInfo: {
-    padding: 16,
+    paddingHorizontal: 16,
     paddingBottom: 24,
-    width: '78%',
+    width: '80%',
     zIndex: 10,
   },
-  authorRow: {
+  bottomAuthorRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     marginBottom: 2,
   },
-  authorName: {
+  bottomAuthorName: {
     color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '800',
+    fontSize: 16,
+    fontWeight: '700',
   },
-  institutionText: {
-    color: '#A2B0A9',
-    fontSize: 11,
+  bottomInstitution: {
+    color: colors.light.accent,
+    fontSize: 12,
+    fontWeight: '600',
     marginBottom: 8,
   },
-  captionText: {
-    color: '#F2EFE6',
-    fontSize: 13,
-    lineHeight: 18,
+  bottomCaption: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    lineHeight: 20,
     marginBottom: 8,
   },
-  tagsRow: {
+  tagsContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 6,
   },
-  tagPill: {
-    color: colors.light.accent,
-    fontSize: 11,
+  bottomTag: {
+    color: '#E0EDE8',
+    fontSize: 12,
     fontWeight: '600',
   },
 });
-

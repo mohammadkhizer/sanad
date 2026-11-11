@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
+import { AppHeader } from '../../src/components/AppHeader';
 import { colors } from '../../src/theme/colors';
 import { api } from '../../src/api';
 import { useAuthStore } from '../../src/store/authStore';
@@ -49,78 +50,90 @@ export default function OtpScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.form}>
-        <Text style={styles.title}>Verification Code</Text>
-        <Text style={styles.subtitle}>
-          Enter the 6-digit code sent to {params.identifier || 'your device'}.
-        </Text>
+    <View style={styles.screen}>
+      <AppHeader
+        title="Verify Code"
+        subtitle="Account Authentication"
+        showBack
+      />
 
-        {Boolean(error) && <Text style={styles.errorBanner}>{error}</Text>}
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.card}>
+          <Text style={styles.title}>Confirm Your Identity</Text>
+          <Text style={styles.subtitle}>
+            Enter the 6-digit code transmitted to {params.identifier || 'your device'}.
+          </Text>
 
-        <Input
-          label="Verification Code"
-          placeholder="123456"
-          value={code}
-          onChangeText={setCode}
-          keyboardType="number-pad"
-          maxLength={6}
-          style={styles.otpInput}
-        />
+          {Boolean(error) && (
+            <View style={styles.errorBox}>
+              <Text style={styles.errorBanner}>{error}</Text>
+            </View>
+          )}
 
-        <Button
-          title="Verify & Enter"
-          onPress={handleVerify}
-          loading={loading}
-          style={styles.submitBtn}
-        />
-      </View>
-    </ScrollView>
+          <Input
+            label="6-Digit Verification Code"
+            placeholder="123456"
+            value={code}
+            onChangeText={setCode}
+            keyboardType="number-pad"
+            maxLength={6}
+          />
+
+          <Button
+            title="Verify and Enter Sanad"
+            variant="primary"
+            onPress={handleVerify}
+            loading={loading}
+            style={styles.submitBtn}
+          />
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
+  screen: {
+    flex: 1,
     backgroundColor: colors.light.background,
-    padding: 24,
-    justifyContent: 'center',
   },
-  form: {
+  container: {
+    padding: 20,
+    justifyContent: 'center',
+    flexGrow: 1,
+  },
+  card: {
     backgroundColor: colors.light.surface,
-    padding: 24,
+    padding: 20,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.light.border,
+    gap: 12,
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '800',
     color: colors.light.primary,
-    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: colors.light.textSecondary,
-    marginBottom: 20,
-    lineHeight: 20,
+    lineHeight: 18,
+  },
+  errorBox: {
+    backgroundColor: '#FDF2F2',
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
   },
   errorBanner: {
-    backgroundColor: '#FEE2E2',
     color: colors.light.error,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    fontSize: 13,
-  },
-  otpInput: {
+    fontSize: 12,
+    fontWeight: '600',
     textAlign: 'center',
-    fontSize: 22,
-    letterSpacing: 6,
-    fontWeight: '700',
   },
   submitBtn: {
-    marginTop: 8,
+    marginTop: 6,
   },
 });
-

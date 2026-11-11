@@ -4,6 +4,8 @@ import { useRouter } from 'expo-router';
 import { colors } from '../../src/theme/colors';
 import { Card } from '../../src/components/Card';
 import { Button } from '../../src/components/Button';
+import { AppHeader } from '../../src/components/AppHeader';
+import { Icon, IconName } from '../../src/components/Icon';
 import { useAuthStore } from '../../src/store/authStore';
 
 export default function SettingsScreen() {
@@ -26,75 +28,91 @@ export default function SettingsScreen() {
     ]);
   };
 
-  const renderLink = (title: string, subtitle: string, route: string) => (
-    <TouchableOpacity style={styles.menuItem} onPress={() => router.push(route as any)}>
+  const renderLink = (icon: IconName, title: string, subtitle: string, route: string) => (
+    <TouchableOpacity
+      style={styles.menuItem}
+      onPress={() => router.push(route as any)}
+      activeOpacity={0.7}
+    >
+      <View style={styles.menuIconContainer}>
+        <Icon name={icon} size={18} color={colors.light.primary} />
+      </View>
       <View style={styles.menuTextCol}>
         <Text style={styles.menuTitle}>{title}</Text>
         <Text style={styles.menuSubtitle}>{subtitle}</Text>
       </View>
-      <Text style={styles.chevron}>{'>'}</Text>
+      <Icon name="chevron-right" size={16} color={colors.light.textMuted} />
     </TouchableOpacity>
   );
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Account & Profile */}
-      <Card style={styles.card}>
-        <Text style={styles.cardHeader}>Account & Credentials</Text>
-        {renderLink('Personal Details', 'Display name, contact, biographical summary', '/settings/account')}
-        <View style={styles.divider} />
-        {renderLink('Active Devices & Sessions', 'Review authorized phones and browsers', '/settings/sessions')}
-        <View style={styles.divider} />
-        {renderLink('Two-Factor Authentication (TOTP)', user?.twoFactorEnabled ? 'Active (Secured)' : 'Not configured', '/settings/two-factor')}
-        <View style={styles.divider} />
-        {renderLink('Blocked Accounts', 'Manage blocked profiles and restricted users', '/settings/blocked-users')}
-      </Card>
-
-      {/* Preferences */}
-      <Card style={styles.card}>
-        <Text style={styles.cardHeader}>Preferences</Text>
-        {renderLink('Notifications & Quiet Hours', 'Configure prayer-time quiet windows', '/settings/notifications')}
-        <View style={styles.divider} />
-        {renderLink('Language & Theme', 'English, Arabic (RTL), Urdu (RTL), Dark mode', '/settings/language-theme')}
-      </Card>
-
-      {/* Staff & Governance (Role-Gated) */}
-      {isStaff && (
-        <Card style={styles.card}>
-          <Text style={styles.cardHeader}>Staff Governance Tools</Text>
-          {renderLink('Scholar Application Queue', 'Review incoming credential dossiers', '/admin/review-queue')}
-          <View style={styles.divider} />
-          {renderLink('Trust & Safety Reports', 'Review user and content reports (P0/P1/P2)', '/admin/reports')}
-          {isAdmin && (
-            <>
-              <View style={styles.divider} />
-              {renderLink('Audit Trail & Event Log', 'Immutable log of administrative actions', '/admin/audit-logs')}
-              <View style={styles.divider} />
-              {renderLink('Role Management & Badges', 'Assign roles and revoke scholar accreditation', '/admin/roles')}
-              <View style={styles.divider} />
-              {renderLink('Platform Configuration', 'Verification thresholds, quiet hours defaults', '/admin/config')}
-            </>
-          )}
-        </Card>
-      )}
-
-      {/* Legal & Privacy Compliance */}
-      <Card style={styles.card}>
-        <Text style={styles.cardHeader}>Policy & Data Rights</Text>
-        {renderLink('Content Policy & Terms', 'Community rules, sectarian takfir ban', '/settings/privacy-terms')}
-        <View style={styles.divider} />
-        {renderLink('Export Account Data', 'Download archive of scholarly lessons and chat history', '/settings/data-export')}
-        <View style={styles.divider} />
-        {renderLink('Delete Account', 'Permanently erase credentials and profile', '/settings/delete-account')}
-      </Card>
-
-      <Button
-        title="Sign Out"
-        variant="outline"
-        onPress={handleLogout}
-        style={styles.logoutBtn}
+    <View style={styles.container}>
+      <AppHeader
+        title="Settings & Privacy"
+        subtitle="Security, preferences and governance"
+        showBack
       />
-    </ScrollView>
+
+      <ScrollView contentContainerStyle={styles.content}>
+        {/* Account & Profile */}
+        <Card style={styles.card}>
+          <Text style={styles.cardHeader}>Account & Credentials</Text>
+          {renderLink('profile', 'Personal Details', 'Display name, contact, biographical summary', '/settings/account')}
+          <View style={styles.divider} />
+          {renderLink('lock', 'Active Devices & Sessions', 'Review authorized phones and browsers', '/settings/sessions')}
+          <View style={styles.divider} />
+          {renderLink('shield', 'Two-Factor Authentication (TOTP)', user?.twoFactorEnabled ? 'Active (Secured)' : 'Not configured', '/settings/two-factor')}
+          <View style={styles.divider} />
+          {renderLink('close', 'Blocked Accounts', 'Manage blocked profiles and restricted users', '/settings/blocked-users')}
+        </Card>
+
+        {/* Preferences */}
+        <Card style={styles.card}>
+          <Text style={styles.cardHeader}>Preferences</Text>
+          {renderLink('bell', 'Notifications & Quiet Hours', 'Configure prayer-time quiet windows', '/settings/notifications')}
+          <View style={styles.divider} />
+          {renderLink('explore', 'Language & Theme', 'English, Arabic (RTL), Urdu (RTL), Dark mode', '/settings/language-theme')}
+        </Card>
+
+        {/* Staff & Governance (Role-Gated) */}
+        {isStaff && (
+          <Card style={styles.card}>
+            <Text style={styles.cardHeader}>Staff Governance Tools</Text>
+            {renderLink('verified', 'Scholar Application Queue', 'Review incoming credential dossiers', '/admin/review-queue')}
+            <View style={styles.divider} />
+            {renderLink('filter', 'Trust & Safety Reports', 'Review user and content reports (P0/P1/P2)', '/admin/reports')}
+            {isAdmin && (
+              <>
+                <View style={styles.divider} />
+                {renderLink('lock', 'Immutable Audit Logs', 'Chronological compliance and action trail', '/admin/audit-logs')}
+                <View style={styles.divider} />
+                {renderLink('profile', 'Role Management & Revocation', 'Assign roles and revoke scholar badges', '/admin/roles')}
+                <View style={styles.divider} />
+                {renderLink('settings', 'System Configuration', 'Platform parameters, limits and SLAs', '/admin/config')}
+              </>
+            )}
+          </Card>
+        )}
+
+        {/* Legal, Privacy & Data Compliance */}
+        <Card style={styles.card}>
+          <Text style={styles.cardHeader}>Legal & Data Rights</Text>
+          {renderLink('shield', 'Content Policy & Guidelines', 'Takfir prohibition, dignity standards and ethics', '/settings/privacy-terms')}
+          <View style={styles.divider} />
+          {renderLink('share', 'Export My Data', 'Request a complete archive of your account records', '/settings/data-export')}
+          <View style={styles.divider} />
+          {renderLink('close', 'Delete Account Permanently', 'GDPR / App Store compliant irrevocable account deletion', '/settings/delete-account')}
+        </Card>
+
+        {/* Logout */}
+        <Button
+          title="Sign Out of Sanad"
+          variant="outline"
+          onPress={handleLogout}
+          style={styles.logoutBtn}
+        />
+      </ScrollView>
+    </View>
   );
 }
 
@@ -105,50 +123,56 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
-    paddingBottom: 40,
-    gap: 16,
+    paddingBottom: 90,
   },
   card: {
     padding: 16,
+    marginBottom: 16,
   },
   cardHeader: {
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: 14,
+    fontWeight: '700',
     color: colors.light.primary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    marginBottom: 10,
+    marginBottom: 14,
+    letterSpacing: 0.3,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingVertical: 10,
+    gap: 12,
+  },
+  menuIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: colors.light.surfaceElevated,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.light.border,
   },
   menuTextCol: {
     flex: 1,
-    paddingRight: 12,
   },
   menuTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.light.text,
+    marginBottom: 2,
   },
   menuSubtitle: {
     fontSize: 12,
-    color: colors.light.textSecondary,
-    marginTop: 2,
-  },
-  chevron: {
-    fontSize: 16,
-    fontWeight: '700',
     color: colors.light.textMuted,
+    lineHeight: 16,
   },
   divider: {
     height: 1,
     backgroundColor: colors.light.border,
+    marginVertical: 4,
   },
   logoutBtn: {
     marginTop: 8,
+    marginBottom: 24,
   },
 });

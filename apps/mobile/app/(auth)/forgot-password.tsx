@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'rea
 import { useRouter } from 'expo-router';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
+import { AppHeader } from '../../src/components/AppHeader';
 import { colors } from '../../src/theme/colors';
 import { api } from '../../src/api';
 
@@ -31,103 +32,116 @@ export default function ForgotPasswordScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.form}>
-        <Text style={styles.title}>Reset Password</Text>
-        <Text style={styles.subtitle}>
-          Enter your registered email address or phone number to receive a secure recovery code.
-        </Text>
+    <View style={styles.screen}>
+      <AppHeader
+        title="Reset Password"
+        subtitle="Account Recovery"
+        showBack
+      />
 
-        {!submitted ? (
-          <>
-            <Input
-              label="Email or Phone"
-              placeholder="scholar@example.com"
-              value={identifier}
-              onChangeText={setIdentifier}
-              autoCapitalize="none"
-            />
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.card}>
+          <Text style={styles.title}>Account Recovery</Text>
+          <Text style={styles.subtitle}>
+            Enter your registered email address or phone number to receive a secure password recovery code.
+          </Text>
 
-            <Button
-              title="Send Recovery Link"
-              onPress={handleResetRequest}
-              loading={loading}
-              style={styles.submitBtn}
-            />
-          </>
-        ) : (
-          <View style={styles.successBox}>
-            <Text style={styles.successText}>
-              Recovery instructions dispatched. Please check your inbox or SMS.
-            </Text>
-            <Button
-              title="Back to Log In"
-              variant="outline"
-              onPress={() => router.replace('/(auth)/login')}
-              style={styles.backBtn}
-            />
-          </View>
-        )}
+          {!submitted ? (
+            <>
+              <Input
+                label="Email or Phone Number"
+                placeholder="scholar@institution.edu"
+                value={identifier}
+                onChangeText={setIdentifier}
+                autoCapitalize="none"
+              />
 
-        <TouchableOpacity style={styles.cancelLink} onPress={() => router.back()}>
-          <Text style={styles.cancelText}>Cancel</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+              <Button
+                title="Send Recovery Code"
+                variant="primary"
+                onPress={handleResetRequest}
+                loading={loading}
+                style={styles.submitBtn}
+              />
+            </>
+          ) : (
+            <View style={styles.successBox}>
+              <Text style={styles.successText}>
+                Recovery instructions dispatched. Please check your inbox or SMS message.
+              </Text>
+              <Button
+                title="Return to Log In"
+                variant="outline"
+                onPress={() => router.replace('/(auth)/login')}
+                style={styles.backBtn}
+              />
+            </View>
+          )}
+
+          <TouchableOpacity style={styles.cancelLink} onPress={() => router.back()}>
+            <Text style={styles.cancelText}>Cancel and return</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
+  screen: {
+    flex: 1,
     backgroundColor: colors.light.background,
-    padding: 24,
-    justifyContent: 'center',
   },
-  form: {
+  container: {
+    padding: 20,
+    justifyContent: 'center',
+    flexGrow: 1,
+  },
+  card: {
     backgroundColor: colors.light.surface,
-    padding: 24,
+    padding: 20,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.light.border,
+    gap: 12,
   },
   title: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
     color: colors.light.primary,
-    marginBottom: 8,
   },
   subtitle: {
     fontSize: 13,
     color: colors.light.textSecondary,
-    marginBottom: 20,
     lineHeight: 18,
   },
   submitBtn: {
-    marginTop: 8,
+    marginTop: 6,
   },
   successBox: {
-    backgroundColor: '#ECFDF5',
-    padding: 16,
-    borderRadius: 8,
-    marginVertical: 12,
+    backgroundColor: 'rgba(15, 76, 69, 0.08)',
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.light.primary,
+    gap: 10,
   },
   successText: {
-    color: colors.light.success,
     fontSize: 13,
-    lineHeight: 18,
-  },
-  backBtn: {
-    marginTop: 12,
-  },
-  cancelLink: {
-    marginTop: 16,
-    alignItems: 'center',
-  },
-  cancelText: {
-    color: colors.light.textSecondary,
-    fontSize: 14,
+    color: colors.light.primary,
+    lineHeight: 19,
     fontWeight: '600',
   },
+  backBtn: {
+    marginTop: 4,
+  },
+  cancelLink: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  cancelText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.light.textMuted,
+  },
 });
-

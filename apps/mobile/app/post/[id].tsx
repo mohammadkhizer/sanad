@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   TextInput,
-  Alert,
+  Share,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -16,6 +16,8 @@ import { colors } from '../../src/theme/colors';
 import { Avatar } from '../../src/components/Avatar';
 import { VerifiedBadge } from '../../src/components/VerifiedBadge';
 import { Card } from '../../src/components/Card';
+import { AppHeader } from '../../src/components/AppHeader';
+import { Icon } from '../../src/components/Icon';
 import { ReportModal } from '../../src/components/ReportModal';
 import { useAuthStore } from '../../src/store/authStore';
 import { PostEntity, CommentEntity } from '@sanad/shared';
@@ -81,6 +83,17 @@ export default function PostDetailScreen() {
     },
   });
 
+  const handleShare = async () => {
+    if (!post) return;
+    try {
+      await Share.share({
+        message: `Sanad Lesson: "${post.caption}"`,
+      });
+    } catch {
+      // share dismissed
+    }
+  };
+
   const handleAddComment = () => {
     if (!isAuthenticated) {
       router.push('/(auth)/login');
@@ -99,161 +112,195 @@ export default function PostDetailScreen() {
   }
 
   const author = typeof post.authorId === 'object' ? post.authorId : null;
-  const authorName = author?.displayName || 'Scholar Teacher';
-  const authorIsScholar = Boolean(author?.scholarProfile?.verified);
-  const commentsList = comments || [];
+  const authorName = author?.displayName || 'Accredited Scholar';
+  const isPostAuthorScholar = Boolean(author?.scholarProfile?.verified);
 
   return (
     <View style={styles.container}>
+      <AppHeader
+        title="Scholarly Lesson"
+        subtitle={post.type === 'reel' ? 'Short-Form Reel' : 'Masterclass Lecture'}
+        showBack
+        rightIcon="share"
+        onRightPress={handleShare}
+      />
+
       <ScrollView contentContainerStyle={styles.content}>
-        {/* Author Header */}
+        {/* Author Card */}
         <Card style={styles.authorCard}>
-          <View style={styles.authorRow}>
+          <TouchableOpacity
+            style={styles.authorRow}
+            onPress={() => router.push(`/scholar/${author?._id || 'usr_scholar_1'}`)}
+            activeOpacity={0.8}
+          >
             <Avatar name={authorName} url={author?.avatarUrl} size={48} />
             <View style={styles.authorInfo}>
               <View style={styles.nameRow}>
                 <Text style={styles.authorName}>{authorName}</Text>
-                {authorIsScholar && <VerifiedBadge size="small" />}
+                {isPostAuthorScholar && <VerifiedBadge size="small" />}
               </View>
-              {Boolean(author?.scholarProfile?.institution) && (
-                <Text style={styles.institution}>{author?.scholarProfile?.institution}</Text>
-              )}
+              <Text style={styles.authorInst}>
+                {author?.scholarProfile?.institution || 'Accredited Academy'}
+              </Text>
             </View>
-            <TouchableOpacity onPress={() => setReportModalVisible(true)}>
-              <Text style={styles.reportText}>[REPORT]</Text>
-            </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
         </Card>
 
-        {/* Media Preview Box */}
-        <View style={styles.mediaContainer}>
-          <View style={styles.mediaHeader}>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>[{post.type.toUpperCase()} LESSON]</Text>
+        {/* Video Player Mockup Container */}
+        {post.type !== 'text' && (
+          <View style={styles.playerContainer}>
+            <View style={styles.playerBox}>
+              <View style={styles.playIconContainer}>
+                <Icon name="play" size={28} color="#FFFFFF" />
+              </View>
+              <Text style={styles.playerNotice}>HLS Stream Active</Text>
+              <Text style={styles.playerSub}>Playback ID: {post.playbackId}</Text>
             </View>
-            <Text style={styles.hlsText}>HLS Transcoded Stream</Text>
           </View>
-          <Text style={styles.captionText}>{post.caption}</Text>
+        )}
 
-          {post.tags?.length > 0 && (
-            <View style={styles.tagsRow}>
-              {post.tags.map((tag, idx) => (
-                <Text key={idx} style={styles.tagText}>
+        {/* Caption & Post Body */}
+        <Card style={styles.bodyCard}>
+          <Text style={styles.caption}>{post.caption}</Text>
+
+          {post.tags && post.tags.length > 0 && (
+            <View style={styles.tagRow}>
+              {post.tags.map((tag) => (
+                <Text key={tag} style={styles.tag}>
                   #{tag}
                 </Text>
               ))}
             </View>
           )}
-        </View>
 
-        {/* Social Metrics Bar */}
-        <View style={styles.metricsBar}>
-          <TouchableOpacity style={styles.metricBtn} onPress={() => likeMutation.mutate()}>
-            <Text style={[styles.metricText, post.isLiked && styles.metricTextActive]}>
-              {post.isLiked ? '[LIKED]' : '[LIKE]'} {post.counts.likes}
-            </Text>
-          </TouchableOpacity>
+          {/* Social Stats and Action Buttons */}
+          <View style={styles.actionsBar}>
+            <View style={styles.actionsLeft}>
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => likeMutation.mutate()}
+                disabled={likeMutation.isPending}
+              >
+                <Icon
+                  name={post.isLiked ? 'heart' : 'heart-outline'}
+                  size={22}
+                  color={post.isLiked ? '#B3261E' : colors.light.textSecondary}
+                />
+                <Text style={[styles.actionCount, post.isLiked && styles.actionCountLiked]}>
+                  {post.counts.likes}
+                </Text>
+              </TouchableOpacity>
 
-          <View style={styles.metricBtn}>
-            <Text style={styles.metricText}>
-              [COMMENTS] {post.counts.comments}
-            </Text>
+              <TouchableOpacity style={styles.actionBtn} onPress={handleShare}>
+                <Icon name="share" size={20} color={colors.light.textSecondary} />
+                <Text style={styles.actionCount}>Share</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={() => saveMutation.mutate()}
+              disabled={saveMutation.isPending}
+            >
+              <Icon
+                name={post.isSaved ? 'bookmark' : 'bookmark-outline'}
+                size={22}
+                color={post.isSaved ? colors.light.accent : colors.light.textSecondary}
+              />
+            </TouchableOpacity>
           </View>
-
-          <TouchableOpacity style={styles.metricBtn} onPress={() => saveMutation.mutate()}>
-            <Text style={[styles.metricText, post.isSaved && styles.metricTextActive]}>
-              {post.isSaved ? '[SAVED]' : '[SAVE]'}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        </Card>
 
         {/* Comments Section */}
-        <View style={styles.commentsSection}>
-          <Text style={styles.commentsHeader}>
-            Scholarly Discussion & Inquiries ({commentsList.length})
-          </Text>
-
-          {commentsList.map((cmt) => {
-            const cmtUser = typeof cmt.userId === 'object' ? cmt.userId : null;
-            const cmtName = cmtUser?.displayName || 'Learner';
-            const cmtIsScholar = Boolean(cmtUser?.scholarProfile?.verified || cmtUser?.roles?.includes('scholar'));
-            const isPinned = cmt.status === 'pinned';
-            const isHidden = cmt.status === 'hidden';
-
-            if (isHidden && !isScholar) return null;
-
-            return (
-              <Card key={cmt._id} style={[styles.commentCard, isPinned && styles.commentPinned]}>
-                <View style={styles.commentHeader}>
-                  <View style={styles.commentUser}>
-                    <Avatar name={cmtName} url={cmtUser?.avatarUrl} size={32} />
-                    <View>
-                      <View style={styles.nameRow}>
-                        <Text style={styles.commentUserName}>{cmtName}</Text>
-                        {cmtIsScholar && <VerifiedBadge size="small" />}
-                      </View>
-                      <Text style={styles.commentTime}>
-                        {new Date(cmt.createdAt).toLocaleDateString()}
-                      </Text>
-                    </View>
-                  </View>
-
-                  {isPinned && (
-                    <View style={styles.pinnedBadge}>
-                      <Text style={styles.pinnedText}>[PINNED BY SCHOLAR]</Text>
-                    </View>
-                  )}
-                </View>
-
-                <Text style={[styles.commentBody, isHidden && styles.commentBodyHidden]}>
-                  {isHidden ? '[Comment hidden by scholar]' : cmt.text}
-                </Text>
-
-                {/* Scholar Moderation Controls */}
-                {isScholar && (
-                  <View style={styles.scholarControls}>
-                    {!isPinned && (
-                      <TouchableOpacity onPress={() => pinCommentMutation.mutate(cmt._id)}>
-                        <Text style={styles.controlText}>[PIN]</Text>
-                      </TouchableOpacity>
-                    )}
-                    {!isHidden && (
-                      <TouchableOpacity onPress={() => hideCommentMutation.mutate(cmt._id)}>
-                        <Text style={styles.controlText}>[HIDE]</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                )}
-              </Card>
-            );
-          })}
+        <View style={styles.commentsHeader}>
+          <Text style={styles.commentsTitle}>Scholarly Notes & Comments ({comments?.length || 0})</Text>
         </View>
+
+        {(comments || []).map((comm) => {
+          const commUser = typeof comm.userId === 'object' ? comm.userId : null;
+          const commUserName = commUser?.displayName || 'Student of Knowledge';
+          const isCommScholar = Boolean(commUser?.scholarProfile?.verified);
+          const isPinned = comm.status === 'pinned';
+
+          return (
+            <Card
+              key={comm._id}
+              style={[
+                styles.commentCard,
+                isPinned && styles.pinnedCommentCard,
+              ]}
+            >
+              <View style={styles.commentHeader}>
+                <Avatar name={commUserName} url={commUser?.avatarUrl} size={32} />
+                <View style={styles.commentAuthorCol}>
+                  <View style={styles.commentNameRow}>
+                    <Text style={styles.commentAuthorName}>{commUserName}</Text>
+                    {isCommScholar && <VerifiedBadge size="small" />}
+                    {isPinned && (
+                      <View style={styles.pinnedBadge}>
+                        <Icon name="bookmark" size={12} color={colors.light.accentText} />
+                        <Text style={styles.pinnedText}>PINNED</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.commentDate}>
+                    {new Date(comm.createdAt).toLocaleDateString()}
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={styles.commentText}>{comm.text}</Text>
+
+              {/* Scholar moderation tools */}
+              {isScholar && (
+                <View style={styles.moderationRow}>
+                  <TouchableOpacity
+                    onPress={() => pinCommentMutation.mutate(comm._id)}
+                    style={styles.modAction}
+                  >
+                    <Icon name="bookmark" size={14} color={colors.light.accent} />
+                    <Text style={styles.modActionText}>{isPinned ? 'Unpin' : 'Pin Note'}</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => hideCommentMutation.mutate(comm._id)}
+                    style={styles.modAction}
+                  >
+                    <Icon name="close" size={14} color="#B3261E" />
+                    <Text style={[styles.modActionText, { color: '#B3261E' }]}>Hide</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </Card>
+          );
+        })}
       </ScrollView>
 
-      {/* Comment Input Bar */}
-      <View style={styles.inputBar}>
+      {/* Comment Input Footer */}
+      <View style={styles.commentInputContainer}>
         <TextInput
-          style={styles.inputField}
-          placeholder="Ask a scholarly question or provide reference..."
+          placeholder={isAuthenticated ? 'Write a respectful scholarly reflection...' : 'Log in to join the conversation'}
           placeholderTextColor={colors.light.textMuted}
           value={commentText}
           onChangeText={setCommentText}
-          multiline
+          style={styles.commentInput}
+          editable={isAuthenticated}
         />
         <TouchableOpacity
-          style={styles.sendBtn}
+          style={[styles.sendButton, !commentText.trim() && styles.sendButtonDisabled]}
           onPress={handleAddComment}
-          disabled={commentMutation.isPending}
+          disabled={!commentText.trim() || commentMutation.isPending}
         >
-          <Text style={styles.sendBtnText}>Post</Text>
+          <Icon name="check" size={18} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
 
+      {/* Report Modal */}
       {reportModalVisible && (
         <ReportModal
           visible={reportModalVisible}
-          targetType="post"
           targetId={post._id}
+          targetType="post"
           onClose={() => setReportModalVisible(false)}
         />
       )}
@@ -268,8 +315,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
-    paddingBottom: 80,
-    gap: 14,
+    paddingBottom: 90,
   },
   center: {
     flex: 1,
@@ -278,168 +324,191 @@ const styles = StyleSheet.create({
   },
   authorCard: {
     padding: 14,
+    marginBottom: 12,
   },
   authorRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
   },
   authorInfo: {
-    marginLeft: 12,
     flex: 1,
   },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    marginBottom: 2,
   },
   authorName: {
-    fontSize: 15,
-    fontWeight: '800',
+    fontSize: 16,
+    fontWeight: '700',
     color: colors.light.text,
   },
-  institution: {
+  authorInst: {
     fontSize: 12,
-    color: colors.light.primary,
-    marginTop: 2,
+    color: colors.light.accent,
+    fontWeight: '600',
   },
-  reportText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: colors.light.error,
-  },
-  mediaContainer: {
-    backgroundColor: colors.light.surface,
-    padding: 16,
+  playerContainer: {
+    height: 220,
+    backgroundColor: '#0D1A17',
     borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.light.border,
-    gap: 10,
   },
-  mediaHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  playerBox: {
     alignItems: 'center',
+    gap: 8,
   },
-  badge: {
-    backgroundColor: colors.light.accent,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
+  playIconContainer: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: colors.light.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.light.accent,
   },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: colors.light.accentText,
-  },
-  hlsText: {
-    fontSize: 11,
-    fontFamily: 'monospace',
-    color: colors.light.textMuted,
-  },
-  captionText: {
+  playerNotice: {
+    color: '#FFFFFF',
     fontSize: 14,
-    color: colors.light.text,
-    lineHeight: 21,
+    fontWeight: '700',
   },
-  tagsRow: {
+  playerSub: {
+    color: colors.light.textMuted,
+    fontSize: 11,
+  },
+  bodyCard: {
+    padding: 16,
+    marginBottom: 16,
+  },
+  caption: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: colors.light.text,
+    marginBottom: 12,
+  },
+  tagRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
+    marginBottom: 16,
   },
-  tagText: {
+  tag: {
+    color: colors.light.primary,
     fontSize: 12,
     fontWeight: '600',
-    color: colors.light.primary,
   },
-  metricsBar: {
+  actionsBar: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: colors.light.surface,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.light.border,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: colors.light.border,
+    paddingTop: 14,
   },
-  metricBtn: {
-    paddingHorizontal: 8,
+  actionsLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
   },
-  metricText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.light.textSecondary,
-  },
-  metricTextActive: {
-    color: colors.light.primary,
-    fontWeight: '800',
-  },
-  commentsSection: {
-    gap: 10,
-  },
-  commentsHeader: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: colors.light.primary,
-    marginTop: 4,
-  },
-  commentCard: {
-    padding: 12,
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
   },
-  commentPinned: {
+  actionCount: {
+    fontSize: 13,
+    color: colors.light.textSecondary,
+    fontWeight: '600',
+  },
+  actionCountLiked: {
+    color: '#B3261E',
+  },
+  commentsHeader: {
+    marginBottom: 12,
+  },
+  commentsTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.light.primary,
+  },
+  commentCard: {
+    padding: 14,
+    marginBottom: 10,
+  },
+  pinnedCommentCard: {
     borderColor: colors.light.accent,
     backgroundColor: '#FAF7EE',
   },
   commentHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 10,
+    marginBottom: 8,
   },
-  commentUser: {
+  commentAuthorCol: {
+    flex: 1,
+  },
+  commentNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
-  commentUserName: {
+  commentAuthorName: {
     fontSize: 13,
     fontWeight: '700',
     color: colors.light.text,
   },
-  commentTime: {
-    fontSize: 10,
-    color: colors.light.textMuted,
-  },
   pinnedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
     backgroundColor: colors.light.accent,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
     borderRadius: 4,
   },
   pinnedText: {
+    color: colors.light.accentText,
     fontSize: 9,
     fontWeight: '800',
-    color: colors.light.accentText,
   },
-  commentBody: {
-    fontSize: 13,
-    color: colors.light.text,
-    lineHeight: 18,
-  },
-  commentBodyHidden: {
-    fontStyle: 'italic',
+  commentDate: {
+    fontSize: 11,
     color: colors.light.textMuted,
+    marginTop: 1,
   },
-  scholarControls: {
+  commentText: {
+    fontSize: 14,
+    color: colors.light.text,
+    lineHeight: 20,
+  },
+  moderationRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 12,
-    marginTop: 4,
+    gap: 16,
+    borderTopWidth: 1,
+    borderTopColor: colors.light.border,
+    marginTop: 10,
+    paddingTop: 8,
   },
-  controlText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: colors.light.primary,
+  modAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
-  inputBar: {
+  modActionText: {
+    fontSize: 12,
+    color: colors.light.accent,
+    fontWeight: '600',
+  },
+  commentInputContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
@@ -447,30 +516,32 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light.surface,
     borderTopWidth: 1,
     borderTopColor: colors.light.border,
-    padding: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
-  inputField: {
+  commentInput: {
     flex: 1,
+    height: 44,
     backgroundColor: colors.light.surfaceElevated,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.light.border,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 13,
+    fontSize: 14,
     color: colors.light.text,
-    maxHeight: 80,
   },
-  sendBtn: {
-    backgroundColor: colors.light.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+  sendButton: {
+    width: 44,
+    height: 44,
     borderRadius: 8,
+    backgroundColor: colors.light.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  sendBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 13,
+  sendButtonDisabled: {
+    backgroundColor: colors.light.border,
   },
 });

@@ -6,6 +6,8 @@ import { colors } from '../../src/theme/colors';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
 import { Card } from '../../src/components/Card';
+import { AppHeader } from '../../src/components/AppHeader';
+import { Icon } from '../../src/components/Icon';
 import { api } from '../../src/api';
 
 export default function ScheduleLiveScreen() {
@@ -30,7 +32,7 @@ export default function ScheduleLiveScreen() {
       Alert.alert(
         'Broadcast Scheduled',
         `Your live session "${session.title}" has been scheduled. Followers will be notified prior to broadcast.`,
-        [{ text: 'Return to Dashboard', onPress: () => router.replace('/scholar/dashboard') }]
+        [{ text: 'Return to Studio', onPress: () => router.replace('/scholar/dashboard') }]
       );
     },
     onError: (e: Error) => {
@@ -39,98 +41,115 @@ export default function ScheduleLiveScreen() {
   });
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.header}>Schedule Live Broadcast</Text>
-      <Text style={styles.subHeader}>
-        Host an authentic study circle, book reading, or interactive legal Q&A session.
-      </Text>
+    <View style={styles.screen}>
+      <AppHeader
+        title="Schedule Halaqah"
+        subtitle="Plan Live Interactive Session"
+        showBack
+      />
 
-      <Card style={styles.card}>
-        <Input
-          label="Session Title *"
-          value={title}
-          onChangeText={setTitle}
-          placeholder="e.g. Critical Analysis of Sahih Bukhari Narrations"
-        />
-
-        <Input
-          label="Syllabus & Topics Description"
-          value={description}
-          onChangeText={setDescription}
-          placeholder="Outline the texts to be examined and target audience..."
-          multiline
-          numberOfLines={4}
-        />
-
-        <Input
-          label="Scheduled Date and Time"
-          value={scheduledTime}
-          onChangeText={setScheduledTime}
-          placeholder="e.g. 2026-11-15 17:00 UTC"
-        />
-
-        <View style={styles.noticeBox}>
-          <Text style={styles.noticeTitle}>[BROADCAST GUIDELINES]</Text>
-          <Text style={styles.noticeText}>
-            All live sessions are recorded for the Sanad scholarly archive. Respect prayer times and adhere to the Sanad Content Policy against sectarian condemnation.
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <Card style={styles.card}>
+          <Text style={styles.cardIntro}>
+            Set up an authentic study circle, book reading, or interactive jurisprudence Q&A session. Registered students will receive notification prior to broadcast.
           </Text>
-        </View>
 
-        <Button
-          title="Schedule Broadcast"
-          onPress={() => scheduleMutation.mutate()}
-          loading={scheduleMutation.isPending}
-          style={styles.submitBtn}
-        />
-      </Card>
-    </ScrollView>
+          <Input
+            label="Session Title *"
+            value={title}
+            onChangeText={setTitle}
+            placeholder="e.g. Critical Analysis of Sahih Bukhari Narrations"
+          />
+
+          <Input
+            label="Curriculum and Texts Description"
+            value={description}
+            onChangeText={setDescription}
+            placeholder="Outline texts to be examined, chapters, and Q&A protocols..."
+            multiline
+            numberOfLines={4}
+          />
+
+          <Input
+            label="Scheduled Date and Time *"
+            value={scheduledTime}
+            onChangeText={setScheduledTime}
+            placeholder="e.g. 2026-11-15 17:00 UTC"
+          />
+
+          <View style={styles.guidelineCard}>
+            <View style={styles.guidelineHeader}>
+              <Icon name="shield" size={16} color={colors.light.accent} />
+              <Text style={styles.guidelineTitle}>Broadcast Standards</Text>
+            </View>
+            <Text style={styles.guidelineText}>
+              All live sessions are automatically archived into the Sanad permanent curriculum. Please ensure respect for regional prayer times and adherence to academic discourse guidelines.
+            </Text>
+          </View>
+
+          <Button
+            title="Confirm Scheduled Broadcast"
+            variant="accent"
+            onPress={() => scheduleMutation.mutate()}
+            loading={scheduleMutation.isPending}
+            style={styles.submitBtn}
+          />
+        </Card>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.light.background,
+  },
+  container: {
+    flex: 1,
   },
   content: {
     padding: 16,
     paddingBottom: 40,
     gap: 16,
   },
-  header: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: colors.light.primary,
-  },
-  subHeader: {
-    fontSize: 13,
-    color: colors.light.textSecondary,
-    lineHeight: 18,
-  },
   card: {
-    padding: 16,
+    padding: 18,
+    borderRadius: 14,
     gap: 14,
   },
-  noticeBox: {
-    backgroundColor: colors.light.surfaceElevated,
-    padding: 12,
-    borderRadius: 8,
-    borderLeftWidth: 4,
-    borderLeftColor: colors.light.accent,
-  },
-  noticeTitle: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: colors.light.accentText,
+  cardIntro: {
+    fontSize: 13,
+    color: colors.light.textSecondary,
+    lineHeight: 19,
     marginBottom: 4,
   },
-  noticeText: {
+  guidelineCard: {
+    backgroundColor: colors.light.background,
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.light.accent,
+    gap: 6,
+  },
+  guidelineHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  guidelineTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.light.primary,
+  },
+  guidelineText: {
     fontSize: 12,
     color: colors.light.textSecondary,
-    lineHeight: 16,
+    lineHeight: 18,
   },
   submitBtn: {
     marginTop: 6,
   },
 });
-

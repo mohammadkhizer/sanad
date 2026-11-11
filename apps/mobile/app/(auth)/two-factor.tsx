@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
+import { AppHeader } from '../../src/components/AppHeader';
 import { colors } from '../../src/theme/colors';
 import { api } from '../../src/api';
-import { useAuthStore } from '../../src/store/authStore';
 
 export default function TwoFactorAuthScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ identifier?: string }>();
-  const login = useAuthStore((state) => state.login);
 
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,79 +35,90 @@ export default function TwoFactorAuthScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.form}>
-        <Text style={styles.title}>Two-Factor Authentication</Text>
-        <Text style={styles.subtitle}>
-          Scholarly and staff accounts require mandatory 2FA. Open your authenticator app
-          (Google Authenticator, Aegis, 1Password) and enter the 6-digit code.
-        </Text>
+    <View style={styles.screen}>
+      <AppHeader
+        title="Two-Factor Security"
+        subtitle="Cryptographic Verification"
+        showBack
+      />
 
-        {Boolean(error) && <Text style={styles.errorBanner}>{error}</Text>}
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.card}>
+          <Text style={styles.title}>Authenticator Verification</Text>
+          <Text style={styles.subtitle}>
+            Scholarly and staff accounts require mandatory 2FA. Open your authenticator app (Google Authenticator, Aegis, Apple Passwords) and enter the 6-digit code.
+          </Text>
 
-        <Input
-          label="Security Code"
-          placeholder="123456"
-          value={code}
-          onChangeText={setCode}
-          keyboardType="number-pad"
-          maxLength={6}
-          style={styles.codeInput}
-        />
+          {Boolean(error) && (
+            <View style={styles.errorBox}>
+              <Text style={styles.errorBanner}>{error}</Text>
+            </View>
+          )}
 
-        <Button
-          title="Authenticate"
-          onPress={handleVerify}
-          loading={loading}
-          style={styles.submitBtn}
-        />
-      </View>
-    </ScrollView>
+          <Input
+            label="6-Digit Security Code"
+            placeholder="123456"
+            value={code}
+            onChangeText={setCode}
+            keyboardType="number-pad"
+            maxLength={6}
+          />
+
+          <Button
+            title="Authenticate and Continue"
+            variant="primary"
+            onPress={handleVerify}
+            loading={loading}
+            style={styles.submitBtn}
+          />
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
+  screen: {
+    flex: 1,
     backgroundColor: colors.light.background,
-    padding: 24,
-    justifyContent: 'center',
   },
-  form: {
+  container: {
+    padding: 20,
+    justifyContent: 'center',
+    flexGrow: 1,
+  },
+  card: {
     backgroundColor: colors.light.surface,
-    padding: 24,
+    padding: 20,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.light.border,
+    gap: 12,
   },
   title: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
     color: colors.light.primary,
-    marginBottom: 8,
   },
   subtitle: {
     fontSize: 13,
     color: colors.light.textSecondary,
-    marginBottom: 20,
     lineHeight: 18,
   },
-  errorBanner: {
-    backgroundColor: '#FEE2E2',
-    color: colors.light.error,
-    padding: 12,
+  errorBox: {
+    backgroundColor: '#FDF2F2',
+    padding: 10,
     borderRadius: 8,
-    marginBottom: 16,
-    fontSize: 13,
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
   },
-  codeInput: {
+  errorBanner: {
+    color: colors.light.error,
+    fontSize: 12,
+    fontWeight: '600',
     textAlign: 'center',
-    fontSize: 24,
-    letterSpacing: 6,
-    fontWeight: '700',
   },
   submitBtn: {
-    marginTop: 8,
+    marginTop: 6,
   },
 });
-

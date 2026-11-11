@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { useRouter } from 'expo-router';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
+import { AppHeader } from '../../src/components/AppHeader';
 import { colors } from '../../src/theme/colors';
 import { api } from '../../src/api';
 
@@ -52,118 +53,119 @@ export default function RegisterScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Join Sanad</Text>
-        <Text style={styles.subtitle}>Verified scholarship and trustworthy knowledge</Text>
-      </View>
+    <View style={styles.screen}>
+      <AppHeader
+        title="Create Account"
+        subtitle="Join the Sanad Learning Community"
+        showBack
+      />
 
-      <View style={styles.form}>
-        {Boolean(error) && <Text style={styles.errorBanner}>{error}</Text>}
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.card}>
+          {Boolean(error) && (
+            <View style={styles.errorBox}>
+              <Text style={styles.errorBanner}>{error}</Text>
+            </View>
+          )}
 
-        <Input
-          label="Full Name"
-          placeholder="Abdullah Al-Mansoor"
-          value={displayName}
-          onChangeText={setDisplayName}
-        />
+          <Input
+            label="Full Name *"
+            placeholder="e.g. Abdullah Al-Mansoor"
+            value={displayName}
+            onChangeText={setDisplayName}
+          />
 
-        <Input
-          label="Email Address"
-          placeholder="learner@example.com"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
+          <Input
+            label="Email Address"
+            placeholder="learner@institution.edu"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
 
-        <Input
-          label="Phone Number (Optional)"
-          placeholder="+1234567890"
-          value={phone}
-          onChangeText={setPhone}
-          keyboardType="phone-pad"
-        />
+          <Input
+            label="Phone Number (Optional)"
+            placeholder="+966 50 123 4567"
+            value={phone}
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
+          />
 
-        <Input
-          label="Password"
-          placeholder="Min 10 characters"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+          <Input
+            label="Password (Minimum 10 Characters) *"
+            placeholder="Create a strong password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
 
-        <Button
-          title="Create Account"
-          onPress={handleRegister}
-          loading={loading}
-          style={styles.submitBtn}
-        />
+          <Button
+            title="Create Student Account"
+            variant="primary"
+            onPress={handleRegister}
+            loading={loading}
+            style={styles.submitBtn}
+          />
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account? </Text>
-          <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
-            <Text style={styles.footerLink}>Log In</Text>
-          </TouchableOpacity>
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Already have an account? </Text>
+            <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
+              <Text style={styles.footerLink}>Sign In</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
+  screen: {
+    flex: 1,
     backgroundColor: colors.light.background,
-    padding: 24,
-    justifyContent: 'center',
   },
-  header: {
-    marginBottom: 24,
-    alignItems: 'center',
+  container: {
+    padding: 20,
+    paddingBottom: 40,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: colors.light.primary,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: colors.light.textSecondary,
-    marginTop: 4,
-    textAlign: 'center',
-  },
-  form: {
+  card: {
     backgroundColor: colors.light.surface,
-    padding: 24,
+    padding: 20,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.light.border,
+    gap: 12,
+  },
+  errorBox: {
+    backgroundColor: '#FDF2F2',
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
   },
   errorBanner: {
-    backgroundColor: '#FEE2E2',
     color: colors.light.error,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    fontSize: 13,
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   submitBtn: {
-    marginTop: 8,
+    marginTop: 6,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 20,
+    alignItems: 'center',
+    marginTop: 8,
   },
   footerText: {
+    fontSize: 13,
     color: colors.light.textSecondary,
-    fontSize: 14,
   },
   footerLink: {
-    color: colors.light.primary,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
+    color: colors.light.primary,
   },
 });
-

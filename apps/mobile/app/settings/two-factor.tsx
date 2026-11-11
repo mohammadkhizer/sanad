@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
 import { colors } from '../../src/theme/colors';
 import { Card } from '../../src/components/Card';
+import { AppHeader } from '../../src/components/AppHeader';
+import { Icon } from '../../src/components/Icon';
 import { apiClient } from '../../src/api/client';
 
 export default function TwoFactorSetupScreen() {
@@ -59,172 +61,200 @@ export default function TwoFactorSetupScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.pageTitle}>Two-Factor Security (TOTP)</Text>
+    <View style={styles.screen}>
+      <AppHeader
+        title="Two-Factor Security"
+        subtitle="TOTP Authenticator Protection"
+        showBack
+      />
 
-      {Boolean(error) && <Text style={styles.errorBanner}>{error}</Text>}
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        {Boolean(error) && (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
 
-      {step === 'init' && (
-        <Card style={styles.card}>
-          <Text style={styles.cardTitle}>Protect Your Sanad Authority</Text>
-          <Text style={styles.cardText}>
-            Two-factor authentication adds an essential layer of security. Scholars are required
-            to have 2FA enabled before broadcasting live or publishing lessons.
-          </Text>
-          <Button
-            title="Generate 2FA Secret Key"
-            onPress={handleStartSetup}
-            loading={loading}
-            style={styles.actionBtn}
-          />
-        </Card>
-      )}
-
-      {step === 'verify' && (
-        <Card style={styles.card}>
-          <Text style={styles.cardTitle}>Step 1: Add Secret to Authenticator</Text>
-          <Text style={styles.cardText}>
-            Copy this secret key into Google Authenticator, Aegis, or your preferred authenticator
-            app:
-          </Text>
-          <View style={styles.secretBox}>
-            <Text style={styles.secretText} selectable>
-              {secret}
+        {step === 'init' && (
+          <Card style={styles.card}>
+            <View style={styles.iconCircle}>
+              <Icon name="lock" size={32} color={colors.light.primary} />
+            </View>
+            <Text style={styles.cardTitle}>Protect Your Sanad Authority</Text>
+            <Text style={styles.cardText}>
+              Two-factor authentication adds cryptographic protection to your credentials. Verified scholars must enable 2FA prior to publishing lessons or hosting live circles.
             </Text>
-          </View>
+            <Button
+              title="Generate 2FA Secret Key"
+              variant="primary"
+              onPress={handleStartSetup}
+              loading={loading}
+              style={styles.actionBtn}
+            />
+          </Card>
+        )}
 
-          <Text style={[styles.cardTitle, { marginTop: 16 }]}>
-            Step 2: Enter Verification Code
-          </Text>
-          <Input
-            label="6-Digit Authenticator Code"
-            placeholder="123456"
-            value={code}
-            onChangeText={setCode}
-            keyboardType="number-pad"
-            maxLength={6}
-            style={styles.codeInput}
-          />
+        {step === 'verify' && (
+          <Card style={styles.card}>
+            <Text style={styles.cardTitle}>Step 1: Link Authenticator App</Text>
+            <Text style={styles.cardText}>
+              Enter this secret key manually into Google Authenticator, Aegis, or Apple Passwords:
+            </Text>
+            <View style={styles.secretBox}>
+              <Text style={styles.secretText} selectable>
+                {secret}
+              </Text>
+            </View>
 
-          <Button
-            title="Confirm & Enable 2FA"
-            onPress={handleVerify}
-            loading={loading}
-            style={styles.actionBtn}
-          />
-        </Card>
-      )}
+            <Text style={[styles.cardTitle, { marginTop: 16 }]}>
+              Step 2: Enter Verification Code
+            </Text>
+            <Input
+              label="6-Digit Authenticator Code"
+              placeholder="123456"
+              value={code}
+              onChangeText={setCode}
+              keyboardType="number-pad"
+              maxLength={6}
+            />
 
-      {step === 'completed' && (
-        <Card style={styles.card}>
-          <Text style={styles.successTitle}>Two-Factor Authentication Active</Text>
-          <Text style={styles.cardText}>
-            Store these emergency backup codes in a safe place. You can use them to recover access if
-            you lose your device:
-          </Text>
+            <Button
+              title="Verify and Enable 2FA"
+              variant="primary"
+              onPress={handleVerify}
+              loading={loading}
+              style={styles.actionBtn}
+            />
+          </Card>
+        )}
 
-          <View style={styles.backupGrid}>
-            {backupCodes.map((c, idx) => (
-              <View key={idx} style={styles.backupItem}>
-                <Text style={styles.backupText}>{c}</Text>
-              </View>
-            ))}
-          </View>
+        {step === 'completed' && (
+          <Card style={styles.card}>
+            <View style={styles.iconCircle}>
+              <Icon name="check" size={32} color={colors.light.primary} />
+            </View>
+            <Text style={styles.successTitle}>Two-Factor Authentication Active</Text>
+            <Text style={styles.cardText}>
+              Store these emergency backup codes in a secure archive. Each code can be used once to regain access if you lose your phone:
+            </Text>
 
-          <Button
-            title="Done"
-            onPress={() => router.replace('/(tabs)/profile')}
-            style={styles.actionBtn}
-          />
-        </Card>
-      )}
-    </ScrollView>
+            <View style={styles.backupGrid}>
+              {backupCodes.map((c, idx) => (
+                <View key={idx} style={styles.backupItem}>
+                  <Text style={styles.backupText}>{c}</Text>
+                </View>
+              ))}
+            </View>
+
+            <Button
+              title="Complete Setup"
+              variant="accent"
+              onPress={() => router.replace('/(tabs)/profile')}
+              style={styles.actionBtn}
+            />
+          </Card>
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.light.background,
   },
-  content: {
-    padding: 20,
+  container: {
+    flex: 1,
   },
-  pageTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: colors.light.primary,
-    marginBottom: 16,
+  content: {
+    padding: 16,
+    paddingBottom: 40,
+    gap: 16,
   },
   card: {
     padding: 20,
+    borderRadius: 14,
+    gap: 12,
+  },
+  iconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.light.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.light.primary,
+    marginBottom: 8,
   },
   cardTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    color: colors.light.text,
-    marginBottom: 8,
-  },
-  cardText: {
-    fontSize: 13,
-    color: colors.light.textSecondary,
-    lineHeight: 18,
-    marginBottom: 16,
-  },
-  errorBanner: {
-    backgroundColor: '#FEE2E2',
-    color: colors.light.error,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    fontSize: 13,
-  },
-  secretBox: {
-    backgroundColor: colors.light.surfaceElevated,
-    padding: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  secretText: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
     color: colors.light.primary,
-    letterSpacing: 2,
-  },
-  codeInput: {
-    textAlign: 'center',
-    fontSize: 22,
-    letterSpacing: 6,
-    fontWeight: '700',
-  },
-  actionBtn: {
-    marginTop: 8,
   },
   successTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: colors.light.success,
-    marginBottom: 8,
+    color: colors.light.primary,
+    textAlign: 'center',
+  },
+  cardText: {
+    fontSize: 13,
+    color: colors.light.textSecondary,
+    lineHeight: 19,
+  },
+  secretBox: {
+    backgroundColor: colors.light.background,
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    alignItems: 'center',
+  },
+  secretText: {
+    fontSize: 16,
+    fontFamily: 'monospace',
+    fontWeight: '800',
+    color: colors.light.primary,
+    letterSpacing: 2,
   },
   backupGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginBottom: 20,
+    marginVertical: 8,
   },
   backupItem: {
-    backgroundColor: colors.light.surfaceElevated,
+    backgroundColor: colors.light.background,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.light.border,
     width: '48%',
     alignItems: 'center',
   },
   backupText: {
-    fontSize: 14,
+    fontFamily: 'monospace',
     fontWeight: '700',
-    color: colors.light.text,
-    letterSpacing: 1,
+    fontSize: 12,
+    color: colors.light.primary,
+  },
+  actionBtn: {
+    marginTop: 8,
+  },
+  errorBox: {
+    backgroundColor: '#FDF2F2',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
+  },
+  errorText: {
+    fontSize: 12,
+    color: colors.light.error,
+    fontWeight: '600',
   },
 });
-

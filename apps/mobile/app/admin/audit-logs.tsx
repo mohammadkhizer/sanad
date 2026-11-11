@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { useQuery } from '@tanstack/react-query';
 import { colors } from '../../src/theme/colors';
 import { Card } from '../../src/components/Card';
+import { AppHeader } from '../../src/components/AppHeader';
+import { Icon } from '../../src/components/Icon';
 import { api } from '../../src/api';
 import { AuditLogEntity } from '@sanad/shared';
 
@@ -20,7 +22,13 @@ export default function AuditLogsScreen() {
   }) || [];
 
   return (
-    <View style={styles.container}>
+    <View style={styles.screen}>
+      <AppHeader
+        title="Audit Trail"
+        subtitle="Immutable Platform Governance Log"
+        showBack
+      />
+
       {/* Action Filters */}
       <View style={styles.filterBar}>
         {(['all', 'role', 'moderation'] as const).map((f) => {
@@ -30,9 +38,10 @@ export default function AuditLogsScreen() {
               key={f}
               style={[styles.filterBtn, isSelected && styles.filterBtnActive]}
               onPress={() => setFilterAction(f)}
+              activeOpacity={0.7}
             >
               <Text style={[styles.filterText, isSelected && styles.filterTextActive]}>
-                {f.toUpperCase()}
+                {f === 'all' ? 'All Events' : f === 'role' ? 'Role Changes' : 'Moderation Actions'}
               </Text>
             </TouchableOpacity>
           );
@@ -47,7 +56,7 @@ export default function AuditLogsScreen() {
           <Card style={styles.card}>
             <View style={styles.headerRow}>
               <View style={styles.actionBadge}>
-                <Text style={styles.actionText}>[{item.action.toUpperCase()}]</Text>
+                <Text style={styles.actionText}>{item.action.toUpperCase()}</Text>
               </View>
               <Text style={styles.timestamp}>
                 {new Date(item.createdAt).toLocaleDateString()} {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -70,12 +79,19 @@ export default function AuditLogsScreen() {
               </View>
             )}
 
-            <Text style={styles.ipText}>IP: {item.ip || '127.0.0.1'}</Text>
+            <View style={styles.footerRow}>
+              <Text style={styles.ipText}>Origin IP: {item.ip || '127.0.0.1'}</Text>
+              <View style={styles.verifiedHash}>
+                <Icon name="shield" size={12} color={colors.light.primary} />
+                <Text style={styles.verifiedHashText}>Signed Log</Text>
+              </View>
+            </View>
           </Card>
         )}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No audit entries match filter.</Text>
+            <Text style={styles.emptyTitle}>No Log Entries Found</Text>
+            <Text style={styles.emptyText}>No audit entries match the selected filter criteria.</Text>
           </View>
         }
       />
@@ -84,7 +100,7 @@ export default function AuditLogsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.light.background,
   },
@@ -97,18 +113,22 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   filterBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    backgroundColor: colors.light.surfaceElevated,
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: colors.light.background,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    alignItems: 'center',
   },
   filterBtnActive: {
     backgroundColor: colors.light.primary,
+    borderColor: colors.light.primaryDark,
   },
   filterText: {
     fontSize: 11,
     fontWeight: '700',
-    color: colors.light.text,
+    color: colors.light.textSecondary,
   },
   filterTextActive: {
     color: '#FFFFFF',
@@ -118,22 +138,21 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   card: {
-    padding: 14,
-    gap: 6,
+    padding: 16,
+    borderRadius: 14,
+    gap: 8,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   actionBadge: {
-    backgroundColor: colors.light.surfaceElevated,
+    backgroundColor: 'rgba(15, 76, 69, 0.08)',
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: colors.light.border,
+    borderRadius: 6,
   },
   actionText: {
     fontSize: 11,
@@ -142,7 +161,7 @@ const styles = StyleSheet.create({
   },
   timestamp: {
     fontSize: 11,
-    color: colors.light.textSecondary,
+    color: colors.light.textMuted,
   },
   actorLine: {
     fontSize: 13,
@@ -157,28 +176,54 @@ const styles = StyleSheet.create({
     color: colors.light.primary,
   },
   metaBox: {
-    backgroundColor: colors.light.surfaceElevated,
-    padding: 8,
-    borderRadius: 6,
-    marginTop: 4,
+    backgroundColor: colors.light.background,
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    marginTop: 2,
   },
   metaJson: {
     fontSize: 11,
     fontFamily: 'monospace',
     color: colors.light.textSecondary,
   },
+  footerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 4,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: colors.light.border,
+  },
   ipText: {
-    fontSize: 10,
+    fontSize: 11,
     color: colors.light.textMuted,
-    marginTop: 2,
+    fontFamily: 'monospace',
+  },
+  verifiedHash: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  verifiedHashText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.light.primary,
   },
   emptyContainer: {
-    padding: 32,
+    padding: 40,
     alignItems: 'center',
+    gap: 6,
+  },
+  emptyTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.light.primary,
   },
   emptyText: {
     color: colors.light.textSecondary,
     fontSize: 13,
   },
 });
-

@@ -1,11 +1,11 @@
 # Graph Report - sanad  (2026-11-11)
 
 ## Corpus Check
-- 119 files · ~53,094 words
+- 121 files · ~60,062 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 314 nodes · 327 edges · 16 communities detected
+- 320 nodes · 331 edges · 16 communities detected
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 12 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
@@ -149,11 +149,11 @@ Nodes (1): MockMediaSession
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `AuthService` connect `Community 1` to `Community 0`?**
-  _High betweenness centrality (0.115) - this node is a cross-community bridge._
+  _High betweenness centrality (0.111) - this node is a cross-community bridge._
 - **Why does `handleLogout()` connect `Community 1` to `Community 8`?**
-  _High betweenness centrality (0.046) - this node is a cross-community bridge._
+  _High betweenness centrality (0.044) - this node is a cross-community bridge._
 - **Why does `ContentController` connect `Community 5` to `Community 0`?**
-  _High betweenness centrality (0.040) - this node is a cross-community bridge._
+  _High betweenness centrality (0.039) - this node is a cross-community bridge._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.1 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**

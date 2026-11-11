@@ -4,6 +4,8 @@ import { useRouter } from 'expo-router';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
 import { Card } from '../../src/components/Card';
+import { AppHeader } from '../../src/components/AppHeader';
+import { Icon } from '../../src/components/Icon';
 import { colors } from '../../src/theme/colors';
 import { api } from '../../src/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -47,112 +49,158 @@ export default function ScholarDashboardScreen() {
     },
   });
 
+  const handleDeletePrompt = (id: string, caption: string) => {
+    Alert.alert(
+      'Remove Lesson',
+      `Are you sure you want to delete "${caption.slice(0, 40)}..."? This action is recorded.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: () => deletePostMutation.mutate(id),
+        },
+      ]
+    );
+  };
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Scholar Control Panel</Text>
+    <View style={styles.screen}>
+      <AppHeader
+        title="Scholar Studio"
+        subtitle="Broadcast and Curriculum Control"
+        showBack
+        rightIcon="create"
+        onRightPress={() => router.push('/(tabs)/create')}
+      />
 
-      {/* Analytics Cards */}
-      <View style={styles.metricsRow}>
-        <Card style={styles.metricCard}>
-          <Text style={styles.metricVal}>18.4K</Text>
-          <Text style={styles.metricLabel}>Total Views</Text>
-        </Card>
-        <Card style={styles.metricCard}>
-          <Text style={styles.metricVal}>3.2K</Text>
-          <Text style={styles.metricLabel}>Followers</Text>
-        </Card>
-        <Card style={styles.metricCard}>
-          <Text style={styles.metricVal}>142</Text>
-          <Text style={styles.metricLabel}>Inquiries</Text>
-        </Card>
-      </View>
-
-      {/* Broadcast Launch Section */}
-      <Card style={styles.card}>
-        <Text style={styles.sectionTitle}>Host Instant Live Circle</Text>
-        <Text style={styles.sectionSubtitle}>
-          Broadcast real-time video lectures to your followers with moderated Q&A.
-        </Text>
-
-        <Input
-          label="Live Circle Title *"
-          placeholder="e.g. Sahih al-Bukhari Book of Knowledge Masterclass"
-          value={liveTitle}
-          onChangeText={setLiveTitle}
-        />
-
-        <Input
-          label="Description (Optional)"
-          placeholder="Topics covered, Q&A guidelines..."
-          value={liveDesc}
-          onChangeText={setLiveDesc}
-          multiline
-        />
-
-        <View style={styles.btnRow}>
-          <Button
-            title="Go Live Now"
-            variant="accent"
-            onPress={() => goLiveMutation.mutate()}
-            loading={goLiveMutation.isPending}
-            style={styles.flexBtn}
-          />
-          <Button
-            title="Schedule Later"
-            variant="outline"
-            onPress={() => router.push('/scholar/schedule-live')}
-            style={styles.flexBtn}
-          />
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        {/* Metric Cards */}
+        <View style={styles.metricsRow}>
+          <Card style={styles.metricCard}>
+            <Text style={styles.metricVal}>18.4K</Text>
+            <Text style={styles.metricLabel}>Total Views</Text>
+            <View style={styles.metricAccent} />
+          </Card>
+          <Card style={styles.metricCard}>
+            <Text style={styles.metricVal}>3.2K</Text>
+            <Text style={styles.metricLabel}>Students</Text>
+            <View style={styles.metricAccent} />
+          </Card>
+          <Card style={styles.metricCard}>
+            <Text style={styles.metricVal}>142</Text>
+            <Text style={styles.metricLabel}>Inquiries</Text>
+            <View style={styles.metricAccent} />
+          </Card>
         </View>
-      </Card>
 
-      {/* Published Content Management */}
-      <Card style={styles.card}>
-        <Text style={styles.sectionTitle}>Published Lessons</Text>
-        {(postsData?.items || []).map((post) => (
-          <View key={post._id} style={styles.postItem}>
-            <View style={styles.postInfo}>
-              <View style={styles.postHeader}>
-                <Text style={styles.postType}>[{post.type.toUpperCase()}]</Text>
-                <Text style={styles.postDate}>
-                  {new Date(post.createdAt).toLocaleDateString()}
-                </Text>
-              </View>
-              <Text style={styles.postCaption} numberOfLines={2}>
-                {post.caption}
-              </Text>
-              <Text style={styles.postStats}>
-                {post.counts.likes} likes · {post.counts.comments} comments · {post.counts.views} views
-              </Text>
+        {/* Live Circle Launcher */}
+        <Card style={styles.card}>
+          <View style={styles.cardHeaderRow}>
+            <View style={styles.cardTitleBox}>
+              <View style={styles.liveIndicator} />
+              <Text style={styles.sectionTitle}>Host Live Halaqah</Text>
             </View>
+            <Text style={styles.liveTag}>Real-Time</Text>
+          </View>
+          <Text style={styles.sectionSubtitle}>
+            Broadcast live video lectures with moderated student questions and scholarly peer commentary.
+          </Text>
 
+          <Input
+            label="Halaqah Subject Title *"
+            placeholder="e.g. Sahih al-Bukhari Kitab al-Ilm Masterclass"
+            value={liveTitle}
+            onChangeText={setLiveTitle}
+          />
+
+          <Input
+            label="Curriculum Description (Optional)"
+            placeholder="Outline texts, chapters, and Q&A protocols..."
+            value={liveDesc}
+            onChangeText={setLiveDesc}
+            multiline
+            numberOfLines={2}
+          />
+
+          <View style={styles.btnRow}>
+            <Button
+              title="Broadcast Live Now"
+              variant="accent"
+              onPress={() => goLiveMutation.mutate()}
+              loading={goLiveMutation.isPending}
+              style={styles.flexBtn}
+            />
+            <Button
+              title="Schedule Later"
+              variant="outline"
+              onPress={() => router.push('/scholar/schedule-live')}
+              style={styles.flexBtn}
+            />
+          </View>
+        </Card>
+
+        {/* Published Curriculum Management */}
+        <Card style={styles.card}>
+          <View style={styles.cardHeaderRow}>
+            <Text style={styles.sectionTitle}>Published Curriculum</Text>
             <TouchableOpacity
-              style={styles.deleteBtn}
-              onPress={() => deletePostMutation.mutate(post._id)}
+              onPress={() => router.push('/(tabs)/create')}
+              style={styles.newLessonLink}
             >
-              <Text style={styles.deleteText}>Delete</Text>
+              <Icon name="plus" size={14} color={colors.light.primary} />
+              <Text style={styles.newLessonText}>New Lesson</Text>
             </TouchableOpacity>
           </View>
-        ))}
-      </Card>
-    </ScrollView>
+
+          {(postsData?.items || []).map((post) => (
+            <View key={post._id} style={styles.postItem}>
+              <View style={styles.postInfo}>
+                <View style={styles.postHeader}>
+                  <View style={styles.typeBadge}>
+                    <Text style={styles.postType}>{post.type.toUpperCase()}</Text>
+                  </View>
+                  <Text style={styles.postDate}>
+                    {new Date(post.createdAt).toLocaleDateString()}
+                  </Text>
+                </View>
+                <Text style={styles.postCaption} numberOfLines={2}>
+                  {post.caption}
+                </Text>
+                <View style={styles.statsRow}>
+                  <Text style={styles.postStats}>
+                    {post.counts.likes} endorsements · {post.counts.comments} answers · {post.counts.views} views
+                  </Text>
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={styles.deleteBtn}
+                onPress={() => handleDeletePrompt(post._id, post.caption)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Icon name="trash" size={16} color={colors.light.error} />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </Card>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.light.background,
+  },
+  container: {
+    flex: 1,
   },
   content: {
     padding: 16,
     paddingBottom: 40,
     gap: 16,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: colors.light.primary,
   },
   metricsRow: {
     flexDirection: 'row',
@@ -160,32 +208,68 @@ const styles = StyleSheet.create({
   },
   metricCard: {
     flex: 1,
-    padding: 12,
+    padding: 14,
     alignItems: 'center',
+    borderRadius: 12,
+    position: 'relative',
   },
   metricVal: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '800',
     color: colors.light.primary,
   },
   metricLabel: {
     fontSize: 11,
+    fontWeight: '600',
     color: colors.light.textSecondary,
     marginTop: 2,
   },
+  metricAccent: {
+    width: 24,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: colors.light.accent,
+    marginTop: 8,
+  },
   card: {
     padding: 16,
+    borderRadius: 14,
     gap: 12,
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  cardTitleBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  liveIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.light.error,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '800',
     color: colors.light.primary,
   },
+  liveTag: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.light.accentText,
+    backgroundColor: colors.light.accent,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
   sectionSubtitle: {
     fontSize: 12,
     color: colors.light.textSecondary,
-    lineHeight: 16,
+    lineHeight: 18,
   },
   btnRow: {
     flexDirection: 'row',
@@ -195,14 +279,27 @@ const styles = StyleSheet.create({
   flexBtn: {
     flex: 1,
   },
+  newLessonLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    backgroundColor: 'rgba(15, 76, 69, 0.08)',
+  },
+  newLessonText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.light.primary,
+  },
   postItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.light.border,
-    gap: 8,
+    gap: 12,
   },
   postInfo: {
     flex: 1,
@@ -210,7 +307,14 @@ const styles = StyleSheet.create({
   postHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 2,
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  typeBadge: {
+    backgroundColor: 'rgba(15, 76, 69, 0.08)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
   },
   postType: {
     fontSize: 10,
@@ -218,28 +322,30 @@ const styles = StyleSheet.create({
     color: colors.light.primary,
   },
   postDate: {
-    fontSize: 10,
-    color: colors.light.textSecondary,
+    fontSize: 11,
+    color: colors.light.textMuted,
   },
   postCaption: {
     fontSize: 13,
     color: colors.light.text,
     lineHeight: 18,
+    fontWeight: '600',
+  },
+  statsRow: {
+    marginTop: 4,
   },
   postStats: {
     fontSize: 11,
     color: colors.light.textMuted,
-    marginTop: 2,
   },
   deleteBtn: {
-    backgroundColor: '#FDE8E8',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  deleteText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.light.error,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#FDF2F2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
   },
 });

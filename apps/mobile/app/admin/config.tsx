@@ -4,6 +4,7 @@ import { colors } from '../../src/theme/colors';
 import { Card } from '../../src/components/Card';
 import { Button } from '../../src/components/Button';
 import { Input } from '../../src/components/Input';
+import { AppHeader } from '../../src/components/AppHeader';
 
 export default function AdminConfigScreen() {
   const [minStatementLen, setMinStatementLen] = useState('20');
@@ -18,88 +19,104 @@ export default function AdminConfigScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Card style={styles.card}>
-        <Text style={styles.sectionTitle}>Scholar Verification Criteria</Text>
-        <Text style={styles.desc}>
-          Set baseline accreditation and gatekeeping rules across applicant queues:
-        </Text>
+    <View style={styles.screen}>
+      <AppHeader
+        title="Platform Policy"
+        subtitle="Verification and Content Parameters"
+        showBack
+      />
 
-        <Input
-          label="Minimum Statement Length (Characters)"
-          value={minStatementLen}
-          onChangeText={setMinStatementLen}
-          keyboardType="number-pad"
-        />
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <Card style={styles.card}>
+          <Text style={styles.sectionTitle}>Scholar Verification Standards</Text>
+          <Text style={styles.desc}>
+            Set baseline accreditation rules and gatekeeping thresholds across applicant queues:
+          </Text>
 
-        <View style={styles.settingRow}>
-          <View style={styles.textContainer}>
-            <Text style={styles.settingLabel}>Require Peer Scholar Endorsement</Text>
-            <Text style={styles.settingSub}>Requires 1-2 verified scholars to endorse applicant</Text>
-          </View>
-          <Switch
-            value={requireEndorsement}
-            onValueChange={setRequireEndorsement}
-            trackColor={{ false: colors.light.border, true: colors.light.primary }}
+          <Input
+            label="Minimum Statement Length (Characters)"
+            value={minStatementLen}
+            onChangeText={setMinStatementLen}
+            keyboardType="number-pad"
           />
-        </View>
 
-        <View style={styles.settingRow}>
-          <View style={styles.textContainer}>
-            <Text style={styles.settingLabel}>Mandatory 2FA Before Publishing</Text>
-            <Text style={styles.settingSub}>Blocks video/live publishing until 2FA is confirmed</Text>
+          <View style={styles.settingRow}>
+            <View style={styles.textContainer}>
+              <Text style={styles.settingLabel}>Require Peer Scholar Endorsement</Text>
+              <Text style={styles.settingSub}>Requires 1-2 verified scholars to vouch for lineage</Text>
+            </View>
+            <Switch
+              value={requireEndorsement}
+              onValueChange={setRequireEndorsement}
+              trackColor={{ false: colors.light.border, true: colors.light.primary }}
+            />
           </View>
-          <Switch
-            value={enforceTwoFactor}
-            onValueChange={setEnforceTwoFactor}
-            trackColor={{ false: colors.light.border, true: colors.light.primary }}
-          />
-        </View>
-      </Card>
 
-      <Card style={styles.card}>
-        <Text style={styles.sectionTitle}>Content & Media Limits</Text>
-
-        <Input
-          label="Maximum Reel Duration (Seconds)"
-          value={reelMaxSeconds}
-          onChangeText={setReelMaxSeconds}
-          keyboardType="number-pad"
-        />
-
-        <Input
-          label="Maximum Masterclass Video Duration (Minutes)"
-          value={videoMaxMinutes}
-          onChangeText={setVideoMaxMinutes}
-          keyboardType="number-pad"
-        />
-      </Card>
-
-      <Card style={styles.card}>
-        <Text style={styles.sectionTitle}>Global Prayer-Time Policy</Text>
-
-        <View style={styles.settingRow}>
-          <View style={styles.textContainer}>
-            <Text style={styles.settingLabel}>Default Quiet Hours for New Accounts</Text>
-            <Text style={styles.settingSub}>Pre-enable prayer quiet hours by default</Text>
+          <View style={styles.settingRow}>
+            <View style={styles.textContainer}>
+              <Text style={styles.settingLabel}>Mandatory 2FA Before Publishing</Text>
+              <Text style={styles.settingSub}>Blocks video/live publishing until 2FA is verified</Text>
+            </View>
+            <Switch
+              value={enforceTwoFactor}
+              onValueChange={setEnforceTwoFactor}
+              trackColor={{ false: colors.light.border, true: colors.light.primary }}
+            />
           </View>
-          <Switch
-            value={defaultQuietHours}
-            onValueChange={setDefaultQuietHours}
-            trackColor={{ false: colors.light.border, true: colors.light.primary }}
-          />
-        </View>
-      </Card>
+        </Card>
 
-      <Button title="Save Platform Configuration" onPress={handleSave} style={styles.saveBtn} />
-    </ScrollView>
+        <Card style={styles.card}>
+          <Text style={styles.sectionTitle}>Curriculum and Media Limits</Text>
+
+          <Input
+            label="Maximum Reel Duration (Seconds)"
+            value={reelMaxSeconds}
+            onChangeText={setReelMaxSeconds}
+            keyboardType="number-pad"
+          />
+
+          <Input
+            label="Maximum Masterclass Video Duration (Minutes)"
+            value={videoMaxMinutes}
+            onChangeText={setVideoMaxMinutes}
+            keyboardType="number-pad"
+          />
+        </Card>
+
+        <Card style={styles.card}>
+          <Text style={styles.sectionTitle}>Prayer Time Notification Policy</Text>
+
+          <View style={styles.settingRow}>
+            <View style={styles.textContainer}>
+              <Text style={styles.settingLabel}>Default Quiet Hours for New Accounts</Text>
+              <Text style={styles.settingSub}>Pre-enable prayer quiet hours by default</Text>
+            </View>
+            <Switch
+              value={defaultQuietHours}
+              onValueChange={setDefaultQuietHours}
+              trackColor={{ false: colors.light.border, true: colors.light.primary }}
+            />
+          </View>
+        </Card>
+
+        <Button
+          title="Save Platform Configuration"
+          variant="primary"
+          onPress={handleSave}
+          style={styles.saveBtn}
+        />
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.light.background,
+  },
+  container: {
+    flex: 1,
   },
   content: {
     padding: 16,
@@ -108,17 +125,18 @@ const styles = StyleSheet.create({
   },
   card: {
     padding: 16,
+    borderRadius: 14,
     gap: 12,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
     color: colors.light.primary,
   },
   desc: {
     fontSize: 12,
     color: colors.light.textSecondary,
-    lineHeight: 16,
+    lineHeight: 18,
   },
   settingRow: {
     flexDirection: 'row',
@@ -141,7 +159,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   saveBtn: {
-    marginTop: 8,
+    marginTop: 4,
   },
 });
-

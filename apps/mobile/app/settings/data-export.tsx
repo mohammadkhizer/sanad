@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
 import { colors } from '../../src/theme/colors';
 import { Card } from '../../src/components/Card';
 import { Button } from '../../src/components/Button';
+import { AppHeader } from '../../src/components/AppHeader';
+import { Icon } from '../../src/components/Icon';
 import { api } from '../../src/api';
 
 export default function DataExportScreen() {
@@ -27,53 +29,70 @@ export default function DataExportScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Card style={styles.card}>
-        <Text style={styles.title}>Export Your Sanad Data</Text>
-        <Text style={styles.desc}>
-          In accordance with digital data ownership standards, you can download a complete archive of your posts, lessons, comments, followers, and consultation transcripts.
-        </Text>
+    <View style={styles.screen}>
+      <AppHeader
+        title="Data Portability"
+        subtitle="Export Personal Scholarly Archive"
+        showBack
+      />
 
-        <Text style={styles.formatHeading}>Archive Contents:</Text>
-        <Text style={styles.bulletPoint}>- Profile & Institutional Accreditation Metadata (JSON)</Text>
-        <Text style={styles.bulletPoint}>- Published Lessons, Videos & Transcripts (JSON + Media Links)</Text>
-        <Text style={styles.bulletPoint}>- Chat Messages & Consultation Inquiries (JSON)</Text>
-        <Text style={styles.bulletPoint}>- Followers & Following Scholarly Network (JSON)</Text>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <Card style={styles.card}>
+          <Text style={styles.title}>Export Your Sanad Archive</Text>
+          <Text style={styles.desc}>
+            In accordance with digital data ownership standards, you can download a complete archive of your posts, lessons, comments, followers, and consultation transcripts.
+          </Text>
 
-        {exportInfo ? (
-          <View style={styles.downloadBox}>
-            <Text style={styles.downloadTitle}>Archive Ready for Download</Text>
-            <Text style={styles.downloadUrl} numberOfLines={1}>{exportInfo.url}</Text>
-            <Text style={styles.expiryText}>Expires on: {new Date(exportInfo.expiresAt).toLocaleDateString()}</Text>
-          </View>
-        ) : (
-          <Button
-            title="Request Data Archive"
-            onPress={handleRequestExport}
-            loading={loading}
-            style={styles.requestBtn}
-          />
-        )}
-      </Card>
-    </ScrollView>
+          <Text style={styles.formatHeading}>Archive Contents:</Text>
+          <Text style={styles.bulletPoint}>• Profile and Institutional Accreditation Metadata (JSON)</Text>
+          <Text style={styles.bulletPoint}>• Published Lessons, Videos and Transcripts (JSON + Media Links)</Text>
+          <Text style={styles.bulletPoint}>• Consultation Messages and Inquiries (JSON)</Text>
+          <Text style={styles.bulletPoint}>• Follower Network and Scholarly Connections (JSON)</Text>
+
+          {exportInfo ? (
+            <View style={styles.downloadBox}>
+              <View style={styles.downloadHeader}>
+                <Icon name="check" size={18} color={colors.light.primary} />
+                <Text style={styles.downloadTitle}>Archive Ready for Download</Text>
+              </View>
+              <Text style={styles.downloadUrl} numberOfLines={1}>{exportInfo.url}</Text>
+              <Text style={styles.expiryText}>Expires on {new Date(exportInfo.expiresAt).toLocaleDateString()}</Text>
+            </View>
+          ) : (
+            <Button
+              title="Request Data Archive"
+              variant="primary"
+              onPress={handleRequestExport}
+              loading={loading}
+              style={styles.requestBtn}
+            />
+          )}
+        </Card>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.light.background,
   },
+  container: {
+    flex: 1,
+  },
   content: {
     padding: 16,
+    paddingBottom: 40,
     gap: 16,
   },
   card: {
-    padding: 16,
-    gap: 10,
+    padding: 18,
+    borderRadius: 14,
+    gap: 12,
   },
   title: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
     color: colors.light.primary,
   },
@@ -83,41 +102,45 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
   formatHeading: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
-    color: colors.light.text,
+    color: colors.light.primary,
     marginTop: 6,
   },
   bulletPoint: {
     fontSize: 12,
-    color: colors.light.textSecondary,
+    color: colors.light.text,
     lineHeight: 18,
   },
-  requestBtn: {
-    marginTop: 12,
-  },
   downloadBox: {
-    backgroundColor: colors.light.surfaceElevated,
+    backgroundColor: colors.light.background,
     padding: 14,
-    borderRadius: 8,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: colors.light.primary,
-    marginTop: 12,
+    borderColor: colors.light.border,
+    gap: 6,
+    marginTop: 8,
+  },
+  downloadHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
   },
   downloadTitle: {
-    fontSize: 14,
-    fontWeight: '800',
+    fontSize: 13,
+    fontWeight: '700',
     color: colors.light.primary,
   },
   downloadUrl: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: 'monospace',
-    color: colors.light.text,
+    color: colors.light.textMuted,
   },
   expiryText: {
     fontSize: 11,
     color: colors.light.textSecondary,
   },
+  requestBtn: {
+    marginTop: 8,
+  },
 });
-

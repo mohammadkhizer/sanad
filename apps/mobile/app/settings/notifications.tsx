@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, ScrollView, Switch, Alert } from 'react-native'
 import { colors } from '../../src/theme/colors';
 import { Card } from '../../src/components/Card';
 import { Button } from '../../src/components/Button';
+import { AppHeader } from '../../src/components/AppHeader';
+import { Icon } from '../../src/components/Icon';
 import { api } from '../../src/api';
 
 export default function NotificationsSettingsScreen() {
@@ -30,97 +32,112 @@ export default function NotificationsSettingsScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Card style={styles.card}>
-        <Text style={styles.sectionTitle}>General Notifications</Text>
-
-        <View style={styles.settingRow}>
-          <View style={styles.textContainer}>
-            <Text style={styles.settingLabel}>Push Notifications</Text>
-            <Text style={styles.settingSub}>Receive updates for followed scholars and consultations</Text>
-          </View>
-          <Switch
-            value={pushEnabled}
-            onValueChange={setPushEnabled}
-            trackColor={{ false: colors.light.border, true: colors.light.primary }}
-          />
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.settingRow}>
-          <View style={styles.textContainer}>
-            <Text style={styles.settingLabel}>Scholar Live Broadcasts</Text>
-            <Text style={styles.settingSub}>Alerts when followed teachers begin broadcasting</Text>
-          </View>
-          <Switch
-            value={liveAlerts}
-            onValueChange={setLiveAlerts}
-            trackColor={{ false: colors.light.border, true: colors.light.primary }}
-          />
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.settingRow}>
-          <View style={styles.textContainer}>
-            <Text style={styles.settingLabel}>Consultation Messages</Text>
-            <Text style={styles.settingSub}>Direct scholarly chat inquiries and responses</Text>
-          </View>
-          <Switch
-            value={chatRequests}
-            onValueChange={setChatRequests}
-            trackColor={{ false: colors.light.border, true: colors.light.primary }}
-          />
-        </View>
-      </Card>
-
-      <Card style={styles.card}>
-        <View style={styles.badgeRow}>
-          <Text style={styles.sectionTitle}>Prayer-Time Quiet Hours</Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>[RESPECTFUL DESIGN]</Text>
-          </View>
-        </View>
-
-        <Text style={styles.quietDesc}>
-          Automatically silences non-urgent alerts during canonical prayer times (Fajr, Dhuhr, Asr, Maghrib, Isha) based on your regional coordinates.
-        </Text>
-
-        <View style={styles.settingRow}>
-          <View style={styles.textContainer}>
-            <Text style={styles.settingLabel}>Enable Prayer Quiet Hours</Text>
-            <Text style={styles.settingSub}>Mute notifications 15 min before and after prayer</Text>
-          </View>
-          <Switch
-            value={prayerQuietHours}
-            onValueChange={setPrayerQuietHours}
-            trackColor={{ false: colors.light.border, true: colors.light.primary }}
-          />
-        </View>
-      </Card>
-
-      <Button
-        title="Save Preferences"
-        onPress={handleSave}
-        loading={loading}
-        style={styles.saveBtn}
+    <View style={styles.screen}>
+      <AppHeader
+        title="Notification Settings"
+        subtitle="Alerts and Prayer Quiet Hours"
+        showBack
       />
-    </ScrollView>
+
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <Card style={styles.card}>
+          <Text style={styles.sectionTitle}>General Notifications</Text>
+
+          <View style={styles.settingRow}>
+            <View style={styles.textContainer}>
+              <Text style={styles.settingLabel}>Push Notifications</Text>
+              <Text style={styles.settingSub}>Receive updates for followed scholars and consultations</Text>
+            </View>
+            <Switch
+              value={pushEnabled}
+              onValueChange={setPushEnabled}
+              trackColor={{ false: colors.light.border, true: colors.light.primary }}
+            />
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.settingRow}>
+            <View style={styles.textContainer}>
+              <Text style={styles.settingLabel}>Scholar Live Broadcasts</Text>
+              <Text style={styles.settingSub}>Alerts when followed teachers begin broadcasting</Text>
+            </View>
+            <Switch
+              value={liveAlerts}
+              onValueChange={setLiveAlerts}
+              trackColor={{ false: colors.light.border, true: colors.light.primary }}
+            />
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.settingRow}>
+            <View style={styles.textContainer}>
+              <Text style={styles.settingLabel}>Consultation Messages</Text>
+              <Text style={styles.settingSub}>Direct scholarly chat inquiries and responses</Text>
+            </View>
+            <Switch
+              value={chatRequests}
+              onValueChange={setChatRequests}
+              trackColor={{ false: colors.light.border, true: colors.light.primary }}
+            />
+          </View>
+        </Card>
+
+        <Card style={styles.card}>
+          <View style={styles.badgeRow}>
+            <Text style={styles.sectionTitle}>Prayer-Time Quiet Hours</Text>
+            <View style={styles.badge}>
+              <Icon name="bell" size={12} color={colors.light.accentText} />
+              <Text style={styles.badgeText}>Respectful Design</Text>
+            </View>
+          </View>
+
+          <Text style={styles.quietDesc}>
+            Automatically silences non-urgent alerts during canonical prayer times (Fajr, Dhuhr, Asr, Maghrib, Isha) based on your regional coordinates.
+          </Text>
+
+          <View style={styles.settingRow}>
+            <View style={styles.textContainer}>
+              <Text style={styles.settingLabel}>Enable Prayer Quiet Hours</Text>
+              <Text style={styles.settingSub}>Mute notifications 15 minutes before and after prayer</Text>
+            </View>
+            <Switch
+              value={prayerQuietHours}
+              onValueChange={setPrayerQuietHours}
+              trackColor={{ false: colors.light.border, true: colors.light.primary }}
+            />
+          </View>
+        </Card>
+
+        <Button
+          title="Save Notification Preferences"
+          variant="primary"
+          onPress={handleSave}
+          loading={loading}
+          style={styles.saveBtn}
+        />
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.light.background,
   },
+  container: {
+    flex: 1,
+  },
   content: {
     padding: 16,
+    paddingBottom: 40,
     gap: 16,
   },
   card: {
-    padding: 16,
+    padding: 18,
+    borderRadius: 14,
   },
   sectionTitle: {
     fontSize: 16,
@@ -135,20 +152,23 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     backgroundColor: colors.light.accent,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
   },
   badgeText: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: '800',
     color: colors.light.accentText,
   },
   quietDesc: {
     fontSize: 13,
     color: colors.light.textSecondary,
-    lineHeight: 18,
+    lineHeight: 19,
     marginBottom: 16,
   },
   settingRow: {
@@ -177,7 +197,6 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   saveBtn: {
-    marginTop: 8,
+    marginTop: 4,
   },
 });
-

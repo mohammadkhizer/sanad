@@ -16,6 +16,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../src/api';
 import { colors } from '../../src/theme/colors';
 import { useAuthStore } from '../../src/store/authStore';
+import { AppHeader } from '../../src/components/AppHeader';
+import { Icon } from '../../src/components/Icon';
 import { ReportModal } from '../../src/components/ReportModal';
 import { MessageEntity } from '@sanad/shared';
 
@@ -53,26 +55,32 @@ export default function ChatScreen() {
   };
 
   const handleAttachImage = () => {
-    Alert.alert('Attach Document / Image', 'Manuscript or citation image selected for attachment.');
-    sendMutation.mutate('[ATTACHMENT: Classical Manuscript Folio Scan (PDF/Image)]');
+    Alert.alert('Attach Document or Citation', 'Select classical manuscript folio scan or citation image to attach to the consultation.');
+    sendMutation.mutate('Attachment: Classical Manuscript Folio Scan (Verified Citation)');
   };
 
   const messages = data || [];
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={styles.screen}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={88}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
-      {/* Consultation Safety Banner */}
-      <View style={styles.topBanner}>
-        <Text style={styles.bannerText}>
-          Sanad Scholarly Consultation: Adhere to respectful academic discourse.
+      <AppHeader
+        title="Scholarly Consultation"
+        subtitle="Confidential and Encrypted"
+        showBack
+        rightIcon="shield"
+        onRightPress={() => setReportModalVisible(true)}
+      />
+
+      {/* Advisory Banner */}
+      <View style={styles.advisoryBanner}>
+        <Icon name="shield" size={14} color={colors.light.primary} />
+        <Text style={styles.advisoryText}>
+          Academic Consultation: Adhere to verified sources and respectful discourse.
         </Text>
-        <TouchableOpacity onPress={() => setReportModalVisible(true)}>
-          <Text style={styles.reportLink}>[REPORT]</Text>
-        </TouchableOpacity>
       </View>
 
       {isLoading ? (
@@ -89,6 +97,7 @@ export default function ChatScreen() {
             const senderId = sender?._id || item.senderId;
             const isMine = senderId === user?.id;
             const senderName = sender?.displayName || 'Scholar';
+            const isRead = item.readBy && item.readBy.length > 1;
 
             return (
               <View
@@ -118,9 +127,20 @@ export default function ChatScreen() {
                     {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </Text>
                   {isMine && (
-                    <Text style={styles.readReceiptText}>
-                      {item.readBy?.length > 1 ? '[READ]' : '[SENT]'}
-                    </Text>
+                    <View style={styles.receiptRow}>
+                      <Icon
+                        name="check"
+                        size={12}
+                        color={isRead ? colors.light.accent : 'rgba(255, 255, 255, 0.6)'}
+                      />
+                      {isRead && (
+                        <Icon
+                          name="check"
+                          size={12}
+                          color={colors.light.accent}
+                        />
+                      )}
+                    </View>
                   )}
                 </View>
               </View>
@@ -129,32 +149,40 @@ export default function ChatScreen() {
           ListFooterComponent={
             isTyping ? (
               <View style={styles.typingBox}>
-                <Text style={styles.typingText}>Scholar is typing...</Text>
+                <Text style={styles.typingText}>Scholar is reviewing sources...</Text>
               </View>
             ) : undefined
           }
         />
       )}
 
-      {/* Message Input Box */}
+      {/* Input Bar */}
       <View style={styles.inputContainer}>
-        <TouchableOpacity style={styles.attachBtn} onPress={handleAttachImage}>
-          <Text style={styles.attachText}>[+]</Text>
+        <TouchableOpacity
+          style={styles.attachBtn}
+          onPress={handleAttachImage}
+          activeOpacity={0.7}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Icon name="paperclip" size={20} color={colors.light.primary} />
         </TouchableOpacity>
+
         <TextInput
           style={styles.input}
-          placeholder="Ask a scholarly question..."
+          placeholder="Type scholarly inquiry or response..."
           placeholderTextColor={colors.light.textMuted}
           value={text}
           onChangeText={setText}
           multiline
         />
+
         <TouchableOpacity
-          style={styles.sendButton}
+          style={[styles.sendButton, (!text.trim() || sendMutation.isPending) && styles.sendButtonDisabled]}
           onPress={handleSend}
           disabled={sendMutation.isPending || !text.trim()}
+          activeOpacity={0.8}
         >
-          <Text style={styles.sendButtonText}>Send</Text>
+          <Icon name="send" size={18} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
 
@@ -171,30 +199,26 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.light.background,
   },
-  topBanner: {
-    backgroundColor: colors.light.surfaceElevated,
+  advisoryBanner: {
+    backgroundColor: 'rgba(15, 76, 69, 0.06)',
     paddingHorizontal: 16,
     paddingVertical: 8,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 8,
     borderBottomWidth: 1,
     borderBottomColor: colors.light.border,
   },
-  bannerText: {
+  advisoryText: {
     fontSize: 11,
-    color: colors.light.textSecondary,
+    color: colors.light.primary,
     flex: 1,
-    paddingRight: 8,
-  },
-  reportLink: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: colors.light.error,
+    fontWeight: '600',
+    lineHeight: 16,
   },
   center: {
     flex: 1,
@@ -206,7 +230,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   messageBubble: {
-    maxWidth: '80%',
+    maxWidth: '82%',
     padding: 12,
     borderRadius: 14,
   },
@@ -242,22 +266,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: 6,
     gap: 6,
   },
   timestampText: {
     fontSize: 10,
   },
   myTimestamp: {
-    color: '#A2C2BD',
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   theirTimestamp: {
     color: colors.light.textMuted,
   },
-  readReceiptText: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: colors.light.accent,
+  receiptRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: -4,
   },
   typingBox: {
     padding: 8,
@@ -274,39 +298,39 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.light.border,
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
   attachBtn: {
-    padding: 8,
-    borderRadius: 6,
-    backgroundColor: colors.light.surfaceElevated,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.light.background,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  attachText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: colors.light.primary,
+    borderWidth: 1,
+    borderColor: colors.light.border,
   },
   input: {
     flex: 1,
-    backgroundColor: colors.light.surfaceElevated,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    backgroundColor: colors.light.background,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     maxHeight: 100,
     fontSize: 13,
     color: colors.light.text,
+    borderWidth: 1,
+    borderColor: colors.light.border,
   },
   sendButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: colors.light.primary,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  sendButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 13,
+  sendButtonDisabled: {
+    opacity: 0.5,
   },
 });

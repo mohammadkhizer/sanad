@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'rea
 import { colors } from '../../src/theme/colors';
 import { Card } from '../../src/components/Card';
 import { Button } from '../../src/components/Button';
+import { AppHeader } from '../../src/components/AppHeader';
+import { Icon } from '../../src/components/Icon';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/store/authStore';
 
@@ -48,7 +50,7 @@ export default function ActiveSessionsScreen() {
   const [sessions, setSessions] = useState<SessionItem[]>(mockSessions);
 
   const handleRevoke = (id: string) => {
-    Alert.alert('Revoke Session', 'Are you sure you want to log out this device?', [
+    Alert.alert('Revoke Session', 'Are you sure you want to terminate access for this device?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Revoke',
@@ -63,8 +65,8 @@ export default function ActiveSessionsScreen() {
 
   const handleLogoutAll = () => {
     Alert.alert(
-      'Logout All Devices',
-      'This will revoke all active refresh tokens and terminate all sessions across every phone and computer.',
+      'Terminate All Sessions',
+      'This will invalidate all active refresh tokens and log out every device including this one.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -80,54 +82,77 @@ export default function ActiveSessionsScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.desc}>
-        Manage all phones and computers currently authorized to access your Sanad account.
-      </Text>
+    <View style={styles.screen}>
+      <AppHeader
+        title="Active Sessions"
+        subtitle="Authorized Devices and Hardware"
+        showBack
+      />
 
-      <View style={styles.list}>
-        {sessions.map((sess) => (
-          <Card key={sess.id} style={styles.card}>
-            <View style={styles.sessionHeader}>
-              <View style={styles.deviceInfo}>
-                <Text style={styles.deviceName}>{sess.device}</Text>
-                {sess.isCurrent && (
-                  <View style={styles.currentBadge}>
-                    <Text style={styles.currentBadgeText}>[CURRENT DEVICE]</Text>
-                  </View>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <Text style={styles.desc}>
+          Review all mobile devices and browsers authorized to access your Sanad account credentials and messages.
+        </Text>
+
+        <View style={styles.list}>
+          {sessions.map((sess) => (
+            <Card key={sess.id} style={styles.card}>
+              <View style={styles.sessionHeader}>
+                <View style={styles.deviceInfo}>
+                  <Text style={styles.deviceName}>{sess.device}</Text>
+                  {sess.isCurrent && (
+                    <View style={styles.currentBadge}>
+                      <Icon name="check" size={10} color="#FFFFFF" />
+                      <Text style={styles.currentBadgeText}>Current Device</Text>
+                    </View>
+                  )}
+                </View>
+                {!sess.isCurrent && (
+                  <TouchableOpacity
+                    style={styles.revokeBtn}
+                    onPress={() => handleRevoke(sess.id)}
+                    activeOpacity={0.7}
+                  >
+                    <Icon name="trash" size={14} color={colors.light.error} />
+                    <Text style={styles.revokeBtnText}>Revoke</Text>
+                  </TouchableOpacity>
                 )}
               </View>
-              {!sess.isCurrent && (
-                <TouchableOpacity
-                  style={styles.revokeBtn}
-                  onPress={() => handleRevoke(sess.id)}
-                >
-                  <Text style={styles.revokeBtnText}>Revoke</Text>
-                </TouchableOpacity>
-              )}
-            </View>
 
-            <Text style={styles.metaText}>Location: {sess.location}</Text>
-            <Text style={styles.metaText}>IP Address: {sess.ip}</Text>
-            <Text style={styles.metaText}>Last Active: {sess.lastActive}</Text>
-          </Card>
-        ))}
-      </View>
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Location: </Text>
+                <Text style={styles.metaValue}>{sess.location}</Text>
+              </View>
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>IP Address: </Text>
+                <Text style={styles.metaValue}>{sess.ip}</Text>
+              </View>
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Last Activity: </Text>
+                <Text style={styles.metaValue}>{sess.lastActive}</Text>
+              </View>
+            </Card>
+          ))}
+        </View>
 
-      <Button
-        title="Log Out of All Devices"
-        variant="outline"
-        onPress={handleLogoutAll}
-        style={styles.logoutAllBtn}
-      />
-    </ScrollView>
+        <Button
+          title="Log Out of All Devices"
+          variant="outline"
+          onPress={handleLogoutAll}
+          style={styles.logoutAllBtn}
+        />
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.light.background,
+  },
+  container: {
+    flex: 1,
   },
   content: {
     padding: 16,
@@ -137,20 +162,21 @@ const styles = StyleSheet.create({
   desc: {
     fontSize: 13,
     color: colors.light.textSecondary,
-    lineHeight: 18,
+    lineHeight: 19,
   },
   list: {
     gap: 12,
   },
   card: {
     padding: 16,
+    borderRadius: 14,
     gap: 6,
   },
   sessionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   deviceInfo: {
     flexDirection: 'row',
@@ -164,34 +190,50 @@ const styles = StyleSheet.create({
     color: colors.light.text,
   },
   currentBadge: {
-    backgroundColor: colors.light.accent,
-    paddingHorizontal: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.light.primary,
+    paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: 6,
   },
   currentBadgeText: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: colors.light.accentText,
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   revokeBtn: {
-    backgroundColor: '#FDE8E8',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
+    backgroundColor: '#FDF2F2',
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
   },
   revokeBtnText: {
-    color: colors.light.error,
     fontSize: 11,
     fontWeight: '700',
+    color: colors.light.error,
   },
-  metaText: {
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  metaLabel: {
     fontSize: 12,
-    color: colors.light.textSecondary,
+    fontWeight: '600',
+    color: colors.light.textMuted,
+  },
+  metaValue: {
+    fontSize: 12,
+    color: colors.light.text,
   },
   logoutAllBtn: {
-    marginTop: 8,
     borderColor: colors.light.error,
+    marginTop: 8,
   },
 });
-

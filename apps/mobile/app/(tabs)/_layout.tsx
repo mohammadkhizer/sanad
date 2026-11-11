@@ -1,6 +1,8 @@
 import React from 'react';
+import { View, StyleSheet, Platform } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useAuthStore } from '../../src/store/authStore';
+import { Icon } from '../../src/components/Icon';
 import { colors } from '../../src/theme/colors';
 
 export default function TabsLayout() {
@@ -10,27 +12,42 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: true,
-        headerStyle: { backgroundColor: colors.light.background },
-        headerTintColor: colors.light.primary,
-        headerTitleStyle: { fontWeight: '700' },
-        headerShadowVisible: false,
+        headerShown: false,
         tabBarStyle: {
           backgroundColor: colors.light.surface,
+          borderTopWidth: 1,
           borderTopColor: colors.light.border,
-          height: 60,
-          paddingBottom: 8,
+          height: Platform.OS === 'ios' ? 84 : 64,
+          paddingBottom: Platform.OS === 'ios' ? 24 : 8,
           paddingTop: 8,
+          elevation: 8,
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.04,
+          shadowRadius: 4,
         },
         tabBarActiveTintColor: colors.light.primary,
         tabBarInactiveTintColor: colors.light.textMuted,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+          letterSpacing: 0.3,
+          marginTop: 2,
+        },
       }}
     >
       <Tabs.Screen
         name="feed"
         options={{
-          title: 'Home',
+          title: 'Sanad',
           tabBarLabel: 'Home',
+          tabBarIcon: ({ color, focused }) => (
+            <Icon
+              name={focused ? 'home' : 'home-outline'}
+              size={22}
+              color={focused ? colors.light.primary : (color as string)}
+            />
+          ),
         }}
       />
       <Tabs.Screen
@@ -38,14 +55,27 @@ export default function TabsLayout() {
         options={{
           title: 'Reels',
           tabBarLabel: 'Reels',
-          headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <Icon
+              name={focused ? 'reels' : 'reels-outline'}
+              size={22}
+              color={focused ? colors.light.primary : (color as string)}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Discover',
+          title: 'Explore',
           tabBarLabel: 'Discover',
+          tabBarIcon: ({ color, focused }) => (
+            <Icon
+              name={focused ? 'explore' : 'explore-outline'}
+              size={22}
+              color={focused ? colors.light.primary : (color as string)}
+            />
+          ),
         }}
       />
       <Tabs.Screen
@@ -54,6 +84,11 @@ export default function TabsLayout() {
           title: 'Publish',
           tabBarLabel: 'Publish',
           href: isScholar ? '/(tabs)/create' : null,
+          tabBarIcon: ({ focused }) => (
+            <View style={styles.createButtonContainer}>
+              <Icon name="create" size={24} color="#FFFFFF" />
+            </View>
+          ),
         }}
       />
       <Tabs.Screen
@@ -61,6 +96,13 @@ export default function TabsLayout() {
         options={{
           title: 'Inbox',
           tabBarLabel: 'Inbox',
+          tabBarIcon: ({ color, focused }) => (
+            <Icon
+              name={focused ? 'inbox' : 'inbox-outline'}
+              size={22}
+              color={focused ? colors.light.primary : (color as string)}
+            />
+          ),
         }}
       />
       <Tabs.Screen
@@ -68,8 +110,29 @@ export default function TabsLayout() {
         options={{
           title: 'Profile',
           tabBarLabel: 'Profile',
+          tabBarIcon: ({ color, focused }) => (
+            <Icon
+              name={focused ? 'profile' : 'profile-outline'}
+              size={22}
+              color={focused ? colors.light.primary : (color as string)}
+            />
+          ),
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  createButtonContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.light.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 2,
+    borderWidth: 1.5,
+    borderColor: colors.light.accent,
+  },
+});

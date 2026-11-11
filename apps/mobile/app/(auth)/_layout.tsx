@@ -6,18 +6,17 @@ export default function AuthLayout() {
   return (
     <Stack
       screenOptions={{
-        headerStyle: { backgroundColor: colors.light.background },
-        headerTintColor: colors.light.primary,
-        headerTitleStyle: { fontWeight: '700' },
-        headerShadowVisible: false,
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.light.background },
       }}
     >
-      <Stack.Screen name="login" options={{ title: 'Log In', headerBackVisible: false }} />
-      <Stack.Screen name="register" options={{ title: 'Create Account' }} />
-      <Stack.Screen name="otp" options={{ title: 'Verify OTP' }} />
-      <Stack.Screen name="two-factor" options={{ title: 'Two-Factor Authentication' }} />
-      <Stack.Screen name="forgot-password" options={{ title: 'Forgot Password' }} />
+      <Stack.Screen name="login" />
+      <Stack.Screen name="register" />
+      <Stack.Screen name="otp" />
+      <Stack.Screen name="two-factor" />
+      <Stack.Screen name="2fa-setup" />
+      <Stack.Screen name="forgot-password" />
+      <Stack.Screen name="onboarding" />
     </Stack>
   );
 }
-

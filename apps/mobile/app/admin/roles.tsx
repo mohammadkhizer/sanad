@@ -6,6 +6,8 @@ import { Card } from '../../src/components/Card';
 import { Input } from '../../src/components/Input';
 import { Avatar } from '../../src/components/Avatar';
 import { VerifiedBadge } from '../../src/components/VerifiedBadge';
+import { AppHeader } from '../../src/components/AppHeader';
+import { Icon } from '../../src/components/Icon';
 import { api } from '../../src/api';
 import { UserEntity, Role } from '@sanad/shared';
 
@@ -42,28 +44,23 @@ export default function RoleManagementScreen() {
     let nextRoles: Role[] = [...user.roles];
     if (nextRoles.includes(roleToToggle)) {
       if (roleToToggle === 'scholar') {
-        Alert.prompt
-          ? Alert.prompt(
-              'Revoke Scholar Accreditation',
-              'Enter mandatory revocation reason for the audit trail:',
-              [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                  text: 'Revoke',
-                  style: 'destructive',
-                  onPress: (reason) => {
-                    revokeScholarMutation.mutate({
-                      userId: user._id,
-                      reason: reason || 'Accreditation revoked by administrator.',
-                    });
-                  },
-                },
-              ]
-            )
-          : revokeScholarMutation.mutate({
-              userId: user._id,
-              reason: 'Administrative revocation.',
-            });
+        Alert.alert(
+          'Revoke Scholar Accreditation',
+          `Are you sure you want to revoke scholar accreditation from ${user.displayName}? This action is recorded in the immutable audit trail.`,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Revoke',
+              style: 'destructive',
+              onPress: () => {
+                revokeScholarMutation.mutate({
+                  userId: user._id,
+                  reason: 'Administrative revocation by staff.',
+                });
+              },
+            },
+          ]
+        );
         return;
       }
       nextRoles = nextRoles.filter((r) => r !== roleToToggle);
@@ -74,12 +71,20 @@ export default function RoleManagementScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.searchContainer}>
+    <View style={styles.screen}>
+      <AppHeader
+        title="Access Control"
+        subtitle="Staff and Role Governance (RBAC)"
+        showBack
+      />
+
+      <View style={styles.searchBar}>
+        <Icon name="search" size={18} color={colors.light.textMuted} />
         <Input
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholder="Search by user name or email..."
+          style={styles.searchInput}
         />
       </View>
 
@@ -92,7 +97,7 @@ export default function RoleManagementScreen() {
           return (
             <Card style={styles.card}>
               <View style={styles.userHeader}>
-                <Avatar name={item.displayName} url={item.avatarUrl} size={44} />
+                <Avatar name={item.displayName} url={item.avatarUrl} size={48} />
                 <View style={styles.userInfo}>
                   <View style={styles.nameRow}>
                     <Text style={styles.userName}>{item.displayName}</Text>
@@ -102,7 +107,7 @@ export default function RoleManagementScreen() {
                 </View>
               </View>
 
-              <Text style={styles.rolesHeading}>Active Governance Roles:</Text>
+              <Text style={styles.rolesHeading}>Active Governance Roles</Text>
               <View style={styles.rolesGrid}>
                 {(['member', 'scholar', 'moderator', 'admin'] as const).map((r) => {
                   const hasRole = item.roles.includes(r);
@@ -111,9 +116,11 @@ export default function RoleManagementScreen() {
                       key={r}
                       style={[styles.roleChip, hasRole && styles.roleChipActive]}
                       onPress={() => handleRoleToggle(item, r)}
+                      activeOpacity={0.7}
                     >
+                      {hasRole && <Icon name="check" size={12} color="#FFFFFF" />}
                       <Text style={[styles.roleChipText, hasRole && styles.roleChipTextActive]}>
-                        {hasRole ? `[x] ${r.toUpperCase()}` : `[ ] ${r.toUpperCase()}`}
+                        {r.toUpperCase()}
                       </Text>
                     </TouchableOpacity>
                   );
@@ -124,7 +131,8 @@ export default function RoleManagementScreen() {
         }}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No accounts found matching query.</Text>
+            <Text style={styles.emptyTitle}>No Accounts Found</Text>
+            <Text style={styles.emptyText}>No user accounts match the current query filter.</Text>
           </View>
         }
       />
@@ -133,22 +141,30 @@ export default function RoleManagementScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.light.background,
   },
-  searchContainer: {
-    padding: 16,
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     backgroundColor: colors.light.surface,
     borderBottomWidth: 1,
     borderBottomColor: colors.light.border,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
   },
   list: {
     padding: 16,
     gap: 12,
   },
   card: {
-    padding: 14,
+    padding: 16,
+    borderRadius: 14,
     gap: 10,
   },
   userHeader: {
@@ -165,7 +181,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   userName: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
     color: colors.light.text,
   },
@@ -178,6 +194,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: colors.light.primary,
+    marginTop: 2,
   },
   rolesGrid: {
     flexDirection: 'row',
@@ -185,10 +202,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   roleChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
-    backgroundColor: colors.light.surfaceElevated,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 8,
+    backgroundColor: colors.light.background,
     borderWidth: 1,
     borderColor: colors.light.border,
   },
@@ -205,12 +225,17 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   emptyContainer: {
-    padding: 32,
+    padding: 40,
     alignItems: 'center',
+    gap: 6,
+  },
+  emptyTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.light.primary,
   },
   emptyText: {
     color: colors.light.textSecondary,
     fontSize: 13,
   },
 });
-

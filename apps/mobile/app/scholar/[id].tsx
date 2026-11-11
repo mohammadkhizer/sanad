@@ -16,6 +16,8 @@ import { Avatar } from '../../src/components/Avatar';
 import { VerifiedBadge } from '../../src/components/VerifiedBadge';
 import { Card } from '../../src/components/Card';
 import { Button } from '../../src/components/Button';
+import { AppHeader } from '../../src/components/AppHeader';
+import { Icon } from '../../src/components/Icon';
 import { ReportModal } from '../../src/components/ReportModal';
 import { useAuthStore } from '../../src/store/authStore';
 import { UserEntity, PostEntity } from '@sanad/shared';
@@ -61,7 +63,7 @@ export default function ScholarProfileScreen() {
     }
 
     try {
-      const res = await api.chat.sendChatRequest({
+      await api.chat.sendChatRequest({
         scholarId: id || 'usr_scholar_1',
         message: 'Respected teacher, I am seeking formal scholarly guidance regarding narrator criticism and legal methodology.',
       });
@@ -93,7 +95,7 @@ export default function ScholarProfileScreen() {
   const handleBlockUser = () => {
     Alert.alert(
       'Block Scholar',
-      'Are you sure you want to block this user? You will no longer see their content or circles.',
+      'Are you sure you want to block this user? You will no longer see their content or live circles.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -101,8 +103,8 @@ export default function ScholarProfileScreen() {
           style: 'destructive',
           onPress: async () => {
             await api.users.blockUser(id || 'usr_scholar_1');
-            Alert.alert('Blocked', 'User has been blocked.');
-            router.back();
+            Alert.alert('User Blocked', 'This scholar profile has been blocked from your feed.');
+            router.replace('/(tabs)/feed');
           },
         },
       ]
@@ -111,8 +113,11 @@ export default function ScholarProfileScreen() {
 
   if (isLoading || !user) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.light.primary} />
+      <View style={styles.screen}>
+        <AppHeader title="Scholar Profile" showBack />
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={colors.light.primary} />
+        </View>
       </View>
     );
   }
@@ -120,172 +125,212 @@ export default function ScholarProfileScreen() {
   const isScholar = Boolean(user.scholarProfile?.verified || user.roles.includes('scholar'));
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Profile Header */}
-      <Card style={styles.profileCard}>
-        <View style={styles.avatarRow}>
-          <Avatar name={user.displayName} url={user.avatarUrl} size={72} />
-          <View style={styles.userDetails}>
-            <View style={styles.nameRow}>
-              <Text style={styles.userName}>{user.displayName}</Text>
-              {isScholar && <VerifiedBadge />}
-            </View>
-            {Boolean(user.scholarProfile?.institution) && (
-              <Text style={styles.institution}>{user.scholarProfile?.institution}</Text>
-            )}
-            <Text style={styles.verifiedDate}>
-              Verified since: {new Date(user.scholarProfile?.verifiedAt || '2025-01-15').getFullYear()}
-            </Text>
-          </View>
-        </View>
+    <View style={styles.screen}>
+      <AppHeader
+        title={user.displayName}
+        subtitle={user.scholarProfile?.institution || 'Accredited Scholar'}
+        showBack
+        rightIcon="share"
+        onRightPress={() => {
+          Alert.alert('Share Profile', 'Scholarly profile link copied to clipboard.');
+        }}
+      />
 
-        {/* Bio */}
-        <Text style={styles.bioText}>
-          {user.bio || 'Accredited scholar with verified chains of transmission in Islamic jurisprudence and Hadith sciences.'}
-        </Text>
-
-        {/* Specialties Tags */}
-        {user.scholarProfile?.specialties && (
-          <View style={styles.specialtiesRow}>
-            {user.scholarProfile.specialties.map((spec, idx) => (
-              <View key={idx} style={styles.specBadge}>
-                <Text style={styles.specText}>{spec}</Text>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        {/* Profile Card */}
+        <Card style={styles.profileCard}>
+          <View style={styles.avatarRow}>
+            <Avatar name={user.displayName} url={user.avatarUrl} size={76} />
+            <View style={styles.userDetails}>
+              <View style={styles.nameRow}>
+                <Text style={styles.userName}>{user.displayName}</Text>
+                {isScholar && <VerifiedBadge />}
               </View>
-            ))}
-          </View>
-        )}
-
-        {/* Network Metrics */}
-        <View style={styles.networkRow}>
-          <TouchableOpacity
-            style={styles.metricItem}
-            onPress={() => router.push(`/profile/${user._id}/network`)}
-          >
-            <Text style={styles.metricVal}>4,820</Text>
-            <Text style={styles.metricLabel}>Followers</Text>
-          </TouchableOpacity>
-
-          <View style={styles.metricDivider} />
-
-          <TouchableOpacity
-            style={styles.metricItem}
-            onPress={() => router.push(`/profile/${user._id}/network`)}
-          >
-            <Text style={styles.metricVal}>64</Text>
-            <Text style={styles.metricLabel}>Following</Text>
-          </TouchableOpacity>
-
-          <View style={styles.metricDivider} />
-
-          <View style={styles.metricItem}>
-            <Text style={styles.metricVal}>52</Text>
-            <Text style={styles.metricLabel}>Lessons</Text>
-          </View>
-        </View>
-
-        {/* Action Buttons */}
-        <View style={styles.actionsRow}>
-          <Button
-            title={isFollowing ? 'Following' : 'Follow Scholar'}
-            variant={isFollowing ? 'outline' : 'primary'}
-            onPress={() => followMutation.mutate()}
-            loading={followMutation.isPending}
-            style={styles.flexBtn}
-          />
-          <Button
-            title="Request Q&A"
-            variant="accent"
-            onPress={handleRequestChat}
-            style={styles.flexBtn}
-          />
-        </View>
-
-        <View style={styles.secondaryActions}>
-          <TouchableOpacity style={styles.callLink} onPress={handleStartCall}>
-            <Text style={styles.callLinkText}>[INITIATE VIDEO CONSULTATION]</Text>
-          </TouchableOpacity>
-        </View>
-      </Card>
-
-      {/* Safety Rail: Report and Block */}
-      <View style={styles.safetyRow}>
-        <TouchableOpacity
-          onPress={() => setReportModalVisible(true)}
-          style={styles.safetyBtn}
-        >
-          <Text style={styles.reportText}>[REPORT SCHOLAR / CONTENT]</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleBlockUser} style={styles.safetyBtn}>
-          <Text style={styles.blockText}>[BLOCK USER]</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Content Navigation */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity
-          style={[styles.tabItem, activeTab === 'reels' && styles.tabItemActive]}
-          onPress={() => setActiveTab('reels')}
-        >
-          <Text style={[styles.tabText, activeTab === 'reels' && styles.tabTextActive]}>
-            Short Lessons / Reels
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.tabItem, activeTab === 'videos' && styles.tabItemActive]}
-          onPress={() => setActiveTab('videos')}
-        >
-          <Text style={[styles.tabText, activeTab === 'videos' && styles.tabTextActive]}>
-            Masterclasses & Lectures
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Published Content Grid */}
-      <View style={styles.lessonsGrid}>
-        {(postsData?.items || []).map((post) => (
-          <TouchableOpacity
-            key={post._id}
-            style={styles.lessonCard}
-            onPress={() => router.push(`/post/${post._id}`)}
-          >
-            <View style={styles.lessonHeader}>
-              <Text style={styles.lessonType}>[{post.type.toUpperCase()}]</Text>
-              <Text style={styles.lessonDate}>
-                {new Date(post.createdAt).toLocaleDateString()}
+              {Boolean(user.scholarProfile?.institution) && (
+                <Text style={styles.institution}>{user.scholarProfile?.institution}</Text>
+              )}
+              <Text style={styles.verifiedDate}>
+                Verified since {new Date(user.scholarProfile?.verifiedAt || '2025-01-15').getFullYear()}
               </Text>
             </View>
-            <Text style={styles.lessonCaption} numberOfLines={2}>
-              {post.caption}
-            </Text>
-            <Text style={styles.lessonStats}>
-              {post.counts.likes} likes · {post.counts.comments} comments
+          </View>
+
+          {/* Bio */}
+          <Text style={styles.bioText}>
+            {user.bio || 'Accredited scholar with verified chains of transmission in Islamic jurisprudence and Hadith sciences.'}
+          </Text>
+
+          {/* Specialties Tags */}
+          {user.scholarProfile?.specialties && (
+            <View style={styles.specialtiesRow}>
+              {user.scholarProfile.specialties.map((spec, idx) => (
+                <View key={idx} style={styles.specBadge}>
+                  <Text style={styles.specText}>{spec}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Network Metrics */}
+          <View style={styles.networkRow}>
+            <TouchableOpacity
+              style={styles.metricItem}
+              onPress={() => router.push(`/profile/${user._id}/network`)}
+            >
+              <Text style={styles.metricVal}>4,820</Text>
+              <Text style={styles.metricLabel}>Students</Text>
+            </TouchableOpacity>
+
+            <View style={styles.metricDivider} />
+
+            <TouchableOpacity
+              style={styles.metricItem}
+              onPress={() => router.push(`/profile/${user._id}/network`)}
+            >
+              <Text style={styles.metricVal}>64</Text>
+              <Text style={styles.metricLabel}>Following</Text>
+            </TouchableOpacity>
+
+            <View style={styles.metricDivider} />
+
+            <View style={styles.metricItem}>
+              <Text style={styles.metricVal}>52</Text>
+              <Text style={styles.metricLabel}>Lessons</Text>
+            </View>
+          </View>
+
+          {/* Primary Action Buttons */}
+          <View style={styles.actionsRow}>
+            <Button
+              title={isFollowing ? 'Following' : 'Follow Scholar'}
+              variant={isFollowing ? 'outline' : 'primary'}
+              onPress={() => followMutation.mutate()}
+              loading={followMutation.isPending}
+              style={styles.flexBtn}
+            />
+            <Button
+              title="Request Q&A"
+              variant="accent"
+              onPress={handleRequestChat}
+              style={styles.flexBtn}
+            />
+          </View>
+
+          {/* Direct Consultation Link */}
+          <TouchableOpacity
+            style={styles.consultationCard}
+            onPress={handleStartCall}
+            activeOpacity={0.7}
+          >
+            <View style={styles.consultationIconBox}>
+              <Icon name="call" size={20} color={colors.light.primary} />
+            </View>
+            <View style={styles.consultationInfo}>
+              <Text style={styles.consultationTitle}>Initiate Video Consultation</Text>
+              <Text style={styles.consultationSub}>One-on-one private academic session</Text>
+            </View>
+            <Icon name="chevron-right" size={18} color={colors.light.textMuted} />
+          </TouchableOpacity>
+        </Card>
+
+        {/* Safety Actions */}
+        <View style={styles.safetyRow}>
+          <TouchableOpacity
+            onPress={() => setReportModalVisible(true)}
+            style={styles.safetyBtn}
+          >
+            <Icon name="shield" size={14} color={colors.light.textMuted} />
+            <Text style={styles.reportText}>Report Scholar or Content</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleBlockUser} style={styles.safetyBtn}>
+            <Icon name="close" size={14} color={colors.light.error} />
+            <Text style={styles.blockText}>Block User</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Content Navigation Tabs */}
+        <View style={styles.tabBar}>
+          <TouchableOpacity
+            style={[styles.tabItem, activeTab === 'reels' && styles.tabItemActive]}
+            onPress={() => setActiveTab('reels')}
+          >
+            <Icon
+              name="reels"
+              size={16}
+              color={activeTab === 'reels' ? colors.light.primary : colors.light.textMuted}
+            />
+            <Text style={[styles.tabText, activeTab === 'reels' && styles.tabTextActive]}>
+              Short Reels
             </Text>
           </TouchableOpacity>
-        ))}
-      </View>
 
-      {reportModalVisible && (
-        <ReportModal
-          visible={reportModalVisible}
-          targetType="user"
-          targetId={user._id}
-          onClose={() => setReportModalVisible(false)}
-        />
-      )}
-    </ScrollView>
+          <TouchableOpacity
+            style={[styles.tabItem, activeTab === 'videos' && styles.tabItemActive]}
+            onPress={() => setActiveTab('videos')}
+          >
+            <Icon
+              name="play"
+              size={16}
+              color={activeTab === 'videos' ? colors.light.primary : colors.light.textMuted}
+            />
+            <Text style={[styles.tabText, activeTab === 'videos' && styles.tabTextActive]}>
+              Masterclasses
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Lessons List */}
+        <View style={styles.lessonsGrid}>
+          {(postsData?.items || []).map((post) => (
+            <TouchableOpacity
+              key={post._id}
+              style={styles.lessonCard}
+              onPress={() => router.push(`/post/${post._id}`)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.lessonHeader}>
+                <View style={styles.typeBadge}>
+                  <Text style={styles.lessonType}>{post.type.toUpperCase()}</Text>
+                </View>
+                <Text style={styles.lessonDate}>
+                  {new Date(post.createdAt).toLocaleDateString()}
+                </Text>
+              </View>
+              <Text style={styles.lessonCaption} numberOfLines={2}>
+                {post.caption}
+              </Text>
+              <Text style={styles.lessonStats}>
+                {post.counts.likes} endorsements · {post.counts.comments} answers
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {reportModalVisible && (
+          <ReportModal
+            visible={reportModalVisible}
+            targetType="user"
+            targetId={user._id}
+            onClose={() => setReportModalVisible(false)}
+          />
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.light.background,
+  },
+  container: {
+    flex: 1,
   },
   content: {
     padding: 16,
     paddingBottom: 40,
-    gap: 14,
+    gap: 16,
   },
   center: {
     flex: 1,
@@ -293,13 +338,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   profileCard: {
-    padding: 16,
-    gap: 12,
+    padding: 18,
+    borderRadius: 14,
+    gap: 14,
   },
   avatarRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 16,
   },
   userDetails: {
     flex: 1,
@@ -311,25 +357,25 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   userName: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: '800',
     color: colors.light.text,
   },
   institution: {
     fontSize: 13,
     color: colors.light.primary,
-    fontWeight: '600',
+    fontWeight: '700',
     marginTop: 2,
   },
   verifiedDate: {
     fontSize: 11,
     color: colors.light.textMuted,
-    marginTop: 1,
+    marginTop: 2,
   },
   bioText: {
     fontSize: 13,
     color: colors.light.text,
-    lineHeight: 19,
+    lineHeight: 20,
   },
   specialtiesRow: {
     flexDirection: 'row',
@@ -337,12 +383,12 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   specBadge: {
-    backgroundColor: colors.light.surfaceElevated,
+    backgroundColor: 'rgba(15, 76, 69, 0.08)',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 4,
+    borderRadius: 6,
     borderWidth: 1,
-    borderColor: colors.light.border,
+    borderColor: 'rgba(15, 76, 69, 0.15)',
   },
   specText: {
     fontSize: 11,
@@ -353,16 +399,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: 10,
-    backgroundColor: colors.light.surfaceElevated,
-    borderRadius: 8,
+    paddingVertical: 12,
+    backgroundColor: colors.light.background,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.light.border,
   },
   metricItem: {
     alignItems: 'center',
     flex: 1,
   },
   metricVal: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '800',
     color: colors.light.primary,
   },
@@ -384,18 +432,36 @@ const styles = StyleSheet.create({
   flexBtn: {
     flex: 1,
   },
-  secondaryActions: {
+  consultationCard: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 4,
+    gap: 12,
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: colors.light.background,
+    borderWidth: 1,
+    borderColor: colors.light.border,
   },
-  callLink: {
-    paddingVertical: 4,
+  consultationIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(15, 76, 69, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  callLinkText: {
-    fontSize: 11,
-    fontWeight: '800',
+  consultationInfo: {
+    flex: 1,
+  },
+  consultationTitle: {
+    fontSize: 13,
+    fontWeight: '700',
     color: colors.light.primary,
-    letterSpacing: 0.5,
+  },
+  consultationSub: {
+    fontSize: 11,
+    color: colors.light.textMuted,
+    marginTop: 1,
   },
   safetyRow: {
     flexDirection: 'row',
@@ -403,42 +469,53 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   safetyBtn: {
-    padding: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 6,
   },
   reportText: {
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '600',
     color: colors.light.textMuted,
   },
   blockText: {
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '600',
     color: colors.light.error,
   },
   tabBar: {
     flexDirection: 'row',
     backgroundColor: colors.light.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.light.border,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    padding: 4,
+    gap: 6,
   },
   tabItem: {
     flex: 1,
-    paddingVertical: 12,
+    flexDirection: 'row',
     alignItems: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 8,
   },
   tabItemActive: {
-    borderBottomColor: colors.light.primary,
+    backgroundColor: colors.light.background,
+    borderWidth: 1,
+    borderColor: colors.light.border,
   },
   tabText: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.light.textSecondary,
+    color: colors.light.textMuted,
   },
   tabTextActive: {
     color: colors.light.primary,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   lessonsGrid: {
     gap: 10,
@@ -446,15 +523,21 @@ const styles = StyleSheet.create({
   lessonCard: {
     backgroundColor: colors.light.surface,
     padding: 14,
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.light.border,
-    gap: 4,
+    gap: 6,
   },
   lessonHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  typeBadge: {
+    backgroundColor: 'rgba(15, 76, 69, 0.08)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
   },
   lessonType: {
     fontSize: 10,
@@ -462,17 +545,17 @@ const styles = StyleSheet.create({
     color: colors.light.primary,
   },
   lessonDate: {
-    fontSize: 10,
-    color: colors.light.textSecondary,
+    fontSize: 11,
+    color: colors.light.textMuted,
   },
   lessonCaption: {
     fontSize: 13,
     color: colors.light.text,
     lineHeight: 18,
+    fontWeight: '600',
   },
   lessonStats: {
     fontSize: 11,
     color: colors.light.textMuted,
-    marginTop: 2,
   },
 });

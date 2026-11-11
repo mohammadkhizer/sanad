@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { useRouter } from 'expo-router';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
+import { Icon } from '../../src/components/Icon';
 import { colors } from '../../src/theme/colors';
 import { api } from '../../src/api';
 import { useAuthStore } from '../../src/store/authStore';
@@ -60,17 +61,26 @@ export default function LoginScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Sanad</Text>
-        <Text style={styles.subtitle}>Knowledge, with a chain of trust</Text>
+      {/* Classical Masthead */}
+      <View style={styles.masthead}>
+        <View style={styles.emblemBox}>
+          <Icon name="verified" size={44} color={colors.light.accent} />
+        </View>
+        <Text style={styles.title}>SANAD</Text>
+        <Text style={styles.arabicSubtitle}>سند · المعرفة الموثوقة</Text>
+        <Text style={styles.subtitle}>Knowledge, with an unbroken chain of trust</Text>
       </View>
 
-      <View style={styles.form}>
-        {Boolean(error) && <Text style={styles.errorBanner}>{error}</Text>}
+      <View style={styles.card}>
+        {Boolean(error) && (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorBanner}>{error}</Text>
+          </View>
+        )}
 
         <Input
-          label="Email or Phone"
-          placeholder="scholar@example.com"
+          label="Email or Phone Number"
+          placeholder="scholar@institution.edu"
           value={identifier}
           onChangeText={setIdentifier}
           autoCapitalize="none"
@@ -86,8 +96,8 @@ export default function LoginScreen() {
 
         {requires2FA && (
           <Input
-            label="2FA Code"
-            placeholder="6-digit code"
+            label="Two-Factor Security Code"
+            placeholder="6-digit authenticator code"
             value={twoFactorCode}
             onChangeText={setTwoFactorCode}
             keyboardType="number-pad"
@@ -95,8 +105,15 @@ export default function LoginScreen() {
           />
         )}
 
+        <View style={styles.forgotRow}>
+          <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')}>
+            <Text style={styles.forgotLink}>Forgot password?</Text>
+          </TouchableOpacity>
+        </View>
+
         <Button
-          title={requires2FA ? 'Verify and Log In' : 'Log In'}
+          title={requires2FA ? 'Verify Two-Factor and Log In' : 'Sign In to Sanad'}
+          variant="primary"
           onPress={handleLogin}
           loading={loading}
           style={styles.submitBtn}
@@ -105,7 +122,7 @@ export default function LoginScreen() {
         <View style={styles.footer}>
           <Text style={styles.footerText}>Do not have an account? </Text>
           <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-            <Text style={styles.footerLink}>Register</Text>
+            <Text style={styles.footerLink}>Register Here</Text>
           </TouchableOpacity>
         </View>
 
@@ -121,64 +138,97 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     backgroundColor: colors.light.background,
-    padding: 24,
+    padding: 20,
     justifyContent: 'center',
   },
-  header: {
-    marginBottom: 32,
+  masthead: {
     alignItems: 'center',
+    marginBottom: 24,
+  },
+  emblemBox: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: colors.light.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.light.accent,
+    marginBottom: 12,
   },
   title: {
-    fontSize: 34,
+    fontSize: 28,
     fontWeight: '800',
     color: colors.light.primary,
-    letterSpacing: 1,
+    letterSpacing: 3,
+  },
+  arabicSubtitle: {
+    fontSize: 14,
+    color: colors.light.accentDark,
+    fontWeight: '600',
+    marginTop: 2,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 13,
     color: colors.light.textSecondary,
-    marginTop: 6,
+    marginTop: 4,
+    textAlign: 'center',
   },
-  form: {
+  card: {
     backgroundColor: colors.light.surface,
-    padding: 24,
+    padding: 20,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.light.border,
+    gap: 12,
+  },
+  errorBox: {
+    backgroundColor: '#FDF2F2',
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
   },
   errorBanner: {
-    backgroundColor: '#FEE2E2',
     color: colors.light.error,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    fontSize: 13,
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  forgotRow: {
+    alignItems: 'flex-end',
+    marginTop: -4,
+  },
+  forgotLink: {
+    fontSize: 12,
+    color: colors.light.primary,
+    fontWeight: '600',
   },
   submitBtn: {
-    marginTop: 8,
+    marginTop: 4,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 20,
+    alignItems: 'center',
+    marginTop: 8,
   },
   footerText: {
+    fontSize: 13,
     color: colors.light.textSecondary,
-    fontSize: 14,
   },
   footerLink: {
-    color: colors.light.primary,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
+    color: colors.light.primary,
   },
   guestLink: {
-    marginTop: 16,
     alignItems: 'center',
+    paddingVertical: 8,
   },
   guestText: {
+    fontSize: 12,
+    fontWeight: '600',
     color: colors.light.textMuted,
-    fontSize: 13,
-    textDecorationLine: 'underline',
   },
 });
-

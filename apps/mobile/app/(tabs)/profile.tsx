@@ -13,6 +13,8 @@ import { Avatar } from '../../src/components/Avatar';
 import { VerifiedBadge } from '../../src/components/VerifiedBadge';
 import { Card } from '../../src/components/Card';
 import { Button } from '../../src/components/Button';
+import { AppHeader } from '../../src/components/AppHeader';
+import { Icon } from '../../src/components/Icon';
 import { useRouter } from 'expo-router';
 import { api } from '../../src/api';
 import { useQuery } from '@tanstack/react-query';
@@ -49,200 +51,227 @@ export default function ProfileScreen() {
 
   if (!isAuthenticated || !user) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.guestTitle}>Guest Mode</Text>
-        <Text style={styles.guestSub}>
-          Log in or create an account to follow scholars, participate in Q&A, and verify credentials.
-        </Text>
-        <Button
-          title="Sign In / Register"
-          onPress={() => router.push('/(auth)/login')}
-          style={styles.guestBtn}
-        />
+      <View style={styles.container}>
+        <AppHeader title="Profile" subtitle="Guest Mode" />
+        <View style={styles.center}>
+          <Icon name="profile" size={48} color={colors.light.primary} />
+          <Text style={styles.guestTitle}>Guest Mode</Text>
+          <Text style={styles.guestSub}>
+            Sign in to follow scholars, participate in advisory consultations, and submit verification credentials.
+          </Text>
+          <Button
+            title="Sign In / Register"
+            onPress={() => router.push('/(auth)/login')}
+            style={styles.guestBtn}
+          />
+        </View>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Top Header with Settings Shortcut */}
-      <View style={styles.topBar}>
-        <Text style={styles.topBarRole}>[{user.roles.join(', ').toUpperCase()}]</Text>
-        <TouchableOpacity
-          style={styles.settingsBtn}
-          onPress={() => router.push('/settings')}
-        >
-          <Text style={styles.settingsBtnText}>[SETTINGS]</Text>
-        </TouchableOpacity>
-      </View>
+    <View style={styles.container}>
+      <AppHeader
+        title="My Profile"
+        subtitle={isScholar ? 'Accredited Scholar' : 'Registered Member'}
+        rightIcon="settings"
+        onRightPress={() => router.push('/settings')}
+      />
 
-      {/* Profile Header */}
-      <Card style={styles.profileCard}>
-        <View style={styles.avatarRow}>
-          <Avatar name={user.displayName} size={64} />
-          <View style={styles.userDetails}>
-            <View style={styles.nameRow}>
-              <Text style={styles.userName}>{user.displayName}</Text>
-              {isScholar && <VerifiedBadge />}
+      <ScrollView contentContainerStyle={styles.content}>
+        {/* Profile Card */}
+        <Card style={styles.profileCard}>
+          <View style={styles.avatarRow}>
+            <Avatar name={user.displayName} size={64} />
+            <View style={styles.userDetails}>
+              <View style={styles.nameRow}>
+                <Text style={styles.userName}>{user.displayName}</Text>
+                {isScholar && <VerifiedBadge />}
+              </View>
+              <Text style={styles.userRole}>
+                {isScholar ? 'Accredited Religious Scholar' : 'Registered Member'}
+              </Text>
+              <Text style={styles.userEmail}>{user.email || 'scholar@sanad.app'}</Text>
             </View>
-            <Text style={styles.userRole}>
-              {isScholar ? 'Accredited Religious Scholar' : 'Registered Learner'}
-            </Text>
-            {Boolean(user.email) && <Text style={styles.userEmail}>{user.email}</Text>}
           </View>
-        </View>
 
-        {/* Network Metrics */}
-        <View style={styles.networkRow}>
-          <TouchableOpacity
-            style={styles.metricItem}
-            onPress={() => router.push(`/profile/${user.id}/network`)}
-          >
-            <Text style={styles.metricVal}>142</Text>
-            <Text style={styles.metricLabel}>Followers</Text>
-          </TouchableOpacity>
-
-          <View style={styles.metricDivider} />
-
-          <TouchableOpacity
-            style={styles.metricItem}
-            onPress={() => router.push(`/profile/${user.id}/network`)}
-          >
-            <Text style={styles.metricVal}>38</Text>
-            <Text style={styles.metricLabel}>Following</Text>
-          </TouchableOpacity>
-
-          <View style={styles.metricDivider} />
-
-          <View style={styles.metricItem}>
-            <Text style={styles.metricVal}>12</Text>
-            <Text style={styles.metricLabel}>Lessons</Text>
+          {/* Metrics Row */}
+          <View style={styles.statsRow}>
+            <TouchableOpacity
+              style={styles.statCol}
+              onPress={() => router.push(`/profile/${user.id}/network`)}
+            >
+              <Text style={styles.statNumber}>1.4k</Text>
+              <Text style={styles.statLabel}>Followers</Text>
+            </TouchableOpacity>
+            <View style={styles.statDivider} />
+            <TouchableOpacity
+              style={styles.statCol}
+              onPress={() => router.push(`/profile/${user.id}/network`)}
+            >
+              <Text style={styles.statNumber}>18</Text>
+              <Text style={styles.statLabel}>Following</Text>
+            </TouchableOpacity>
+            <View style={styles.statDivider} />
+            <View style={styles.statCol}>
+              <Text style={styles.statNumber}>24</Text>
+              <Text style={styles.statLabel}>Lessons</Text>
+            </View>
           </View>
-        </View>
+        </Card>
 
-        {/* Quick Actions */}
-        <View style={styles.profileActions}>
-          <Button
-            title="Edit Profile"
-            variant="outline"
-            onPress={() => router.push('/settings/account')}
-            style={styles.actionBtnFlex}
-          />
-          {isScholar ? (
-            <Button
-              title="Scholar Dashboard"
+        {/* Scholar Control Panel CTA */}
+        {isScholar && (
+          <Card style={styles.scholarHubCard}>
+            <View style={styles.hubHeaderRow}>
+              <View style={styles.hubIconCircle}>
+                <Icon name="verified" size={20} color={colors.light.accentText} />
+              </View>
+              <View style={styles.hubTextCol}>
+                <Text style={styles.hubTitle}>Scholar Studio & Broadcast</Text>
+                <Text style={styles.hubSubtitle}>
+                  Schedule study circles, start broadcasts, and review consultation inquiries
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.hubButton}
               onPress={() => router.push('/scholar/dashboard')}
-              style={styles.actionBtnFlex}
+            >
+              <Text style={styles.hubButtonText}>Open Scholar Panel</Text>
+              <Icon name="chevron-right" size={16} color="#FFFFFF" />
+            </TouchableOpacity>
+          </Card>
+        )}
+
+        {/* Non-scholar member: Application CTA */}
+        {!isScholar && (
+          <Card style={styles.applyCard}>
+            <View style={styles.applyRow}>
+              <View style={styles.applyInfo}>
+                <Text style={styles.applyTitle}>Apply for Scholar Accreditation</Text>
+                <Text style={styles.applySubtitle}>
+                  Submit degrees, ijazahs, and institutional credentials to publish lessons and host study circles.
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.applyButton}
+                onPress={() => router.push('/scholar/apply')}
+              >
+                <Text style={styles.applyButtonText}>Apply</Text>
+              </TouchableOpacity>
+            </View>
+          </Card>
+        )}
+
+        {/* Staff Administration Links for Moderator / Admin */}
+        {isModOrAdmin && (
+          <Card style={styles.adminCard}>
+            <Text style={styles.adminSectionTitle}>Platform Governance</Text>
+            <TouchableOpacity
+              style={styles.adminLink}
+              onPress={() => router.push('/admin/review-queue')}
+            >
+              <View style={styles.adminLinkLeft}>
+                <Icon name="shield" size={18} color={colors.light.primary} />
+                <Text style={styles.adminLinkText}>Applicant Verification Queue</Text>
+              </View>
+              <Icon name="chevron-right" size={16} color={colors.light.textMuted} />
+            </TouchableOpacity>
+
+            <View style={styles.adminDivider} />
+
+            <TouchableOpacity
+              style={styles.adminLink}
+              onPress={() => router.push('/admin/reports')}
+            >
+              <View style={styles.adminLinkLeft}>
+                <Icon name="filter" size={18} color={colors.light.primary} />
+                <Text style={styles.adminLinkText}>Trust & Safety Queue (P0/P1/P2)</Text>
+              </View>
+              <Icon name="chevron-right" size={16} color={colors.light.textMuted} />
+            </TouchableOpacity>
+
+            <View style={styles.adminDivider} />
+
+            <TouchableOpacity
+              style={styles.adminLink}
+              onPress={() => router.push('/admin/audit-logs')}
+            >
+              <View style={styles.adminLinkLeft}>
+                <Icon name="lock" size={18} color={colors.light.primary} />
+                <Text style={styles.adminLinkText}>Immutable Audit Trail</Text>
+              </View>
+              <Icon name="chevron-right" size={16} color={colors.light.textMuted} />
+            </TouchableOpacity>
+          </Card>
+        )}
+
+        {/* Published Media Tabs */}
+        <View style={styles.mediaTabsRow}>
+          <TouchableOpacity
+            style={[styles.mediaTab, activeTab === 'reels' && styles.mediaTabActive]}
+            onPress={() => setActiveTab('reels')}
+          >
+            <Icon
+              name="reels"
+              size={18}
+              color={activeTab === 'reels' ? colors.light.primary : colors.light.textMuted}
             />
-          ) : (
-            <Button
-              title="Application Status"
-              variant="outline"
-              onPress={() => router.push('/scholar/status')}
-              style={styles.actionBtnFlex}
+            <Text style={[styles.mediaTabText, activeTab === 'reels' && styles.mediaTabTextActive]}>
+              Reels
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.mediaTab, activeTab === 'videos' && styles.mediaTabActive]}
+            onPress={() => setActiveTab('videos')}
+          >
+            <Icon
+              name="play"
+              size={18}
+              color={activeTab === 'videos' ? colors.light.primary : colors.light.textMuted}
             />
-          )}
+            <Text style={[styles.mediaTabText, activeTab === 'videos' && styles.mediaTabTextActive]}>
+              Masterclasses
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.mediaTab, activeTab === 'saved' && styles.mediaTabActive]}
+            onPress={() => setActiveTab('saved')}
+          >
+            <Icon
+              name="bookmark"
+              size={18}
+              color={activeTab === 'saved' ? colors.light.primary : colors.light.textMuted}
+            />
+            <Text style={[styles.mediaTabText, activeTab === 'saved' && styles.mediaTabTextActive]}>
+              Saved
+            </Text>
+          </TouchableOpacity>
         </View>
-      </Card>
 
-      {/* Scholar Application Prompt for Members */}
-      {!isScholar && (
-        <Card style={styles.scholarCard}>
-          <Text style={styles.scholarCardTitle}>Are you an accredited religious scholar?</Text>
-          <Text style={styles.scholarCardDesc}>
-            Sanad restricts publishing to verified ulama and academics. Submit your institutional degree or classical ijazah for committee review.
-          </Text>
-          <View style={styles.scholarBtnRow}>
-            <Button
-              title="Apply for Verification"
-              variant="accent"
-              onPress={() => router.push('/scholar/apply')}
-              style={styles.actionBtnFlex}
-            />
-            <Button
-              title="Check Status"
-              variant="outline"
-              onPress={() => router.push('/scholar/status')}
-              style={styles.actionBtnFlex}
-            />
-          </View>
-        </Card>
-      )}
-
-      {/* Staff Management Panel */}
-      {isModOrAdmin && (
-        <Card style={styles.adminCard}>
-          <Text style={styles.adminTitle}>Administrative Governance</Text>
-          <TouchableOpacity
-            style={styles.adminLink}
-            onPress={() => router.push('/admin/review-queue')}
-          >
-            <Text style={styles.adminLinkText}>Scholar Verification Dossiers</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.adminLink}
-            onPress={() => router.push('/admin/reports')}
-          >
-            <Text style={styles.adminLinkText}>Trust & Safety Queue (P0/P1/P2)</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.adminLink}
-            onPress={() => router.push('/admin/audit-logs')}
-          >
-            <Text style={styles.adminLinkText}>Audit Trail & Event Log</Text>
-          </TouchableOpacity>
-        </Card>
-      )}
-
-      {/* Content Tabs */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity
-          style={[styles.tabItem, activeTab === 'reels' && styles.tabItemActive]}
-          onPress={() => setActiveTab('reels')}
-        >
-          <Text style={[styles.tabText, activeTab === 'reels' && styles.tabTextActive]}>
-            Reels (8)
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.tabItem, activeTab === 'videos' && styles.tabItemActive]}
-          onPress={() => setActiveTab('videos')}
-        >
-          <Text style={[styles.tabText, activeTab === 'videos' && styles.tabTextActive]}>
-            Masterclasses (4)
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.tabItem, activeTab === 'saved' && styles.tabItemActive]}
-          onPress={() => setActiveTab('saved')}
-        >
-          <Text style={[styles.tabText, activeTab === 'saved' && styles.tabTextActive]}>
-            Saved (15)
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Content Preview Grid */}
-      <View style={styles.contentGrid}>
-        {(postsData?.items || []).slice(0, 3).map((post) => (
-          <TouchableOpacity
-            key={post._id}
-            style={styles.gridItem}
-            onPress={() => router.push(`/post/${post._id}`)}
-          >
-            <Text style={styles.gridBadge}>[{post.type.toUpperCase()}]</Text>
-            <Text style={styles.gridCaption} numberOfLines={2}>
-              {post.caption}
-            </Text>
-            <Text style={styles.gridCounts}>
-              {post.counts.likes} likes · {post.counts.comments} comments
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </ScrollView>
+        {/* Lessons Grid Preview */}
+        <View style={styles.gridContainer}>
+          {(postsData?.items || []).slice(0, 6).map((post) => (
+            <TouchableOpacity
+              key={post._id}
+              style={styles.gridItem}
+              onPress={() => router.push(`/post/${post._id}`)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.gridPlaceholder}>
+                <Icon name="play" size={20} color={colors.light.accent} />
+              </View>
+              <Text style={styles.gridCaption} numberOfLines={2}>
+                {post.caption}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -253,62 +282,17 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
-    paddingBottom: 40,
-    gap: 14,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-    backgroundColor: colors.light.background,
-  },
-  guestTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: colors.light.primary,
-    marginBottom: 8,
-  },
-  guestSub: {
-    fontSize: 13,
-    color: colors.light.textSecondary,
-    textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: 18,
-  },
-  guestBtn: {
-    width: '100%',
-  },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  topBarRole: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: colors.light.primary,
-    letterSpacing: 0.5,
-  },
-  settingsBtn: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    backgroundColor: colors.light.surfaceElevated,
-  },
-  settingsBtnText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: colors.light.primary,
+    paddingBottom: 90,
   },
   profileCard: {
     padding: 16,
-    gap: 14,
+    marginBottom: 16,
   },
   avatarRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 16,
+    marginBottom: 16,
   },
   userDetails: {
     flex: 1,
@@ -316,148 +300,241 @@ const styles = StyleSheet.create({
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
+    marginBottom: 4,
   },
   userName: {
-    fontSize: 17,
-    fontWeight: '800',
+    fontSize: 18,
+    fontWeight: '700',
     color: colors.light.text,
   },
   userRole: {
-    fontSize: 12,
+    fontSize: 13,
     color: colors.light.primary,
     fontWeight: '600',
-    marginTop: 2,
+    marginBottom: 2,
   },
   userEmail: {
-    fontSize: 11,
-    color: colors.light.textSecondary,
-    marginTop: 2,
+    fontSize: 12,
+    color: colors.light.textMuted,
   },
-  networkRow: {
+  statsRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingVertical: 10,
-    backgroundColor: colors.light.surfaceElevated,
-    borderRadius: 8,
+    borderTopWidth: 1,
+    borderTopColor: colors.light.border,
+    paddingTop: 12,
   },
-  metricItem: {
+  statCol: {
     alignItems: 'center',
-    flex: 1,
   },
-  metricVal: {
+  statNumber: {
     fontSize: 16,
-    fontWeight: '800',
-    color: colors.light.primary,
+    fontWeight: '700',
+    color: colors.light.text,
   },
-  metricLabel: {
+  statLabel: {
     fontSize: 11,
-    color: colors.light.textSecondary,
+    color: colors.light.textMuted,
     marginTop: 2,
   },
-  metricDivider: {
+  statDivider: {
     width: 1,
     height: 24,
     backgroundColor: colors.light.border,
   },
-  profileActions: {
-    flexDirection: 'row',
-    gap: 10,
+  scholarHubCard: {
+    backgroundColor: colors.light.primary,
+    padding: 16,
+    marginBottom: 16,
   },
-  actionBtnFlex: {
+  hubHeaderRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 14,
+  },
+  hubIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.light.accent,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  hubTextCol: {
     flex: 1,
   },
-  scholarCard: {
-    backgroundColor: colors.light.surfaceElevated,
-    borderColor: colors.light.accent,
-    padding: 16,
-    gap: 8,
-  },
-  scholarCardTitle: {
+  hubTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: colors.light.text,
+    color: '#FFFFFF',
+    marginBottom: 3,
   },
-  scholarCardDesc: {
+  hubSubtitle: {
     fontSize: 12,
-    color: colors.light.textSecondary,
-    lineHeight: 18,
+    color: '#CDE0DA',
+    lineHeight: 16,
   },
-  scholarBtnRow: {
+  hubButton: {
     flexDirection: 'row',
-    gap: 10,
-    marginTop: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
   },
-  adminCard: {
+  hubButtonText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  applyCard: {
     padding: 16,
-    gap: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.light.accent,
   },
-  adminTitle: {
+  applyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  applyInfo: {
+    flex: 1,
+  },
+  applyTitle: {
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.light.primary,
     marginBottom: 4,
   },
+  applySubtitle: {
+    fontSize: 12,
+    color: colors.light.textMuted,
+    lineHeight: 16,
+  },
+  applyButton: {
+    backgroundColor: colors.light.accent,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  applyButtonText: {
+    color: colors.light.accentText,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  adminCard: {
+    padding: 16,
+    marginBottom: 16,
+  },
+  adminSectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.light.primary,
+    marginBottom: 12,
+    letterSpacing: 0.3,
+  },
   adminLink: {
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.light.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+  },
+  adminLinkLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   adminLinkText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
-    color: colors.light.primary,
+    color: colors.light.text,
   },
-  tabBar: {
+  adminDivider: {
+    height: 1,
+    backgroundColor: colors.light.border,
+  },
+  mediaTabsRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
     borderBottomColor: colors.light.border,
-    backgroundColor: colors.light.surface,
+    marginBottom: 16,
+    marginTop: 8,
   },
-  tabItem: {
+  mediaTab: {
     flex: 1,
-    paddingVertical: 12,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
-  tabItemActive: {
+  mediaTabActive: {
     borderBottomColor: colors.light.primary,
   },
-  tabText: {
-    fontSize: 12,
+  mediaTabText: {
+    fontSize: 13,
     fontWeight: '600',
-    color: colors.light.textSecondary,
+    color: colors.light.textMuted,
   },
-  tabTextActive: {
+  mediaTabTextActive: {
     color: colors.light.primary,
-    fontWeight: '800',
+    fontWeight: '700',
   },
-  contentGrid: {
-    gap: 10,
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
   },
   gridItem: {
+    width: '48%',
     backgroundColor: colors.light.surface,
-    padding: 12,
-    borderRadius: 8,
+    borderRadius: 10,
+    overflow: 'hidden',
     borderWidth: 1,
     borderColor: colors.light.border,
-    gap: 4,
+    padding: 10,
   },
-  gridBadge: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: colors.light.primary,
+  gridPlaceholder: {
+    height: 90,
+    backgroundColor: '#0D1A17',
+    borderRadius: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   gridCaption: {
-    fontSize: 13,
+    fontSize: 12,
     color: colors.light.text,
-    lineHeight: 18,
+    lineHeight: 16,
   },
-  gridCounts: {
-    fontSize: 11,
-    color: colors.light.textSecondary,
-    marginTop: 2,
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+    gap: 12,
+  },
+  guestTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.light.text,
+  },
+  guestSub: {
+    fontSize: 14,
+    color: colors.light.textMuted,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  guestBtn: {
+    marginTop: 12,
+    width: '100%',
   },
 });

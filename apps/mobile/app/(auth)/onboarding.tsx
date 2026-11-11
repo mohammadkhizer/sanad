@@ -3,32 +3,37 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { useRouter } from 'expo-router';
 import { colors } from '../../src/theme/colors';
 import { Button } from '../../src/components/Button';
+import { Icon, IconName } from '../../src/components/Icon';
 
 interface Slide {
+  badge: string;
+  icon: IconName;
   title: string;
   subtitle: string;
   detail: string;
-  badge: string;
 }
 
 const slides: Slide[] = [
   {
-    badge: '[CHAIN OF AUTHORITY]',
+    badge: 'Chains of Transmission',
+    icon: 'verified',
     title: 'Authentic Knowledge, Verified Lineage',
     subtitle: 'Sanad connects you directly with accredited traditional and academic scholars.',
     detail: 'Only verified scholars can publish lessons, host live sessions, and answer legal questions.',
   },
   {
-    badge: '[SCHOLARLY REELS & LIVE]',
+    badge: 'Scholarly Curriculum',
+    icon: 'reels',
     title: 'Focused, Non-Addictive Learning',
     subtitle: 'Benefit from bite-sized reels and deep masterclasses without algorithmic noise.',
-    detail: 'No engagement traps or unverified opinions. Every post has a verifiable author.',
+    detail: 'No engagement traps or unverified opinions. Every post has a verifiable academic author.',
   },
   {
-    badge: '[DIRECT CONSULTATION]',
-    title: 'Respectful 1:1 Inquiries',
-    subtitle: 'Seek counsel through formal chat requests and scheduled video consultations.',
-    detail: 'Clear boundaries, mutual respect, and prayer-time quiet hours built-in.',
+    badge: 'Direct Consultation',
+    icon: 'call',
+    title: 'Respectful One-on-One Inquiries',
+    subtitle: 'Seek counsel through formal inquiries and scheduled encrypted video consultations.',
+    detail: 'Clear academic boundaries, mutual respect, and prayer-time quiet hours built-in.',
   },
 ];
 
@@ -49,15 +54,21 @@ export default function OnboardingScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <View style={styles.emblemBox}>
+          <Icon name="verified" size={40} color={colors.light.accent} />
+        </View>
         <Text style={styles.brandTitle}>SANAD</Text>
-        <Text style={styles.brandArabic}>سند</Text>
-        <Text style={styles.tagline}>Knowledge with a chain of trust</Text>
+        <Text style={styles.brandArabic}>سند · المعرفة الموثوقة</Text>
+        <Text style={styles.tagline}>Knowledge with an unbroken chain of trust</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.card}>
-          <View style={styles.badgeContainer}>
-            <Text style={styles.badgeText}>{current.badge}</Text>
+          <View style={styles.badgeRow}>
+            <View style={styles.badgeContainer}>
+              <Icon name={current.icon} size={14} color={colors.light.primary} />
+              <Text style={styles.badgeText}>{current.badge}</Text>
+            </View>
           </View>
           <Text style={styles.title}>{current.title}</Text>
           <Text style={styles.subtitle}>{current.subtitle}</Text>
@@ -70,6 +81,7 @@ export default function OnboardingScreen() {
               key={idx}
               onPress={() => setActiveSlide(idx)}
               style={[styles.dot, activeSlide === idx && styles.dotActive]}
+              activeOpacity={0.7}
             />
           ))}
         </View>
@@ -77,14 +89,18 @@ export default function OnboardingScreen() {
 
       <View style={styles.footer}>
         <Button
-          title={activeSlide === slides.length - 1 ? 'Get Started' : 'Next'}
+          title={activeSlide === slides.length - 1 ? 'Begin Your Studies' : 'Continue'}
+          variant="primary"
           onPress={handleNext}
+          style={styles.nextBtn}
         />
-        <View style={styles.authLinks}>
-          <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
-            <Text style={styles.loginLink}>Already have an account? Sign In</Text>
-          </TouchableOpacity>
-        </View>
+
+        <TouchableOpacity
+          style={styles.skipBtn}
+          onPress={() => router.replace('/(tabs)/feed')}
+        >
+          <Text style={styles.skipText}>Explore as Guest</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -94,78 +110,95 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.light.background,
-    paddingTop: 60,
+    justifyContent: 'space-between',
+    paddingVertical: 36,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 24,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+  },
+  emblemBox: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.light.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.light.accent,
+    marginBottom: 8,
   },
   brandTitle: {
-    fontSize: 28,
-    fontWeight: '900',
+    fontSize: 26,
+    fontWeight: '800',
     color: colors.light.primary,
-    letterSpacing: 2,
+    letterSpacing: 3,
   },
   brandArabic: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.light.accent,
-    marginTop: -4,
+    fontSize: 14,
+    color: colors.light.accentDark,
+    fontWeight: '600',
+    marginTop: 2,
   },
   tagline: {
-    fontSize: 13,
+    fontSize: 12,
     color: colors.light.textSecondary,
     marginTop: 4,
   },
   content: {
-    flexGrow: 1,
-    justifyContent: 'center',
     paddingHorizontal: 24,
+    justifyContent: 'center',
+    flexGrow: 1,
+    gap: 20,
   },
   card: {
     backgroundColor: colors.light.surface,
     padding: 24,
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: colors.light.border,
+    gap: 12,
+  },
+  badgeRow: {
+    flexDirection: 'row',
   },
   badgeContainer: {
-    backgroundColor: colors.light.accent,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-    alignSelf: 'flex-start',
-    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(15, 76, 69, 0.08)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(15, 76, 69, 0.15)',
   },
   badgeText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: colors.light.accentText,
-    letterSpacing: 0.5,
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.light.primary,
   },
   title: {
     fontSize: 20,
     fontWeight: '800',
     color: colors.light.primary,
-    marginBottom: 12,
-    lineHeight: 28,
+    lineHeight: 26,
   },
   subtitle: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 14,
     color: colors.light.text,
-    marginBottom: 10,
-    lineHeight: 22,
+    lineHeight: 20,
+    fontWeight: '600',
   },
   detail: {
     fontSize: 13,
     color: colors.light.textSecondary,
-    lineHeight: 20,
+    lineHeight: 19,
   },
   dotsRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 24,
     gap: 8,
   },
   dot: {
@@ -176,20 +209,22 @@ const styles = StyleSheet.create({
   },
   dotActive: {
     width: 24,
-    backgroundColor: colors.light.primary,
+    backgroundColor: colors.light.accent,
   },
   footer: {
-    padding: 24,
-    gap: 12,
+    paddingHorizontal: 24,
+    gap: 10,
   },
-  authLinks: {
+  nextBtn: {
+    width: '100%',
+  },
+  skipBtn: {
     alignItems: 'center',
-    marginTop: 4,
+    paddingVertical: 8,
   },
-  loginLink: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.light.primary,
+  skipText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.light.textMuted,
   },
 });
-

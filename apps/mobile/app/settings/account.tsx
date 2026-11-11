@@ -5,6 +5,7 @@ import { colors } from '../../src/theme/colors';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
 import { Card } from '../../src/components/Card';
+import { AppHeader } from '../../src/components/AppHeader';
 import { api } from '../../src/api';
 
 export default function AccountSettingsScreen() {
@@ -34,59 +35,74 @@ export default function AccountSettingsScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Card style={styles.card}>
-        <Text style={styles.sectionTitle}>Personal Details</Text>
-        <Input
-          label="Display Name"
-          value={displayName}
-          onChangeText={setDisplayName}
-          placeholder="Your full name"
-        />
-        <Input
-          label="Email Address"
-          value={email}
-          onChangeText={setEmail}
-          placeholder="your.email@example.com"
-          keyboardType="email-address"
-        />
-        <Input
-          label="Phone Number"
-          value={phone}
-          onChangeText={setPhone}
-          placeholder="+1234567890"
-          keyboardType="phone-pad"
-        />
-        <Input
-          label="Scholarly Bio"
-          value={bio}
-          onChangeText={setBio}
-          placeholder="Brief biographical summary..."
-          multiline
-          numberOfLines={3}
-        />
-        <Button
-          title="Save Changes"
-          onPress={handleSave}
-          loading={loading}
-          style={styles.saveBtn}
-        />
-      </Card>
-    </ScrollView>
+    <View style={styles.screen}>
+      <AppHeader
+        title="Account Details"
+        subtitle="Personal Profile and Bio"
+        showBack
+      />
+
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <Card style={styles.card}>
+          <Text style={styles.sectionTitle}>Personal Identity</Text>
+          <Input
+            label="Display Name"
+            value={displayName}
+            onChangeText={setDisplayName}
+            placeholder="Your full name"
+          />
+          <Input
+            label="Email Address"
+            value={email}
+            onChangeText={setEmail}
+            placeholder="your.email@example.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <Input
+            label="Phone Number"
+            value={phone}
+            onChangeText={setPhone}
+            placeholder="+1234567890"
+            keyboardType="phone-pad"
+          />
+          <Input
+            label="Biographical Summary"
+            value={bio}
+            onChangeText={setBio}
+            placeholder="Brief scholarly or student summary..."
+            multiline
+            numberOfLines={3}
+          />
+          <Button
+            title="Save Account Changes"
+            variant="primary"
+            onPress={handleSave}
+            loading={loading}
+            style={styles.saveBtn}
+          />
+        </Card>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.light.background,
   },
+  container: {
+    flex: 1,
+  },
   content: {
     padding: 16,
+    paddingBottom: 40,
     gap: 16,
   },
   card: {
-    padding: 16,
+    padding: 18,
+    borderRadius: 14,
     gap: 12,
   },
   sectionTitle: {
@@ -96,7 +112,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   saveBtn: {
-    marginTop: 8,
+    marginTop: 6,
   },
 });
-

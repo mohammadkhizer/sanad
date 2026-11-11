@@ -13,6 +13,8 @@ import { useRouter } from 'expo-router';
 import { api } from '../../src/api';
 import { colors } from '../../src/theme/colors';
 import { Card } from '../../src/components/Card';
+import { AppHeader } from '../../src/components/AppHeader';
+import { Icon } from '../../src/components/Icon';
 import { EmptyState } from '../../src/components/EmptyState';
 import { ScholarApplicationEntity } from '@sanad/shared';
 
@@ -38,14 +40,46 @@ export default function ReviewQueueScreen() {
     },
   });
 
-  const handleQuickApprove = (id: string) => {
-    decisionMutation.mutate({ id, decision: 'approved', reviewNote: 'Approved in quick triage.' });
+  const handleQuickApprove = (id: string, name: string) => {
+    Alert.alert(
+      'Approve Scholar',
+      `Accredit ${name} as a verified scholar and issue official platform credentials?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Approve',
+          onPress: () => {
+            decisionMutation.mutate({ id, decision: 'approved', reviewNote: 'Approved in quick triage.' });
+          },
+        },
+      ]
+    );
   };
 
   const list = applications || [];
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return { label: 'Approved', bg: 'rgba(15, 76, 69, 0.1)', text: colors.light.primary };
+      case 'more_info':
+        return { label: 'Needs Info', bg: '#FFFBEB', text: colors.light.accentDark };
+      case 'rejected':
+        return { label: 'Declined', bg: '#FDF2F2', text: colors.light.error };
+      case 'pending':
+      default:
+        return { label: 'Pending Review', bg: 'rgba(201, 162, 39, 0.15)', text: colors.light.primary };
+    }
+  };
+
   return (
-    <View style={styles.container}>
+    <View style={styles.screen}>
+      <AppHeader
+        title="Scholar Admissions"
+        subtitle="Verification and Dossier Queue"
+        showBack
+      />
+
       {/* Filter Tabs */}
       <View style={styles.filterBar}>
         {(['pending', 'more_info', 'all'] as const).map((f) => {
@@ -55,9 +89,10 @@ export default function ReviewQueueScreen() {
               key={f}
               style={[styles.filterBtn, isSelected && styles.filterBtnActive]}
               onPress={() => setFilter(f)}
+              activeOpacity={0.7}
             >
               <Text style={[styles.filterText, isSelected && styles.filterTextActive]}>
-                {f === 'pending' ? 'Pending Review' : f === 'more_info' ? 'Needs Info' : 'All Applications'}
+                {f === 'pending' ? 'Pending Review' : f === 'more_info' ? 'Needs Info' : 'All Dossiers'}
               </Text>
             </TouchableOpacity>
           );
@@ -76,22 +111,24 @@ export default function ReviewQueueScreen() {
           renderItem={({ item }) => {
             const applicant = typeof item.userId === 'object' ? item.userId : null;
             const applicantName = applicant?.displayName || 'Applicant';
+            const badge = getStatusBadge(item.status);
 
             return (
               <Card style={styles.appCard}>
                 <TouchableOpacity
                   onPress={() => router.push(`/admin/applications/${item._id}`)}
+                  activeOpacity={0.7}
                 >
                   <View style={styles.headerRow}>
                     <Text style={styles.applicantName}>{applicantName}</Text>
-                    <View style={styles.statusBadge}>
-                      <Text style={styles.statusBadgeText}>[{item.status.toUpperCase()}]</Text>
+                    <View style={[styles.statusBadge, { backgroundColor: badge.bg }]}>
+                      <Text style={[styles.statusBadgeText, { color: badge.text }]}>
+                        {badge.label}
+                      </Text>
                     </View>
                   </View>
 
-                  <Text style={styles.institution}>
-                    Institution: {item.institution}
-                  </Text>
+                  <Text style={styles.institution}>{item.institution}</Text>
                   <Text style={styles.specialties}>
                     Specialties: {item.specialties?.join(', ')}
                   </Text>
@@ -100,8 +137,9 @@ export default function ReviewQueueScreen() {
                   </Text>
 
                   <View style={styles.credentialsSummary}>
+                    <Icon name="paperclip" size={14} color={colors.light.primary} />
                     <Text style={styles.credCountText}>
-                      Documents: {item.credentials.length} credential file(s) attached
+                      {item.credentials.length} credential document(s) attached
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -111,14 +149,18 @@ export default function ReviewQueueScreen() {
                     <TouchableOpacity
                       style={styles.reviewFullBtn}
                       onPress={() => router.push(`/admin/applications/${item._id}`)}
+                      activeOpacity={0.7}
                     >
-                      <Text style={styles.reviewFullText}>View Full Dossier</Text>
+                      <Text style={styles.reviewFullText}>View Dossier</Text>
+                      <Icon name="chevron-right" size={14} color={colors.light.primary} />
                     </TouchableOpacity>
 
                     <TouchableOpacity
                       style={styles.quickApproveBtn}
-                      onPress={() => handleQuickApprove(item._id)}
+                      onPress={() => handleQuickApprove(item._id, applicantName)}
+                      activeOpacity={0.7}
                     >
+                      <Icon name="check" size={14} color="#FFFFFF" />
                       <Text style={styles.quickApproveText}>Approve</Text>
                     </TouchableOpacity>
                   </View>
@@ -139,7 +181,7 @@ export default function ReviewQueueScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.light.background,
   },
@@ -153,13 +195,16 @@ const styles = StyleSheet.create({
   },
   filterBtn: {
     flex: 1,
-    paddingVertical: 8,
-    borderRadius: 6,
-    backgroundColor: colors.light.surfaceElevated,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: colors.light.background,
+    borderWidth: 1,
+    borderColor: colors.light.border,
     alignItems: 'center',
   },
   filterBtnActive: {
     backgroundColor: colors.light.primary,
+    borderColor: colors.light.primaryDark,
   },
   filterText: {
     fontSize: 11,
@@ -176,11 +221,12 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: 16,
-    gap: 12,
+    gap: 14,
   },
   appCard: {
     padding: 16,
-    gap: 8,
+    borderRadius: 14,
+    gap: 10,
   },
   headerRow: {
     flexDirection: 'row',
@@ -193,19 +239,17 @@ const styles = StyleSheet.create({
     color: colors.light.primary,
   },
   statusBadge: {
-    backgroundColor: colors.light.accent,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
   },
   statusBadgeText: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: '800',
-    color: colors.light.accentText,
   },
   institution: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.light.text,
   },
   specialties: {
@@ -216,13 +260,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.light.text,
     fontStyle: 'italic',
-    lineHeight: 17,
+    lineHeight: 18,
   },
   credentialsSummary: {
-    backgroundColor: colors.light.surfaceElevated,
-    padding: 8,
-    borderRadius: 6,
-    marginTop: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: colors.light.background,
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    marginTop: 2,
   },
   credCountText: {
     fontSize: 11,
@@ -234,30 +283,35 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     borderTopWidth: 1,
     borderTopColor: colors.light.border,
-    paddingTop: 10,
-    marginTop: 4,
+    paddingTop: 12,
     gap: 10,
   },
   reviewFullBtn: {
     flex: 1,
-    backgroundColor: colors.light.surfaceElevated,
-    paddingVertical: 8,
-    borderRadius: 6,
+    flexDirection: 'row',
+    backgroundColor: colors.light.background,
+    paddingVertical: 10,
+    borderRadius: 8,
     alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: colors.light.border,
+    gap: 6,
   },
   reviewFullText: {
     fontSize: 12,
     fontWeight: '700',
-    color: colors.light.text,
+    color: colors.light.primary,
   },
   quickApproveBtn: {
     flex: 1,
-    backgroundColor: colors.light.success,
-    paddingVertical: 8,
-    borderRadius: 6,
+    flexDirection: 'row',
+    backgroundColor: colors.light.primary,
+    paddingVertical: 10,
+    borderRadius: 8,
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
   },
   quickApproveText: {
     color: '#FFFFFF',

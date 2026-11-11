@@ -4,6 +4,8 @@ import { useRouter } from 'expo-router';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
 import { Card } from '../../src/components/Card';
+import { AppHeader } from '../../src/components/AppHeader';
+import { Icon } from '../../src/components/Icon';
 import { colors } from '../../src/theme/colors';
 import { api } from '../../src/api';
 import { useAuthStore } from '../../src/store/authStore';
@@ -26,16 +28,23 @@ export default function CreateScreen() {
 
   if (!isScholar) {
     return (
-      <View style={styles.restrictedContainer}>
-        <Text style={styles.restrictedTitle}>Accredited Scholar Publishing Only</Text>
-        <Text style={styles.restrictedDesc}>
-          Sanad strictly reserves publishing rights to verified religious scholars and accredited academics to protect authenticity and prevent unverified legal rulings.
-        </Text>
-        <Button
-          title="Apply for Scholar Verification"
-          onPress={() => router.push('/scholar/apply')}
-          variant="accent"
-        />
+      <View style={styles.screen}>
+        <AppHeader title="Scholarly Studio" subtitle="Accredited Publication Gate" />
+        <View style={styles.restrictedContainer}>
+          <View style={styles.restrictedIconBox}>
+            <Icon name="verified" size={48} color={colors.light.accent} />
+          </View>
+          <Text style={styles.restrictedTitle}>Accredited Scholars Only</Text>
+          <Text style={styles.restrictedDesc}>
+            Sanad strictly reserves publication privileges to verified religious scholars and accredited academics to protect authenticity and preserve unbroken chains of transmission.
+          </Text>
+          <Button
+            title="Apply for Scholar Verification"
+            onPress={() => router.push('/scholar/apply')}
+            variant="accent"
+            style={styles.applyBtn}
+          />
+        </View>
       </View>
     );
   }
@@ -60,12 +69,11 @@ export default function CreateScreen() {
     setUploadProgress(15);
 
     try {
-      // Simulate direct upload progress
-      await new Promise((r) => setTimeout(r, 400));
+      await new Promise((r) => setTimeout(r, 350));
       setUploadProgress(50);
-      await new Promise((r) => setTimeout(r, 400));
+      await new Promise((r) => setTimeout(r, 350));
       setUploadProgress(85);
-      await new Promise((r) => setTimeout(r, 300));
+      await new Promise((r) => setTimeout(r, 250));
       setUploadProgress(100);
 
       const parsedTags = tags
@@ -97,320 +105,473 @@ export default function CreateScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.pageTitle}>Publish Scholarly Lesson</Text>
+    <View style={styles.screen}>
+      <AppHeader
+        title="Scholarly Studio"
+        subtitle="Publish Verified Lesson"
+        rightIcon="shield"
+      />
 
-      {/* Content Type Selector */}
-      <View style={styles.selectorRow}>
-        {(['reel', 'video', 'text'] as const).map((t) => (
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        {/* Format Selector */}
+        <View style={styles.selectorContainer}>
           <TouchableOpacity
-            key={t}
-            style={[styles.typeOption, type === t && styles.typeOptionActive]}
-            onPress={() => setType(t)}
+            style={[styles.typeOption, type === 'reel' && styles.typeOptionActive]}
+            onPress={() => setType('reel')}
+            activeOpacity={0.7}
           >
-            <Text style={[styles.typeText, type === t && styles.typeTextActive]}>
-              {t === 'reel' ? 'Short Reel (90s)' : t === 'video' ? 'Masterclass (60m)' : 'Scholarly Text'}
+            <Icon
+              name="reels"
+              size={18}
+              color={type === 'reel' ? '#FFFFFF' : colors.light.primary}
+            />
+            <Text style={[styles.typeText, type === 'reel' && styles.typeTextActive]}>
+              Short Reel
+            </Text>
+            <Text style={[styles.typeSubText, type === 'reel' && styles.typeSubTextActive]}>
+              Max 90s
             </Text>
           </TouchableOpacity>
-        ))}
-      </View>
 
-      {/* Constraints Banner */}
-      <View style={styles.limitsBanner}>
-        <Text style={styles.limitsText}>
-          {type === 'reel'
-            ? 'Client Limit: Max 90 seconds / 100MB · Vertical 9:16 format'
-            : type === 'video'
-            ? 'Client Limit: Max 60 minutes / 2GB · 1080p HLS Transcoded'
-            : 'Text Statement: Max 2,200 characters with citation references'}
-        </Text>
-      </View>
+          <TouchableOpacity
+            style={[styles.typeOption, type === 'video' && styles.typeOptionActive]}
+            onPress={() => setType('video')}
+            activeOpacity={0.7}
+          >
+            <Icon
+              name="play"
+              size={18}
+              color={type === 'video' ? '#FFFFFF' : colors.light.primary}
+            />
+            <Text style={[styles.typeText, type === 'video' && styles.typeTextActive]}>
+              Masterclass
+            </Text>
+            <Text style={[styles.typeSubText, type === 'video' && styles.typeSubTextActive]}>
+              Up to 60m
+            </Text>
+          </TouchableOpacity>
 
-      {/* Media Picker & Trimmer UI for video/reel */}
-      {type !== 'text' && (
-        <Card style={styles.card}>
-          <Text style={styles.cardHeader}>Video Lesson Media</Text>
+          <TouchableOpacity
+            style={[styles.typeOption, type === 'text' && styles.typeOptionActive]}
+            onPress={() => setType('text')}
+            activeOpacity={0.7}
+          >
+            <Icon
+              name="bookmark"
+              size={18}
+              color={type === 'text' ? '#FFFFFF' : colors.light.primary}
+            />
+            <Text style={[styles.typeText, type === 'text' && styles.typeTextActive]}>
+              Text Ruling
+            </Text>
+            <Text style={[styles.typeSubText, type === 'text' && styles.typeSubTextActive]}>
+              2200 chars
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-          {selectedFile ? (
-            <View style={styles.previewBox}>
-              <View style={styles.previewHeader}>
-                <Text style={styles.fileNameText}>[SELECTED: {selectedFile}]</Text>
-                <TouchableOpacity onPress={() => setSelectedFile(null)}>
-                  <Text style={styles.removeText}>[REMOVE]</Text>
-                </TouchableOpacity>
-              </View>
+        {/* Media Selection / Capture */}
+        {type !== 'text' && (
+          <Card style={styles.card}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.cardHeader}>Video Lesson Media</Text>
+              <Text style={styles.specBadge}>
+                {type === 'reel' ? '9:16 Vertical · 100MB' : '1080p HLS · 2GB'}
+              </Text>
+            </View>
 
-              {/* Simulated Trimmer Bar */}
-              <View style={styles.trimmerContainer}>
-                <Text style={styles.trimmerLabel}>Trim Duration: {trimDuration}</Text>
-                <View style={styles.trimmerTrack}>
-                  <View style={styles.trimmerHandle} />
-                  <View style={styles.trimmerActiveRange} />
-                  <View style={styles.trimmerHandle} />
+            {selectedFile ? (
+              <View style={styles.selectedBox}>
+                <View style={styles.fileDetailsRow}>
+                  <View style={styles.fileIconBox}>
+                    <Icon name="check" size={20} color={colors.light.primary} />
+                  </View>
+                  <View style={styles.fileInfo}>
+                    <Text style={styles.fileName}>{selectedFile}</Text>
+                    <Text style={styles.fileMeta}>Encoded for streaming · Duration {trimDuration}</Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setSelectedFile(null)}
+                    style={styles.removeFileBtn}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Icon name="trash" size={18} color={colors.light.error} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Trimmer Controls */}
+                <View style={styles.trimmerContainer}>
+                  <View style={styles.trimmerLabelRow}>
+                    <Text style={styles.trimmerLabel}>Playback Range</Text>
+                    <Text style={styles.trimmerRange}>{trimDuration}</Text>
+                  </View>
+                  <View style={styles.trimmerTrack}>
+                    <View style={styles.trimmerHandle} />
+                    <View style={styles.trimmerActiveRange} />
+                    <View style={styles.trimmerHandle} />
+                  </View>
                 </View>
               </View>
-            </View>
-          ) : (
-            <View style={styles.pickerBtnsRow}>
-              <TouchableOpacity
-                style={styles.pickerBtn}
-                onPress={() => handlePickMedia('record')}
-              >
-                <Text style={styles.pickerBtnText}>[RECORD CAMERA]</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.pickerBtn}
-                onPress={() => handlePickMedia('gallery')}
-              >
-                <Text style={styles.pickerBtnText}>[SELECT FROM FILE]</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </Card>
-      )}
+            ) : (
+              <View style={styles.pickerGrid}>
+                <TouchableOpacity
+                  style={styles.mediaActionCard}
+                  onPress={() => handlePickMedia('record')}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.mediaActionIconBox}>
+                    <Icon name="camera" size={26} color={colors.light.primary} />
+                  </View>
+                  <Text style={styles.mediaActionTitle}>Record Lesson</Text>
+                  <Text style={styles.mediaActionSub}>Open camera studio</Text>
+                </TouchableOpacity>
 
-      {/* Metadata Form */}
-      <Card style={styles.card}>
-        <Input
-          label="Lesson Title / Caption *"
-          value={caption}
-          onChangeText={setCaption}
-          placeholder="State the core legal or theological principle examined..."
-          multiline
-          numberOfLines={3}
-        />
+                <TouchableOpacity
+                  style={styles.mediaActionCard}
+                  onPress={() => handlePickMedia('gallery')}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.mediaActionIconBox}>
+                    <Icon name="paperclip" size={26} color={colors.light.primary} />
+                  </View>
+                  <Text style={styles.mediaActionTitle}>Choose File</Text>
+                  <Text style={styles.mediaActionSub}>Upload from device</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </Card>
+        )}
 
-        <Input
-          label="Subject Tags (comma-separated)"
-          value={tags}
-          onChangeText={setTags}
-          placeholder="e.g. Usul, Hadith, Bukhari, Fiqh"
-        />
-
-        {/* Visibility */}
-        <Text style={styles.fieldLabel}>Publishing Visibility</Text>
-        <View style={styles.visibilityRow}>
-          <TouchableOpacity
-            style={[styles.visBtn, visibility === 'public' && styles.visBtnActive]}
-            onPress={() => setVisibility('public')}
-          >
-            <Text style={[styles.visText, visibility === 'public' && styles.visTextActive]}>
-              Public (All Members)
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.visBtn, visibility === 'followers' && styles.visBtnActive]}
-            onPress={() => setVisibility('followers')}
-          >
-            <Text style={[styles.visText, visibility === 'followers' && styles.visTextActive]}>
-              Followers Only
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </Card>
-
-      {/* Upload Progress & Error Feedback */}
-      {isUploading && (
+        {/* Metadata Details */}
         <Card style={styles.card}>
-          <Text style={styles.uploadingText}>Direct Uploading to Mux: {uploadProgress}%</Text>
-          <View style={styles.progressBarTrack}>
-            <View style={[styles.progressBarFill, { width: `${uploadProgress || 0}%` }]} />
+          <Text style={styles.cardHeader}>Lesson Classification</Text>
+
+          <Input
+            label="Title / Core Thesis *"
+            value={caption}
+            onChangeText={setCaption}
+            placeholder="State the theological or jurisprudential inquiry..."
+            multiline
+            numberOfLines={3}
+          />
+
+          <Input
+            label="Subject Disciplines (Comma-separated)"
+            value={tags}
+            onChangeText={setTags}
+            placeholder="e.g. Usul al-Fiqh, Hadith Sciences, Bukhari"
+          />
+
+          <Text style={styles.fieldLabel}>Distribution Visibility</Text>
+          <View style={styles.visibilityRow}>
+            <TouchableOpacity
+              style={[styles.visBtn, visibility === 'public' && styles.visBtnActive]}
+              onPress={() => setVisibility('public')}
+              activeOpacity={0.7}
+            >
+              <Icon
+                name="globe"
+                size={16}
+                color={visibility === 'public' ? colors.light.accent : colors.light.textMuted}
+              />
+              <Text style={[styles.visText, visibility === 'public' && styles.visTextActive]}>
+                Public (Global Sanad Feed)
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.visBtn, visibility === 'followers' && styles.visBtnActive]}
+              onPress={() => setVisibility('followers')}
+              activeOpacity={0.7}
+            >
+              <Icon
+                name="lock"
+                size={16}
+                color={visibility === 'followers' ? colors.light.accent : colors.light.textMuted}
+              />
+              <Text style={[styles.visText, visibility === 'followers' && styles.visTextActive]}>
+                Registered Students Only
+              </Text>
+            </TouchableOpacity>
           </View>
         </Card>
-      )}
 
-      {uploadError && (
-        <View style={styles.errorBox}>
-          <Text style={styles.errorText}>Upload Error: {uploadError}</Text>
-          <Button title="Retry Upload" onPress={handlePublish} style={styles.retryBtn} />
-        </View>
-      )}
+        {/* Upload Progress */}
+        {isUploading && (
+          <Card style={styles.card}>
+            <View style={styles.uploadingHeader}>
+              <Text style={styles.uploadingText}>Transcoding and Publishing</Text>
+              <Text style={styles.uploadPercent}>{uploadProgress}%</Text>
+            </View>
+            <View style={styles.progressBarTrack}>
+              <View style={[styles.progressBarFill, { width: `${uploadProgress || 0}%` }]} />
+            </View>
+          </Card>
+        )}
 
-      {/* Submit Button */}
-      <Button
-        title={isUploading ? 'Uploading Media...' : 'Publish to Verified Feed'}
-        onPress={handlePublish}
-        loading={isUploading}
-        disabled={isUploading}
-        style={styles.publishBtn}
-      />
-    </ScrollView>
+        {uploadError && (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>Upload Error: {uploadError}</Text>
+            <Button title="Retry Upload" onPress={handlePublish} style={styles.retryBtn} />
+          </View>
+        )}
+
+        <Button
+          title={isUploading ? 'Transcoding...' : 'Publish to Authenticated Feed'}
+          onPress={handlePublish}
+          loading={isUploading}
+          disabled={isUploading}
+          variant="primary"
+          style={styles.publishBtn}
+        />
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.light.background,
+  },
+  container: {
+    flex: 1,
   },
   content: {
     padding: 16,
     paddingBottom: 40,
-    gap: 14,
+    gap: 16,
   },
   restrictedContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
-    backgroundColor: colors.light.background,
+  },
+  restrictedIconBox: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.light.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.light.accent,
+    marginBottom: 20,
   },
   restrictedTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: colors.light.primary,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  restrictedDesc: {
-    fontSize: 13,
-    color: colors.light.textSecondary,
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 19,
-  },
-  pageTitle: {
     fontSize: 22,
     fontWeight: '800',
     color: colors.light.primary,
+    marginBottom: 10,
+    textAlign: 'center',
   },
-  selectorRow: {
+  restrictedDesc: {
+    fontSize: 14,
+    color: colors.light.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 28,
+    maxWidth: 320,
+  },
+  applyBtn: {
+    width: '100%',
+    maxWidth: 320,
+  },
+  selectorContainer: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 10,
   },
   typeOption: {
     flex: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    borderRadius: 12,
     backgroundColor: colors.light.surface,
     borderWidth: 1,
     borderColor: colors.light.border,
     alignItems: 'center',
+    gap: 4,
   },
   typeOptionActive: {
     backgroundColor: colors.light.primary,
     borderColor: colors.light.primaryDark,
   },
   typeText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     color: colors.light.text,
   },
   typeTextActive: {
     color: '#FFFFFF',
   },
-  limitsBanner: {
-    backgroundColor: colors.light.surfaceElevated,
-    padding: 10,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: colors.light.border,
+  typeSubText: {
+    fontSize: 10,
+    color: colors.light.textMuted,
   },
-  limitsText: {
-    fontSize: 11,
-    color: colors.light.textSecondary,
-    fontWeight: '600',
-    textAlign: 'center',
+  typeSubTextActive: {
+    color: 'rgba(255, 255, 255, 0.75)',
   },
   card: {
     padding: 16,
-    gap: 12,
+    borderRadius: 14,
   },
-  cardHeader: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: colors.light.primary,
-  },
-  pickerBtnsRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  pickerBtn: {
-    flex: 1,
-    backgroundColor: colors.light.surfaceElevated,
-    paddingVertical: 14,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.light.border,
-    alignItems: 'center',
-  },
-  pickerBtnText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: colors.light.primary,
-  },
-  previewBox: {
-    backgroundColor: colors.light.surfaceElevated,
-    padding: 12,
-    borderRadius: 8,
-    gap: 8,
-  },
-  previewHeader: {
+  sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 14,
   },
-  fileNameText: {
-    fontSize: 12,
-    fontFamily: 'monospace',
+  cardHeader: {
+    fontSize: 15,
     fontWeight: '700',
     color: colors.light.primary,
   },
-  removeText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: colors.light.error,
+  specBadge: {
+    fontSize: 11,
+    color: colors.light.textMuted,
+    fontWeight: '600',
+  },
+  pickerGrid: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  mediaActionCard: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: colors.light.background,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    alignItems: 'center',
+    gap: 6,
+  },
+  mediaActionIconBox: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: colors.light.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.light.border,
+  },
+  mediaActionTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.light.primary,
+  },
+  mediaActionSub: {
+    fontSize: 11,
+    color: colors.light.textMuted,
+  },
+  selectedBox: {
+    padding: 14,
+    borderRadius: 10,
+    backgroundColor: colors.light.background,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    gap: 14,
+  },
+  fileDetailsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  fileIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.light.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.light.primary,
+  },
+  fileInfo: {
+    flex: 1,
+  },
+  fileName: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.light.text,
+  },
+  fileMeta: {
+    fontSize: 11,
+    color: colors.light.textMuted,
+    marginTop: 2,
+  },
+  removeFileBtn: {
+    padding: 6,
   },
   trimmerContainer: {
-    marginTop: 6,
-    gap: 6,
+    gap: 8,
+  },
+  trimmerLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   trimmerLabel: {
     fontSize: 11,
+    fontWeight: '600',
     color: colors.light.textSecondary,
   },
+  trimmerRange: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.light.primary,
+  },
   trimmerTrack: {
-    height: 14,
-    backgroundColor: colors.light.border,
-    borderRadius: 4,
+    height: 28,
+    borderRadius: 6,
+    backgroundColor: colors.light.surface,
+    borderWidth: 1,
+    borderColor: colors.light.border,
     position: 'relative',
     justifyContent: 'center',
   },
   trimmerActiveRange: {
     position: 'absolute',
-    left: '10%',
-    right: '15%',
-    height: '100%',
-    backgroundColor: colors.light.accent,
+    left: 20,
+    right: 20,
+    top: 4,
+    bottom: 4,
+    backgroundColor: 'rgba(15, 76, 69, 0.15)',
     borderRadius: 4,
+    borderWidth: 1,
+    borderColor: colors.light.primary,
   },
   trimmerHandle: {
-    width: 6,
-    height: 18,
-    backgroundColor: colors.light.primary,
-    borderRadius: 3,
+    width: 10,
+    height: 20,
+    backgroundColor: colors.light.accent,
+    borderRadius: 2,
+    position: 'absolute',
+    left: 16,
   },
   fieldLabel: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
-    color: colors.light.text,
+    color: colors.light.primary,
+    marginBottom: 8,
+    marginTop: 4,
   },
   visibilityRow: {
-    flexDirection: 'row',
-    gap: 10,
+    gap: 8,
   },
   visBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 6,
-    backgroundColor: colors.light.surfaceElevated,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: colors.light.background,
     borderWidth: 1,
     borderColor: colors.light.border,
-    alignItems: 'center',
   },
   visBtnActive: {
+    backgroundColor: 'rgba(15, 76, 69, 0.08)',
     borderColor: colors.light.primary,
-    backgroundColor: '#EDF5F3',
   },
   visText: {
     fontSize: 12,
@@ -421,25 +582,37 @@ const styles = StyleSheet.create({
     color: colors.light.primary,
     fontWeight: '700',
   },
+  uploadingHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
   uploadingText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
+    color: colors.light.textSecondary,
+  },
+  uploadPercent: {
+    fontSize: 12,
+    fontWeight: '800',
     color: colors.light.primary,
   },
   progressBarTrack: {
     height: 8,
-    backgroundColor: colors.light.surfaceElevated,
     borderRadius: 4,
+    backgroundColor: colors.light.border,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: colors.light.primary,
+    backgroundColor: colors.light.accent,
   },
   errorBox: {
-    backgroundColor: '#FDE8E8',
     padding: 12,
     borderRadius: 8,
+    backgroundColor: '#FDF2F2',
+    borderWidth: 1,
+    borderColor: '#F87171',
     gap: 8,
   },
   errorText: {
@@ -448,9 +621,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   retryBtn: {
-    backgroundColor: colors.light.error,
+    alignSelf: 'flex-start',
   },
   publishBtn: {
-    marginTop: 8,
+    marginTop: 4,
   },
 });

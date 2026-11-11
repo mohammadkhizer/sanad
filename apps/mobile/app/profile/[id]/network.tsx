@@ -6,6 +6,7 @@ import { colors } from '../../../src/theme/colors';
 import { api } from '../../../src/api';
 import { Avatar } from '../../../src/components/Avatar';
 import { VerifiedBadge } from '../../../src/components/VerifiedBadge';
+import { AppHeader } from '../../../src/components/AppHeader';
 import { UserEntity } from '@sanad/shared';
 
 export default function ScholarlyNetworkScreen() {
@@ -36,8 +37,9 @@ export default function ScholarlyNetworkScreen() {
         <TouchableOpacity
           style={styles.userInfo}
           onPress={() => router.push(isScholar ? `/scholar/${item._id}` : `/profile/${item._id}`)}
+          activeOpacity={0.7}
         >
-          <Avatar name={item.displayName} url={item.avatarUrl} size={44} />
+          <Avatar name={item.displayName} url={item.avatarUrl} size={46} />
           <View style={styles.nameContainer}>
             <View style={styles.nameRow}>
               <Text style={styles.displayName}>{item.displayName}</Text>
@@ -52,6 +54,7 @@ export default function ScholarlyNetworkScreen() {
         <TouchableOpacity
           style={styles.followBtn}
           onPress={() => followMutation.mutate(item._id)}
+          activeOpacity={0.8}
         >
           <Text style={styles.followBtnText}>Follow</Text>
         </TouchableOpacity>
@@ -60,8 +63,14 @@ export default function ScholarlyNetworkScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.tabBar}>
+    <View style={styles.screen}>
+      <AppHeader
+        title="Scholarly Network"
+        subtitle="Students and Chains of Transmission"
+        showBack
+      />
+
+      <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[styles.tabItem, activeTab === 'followers' && styles.tabItemActive]}
           onPress={() => setActiveTab('followers')}
@@ -88,7 +97,8 @@ export default function ScholarlyNetworkScreen() {
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No users found in this directory.</Text>
+            <Text style={styles.emptyTitle}>No Members Found</Text>
+            <Text style={styles.emptyText}>This directory does not currently have registered connections.</Text>
           </View>
         }
       />
@@ -97,11 +107,11 @@ export default function ScholarlyNetworkScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.light.background,
   },
-  tabBar: {
+  tabContainer: {
     flexDirection: 'row',
     backgroundColor: colors.light.surface,
     borderBottomWidth: 1,
@@ -128,7 +138,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: 16,
-    gap: 12,
+    gap: 10,
   },
   userRow: {
     flexDirection: 'row',
@@ -167,8 +177,8 @@ const styles = StyleSheet.create({
   followBtn: {
     backgroundColor: colors.light.primary,
     paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 6,
+    paddingVertical: 7,
+    borderRadius: 8,
   },
   followBtnText: {
     color: '#FFFFFF',
@@ -176,12 +186,18 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   emptyContainer: {
-    padding: 32,
+    padding: 40,
     alignItems: 'center',
+    gap: 6,
+  },
+  emptyTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.light.primary,
   },
   emptyText: {
     color: colors.light.textSecondary,
     fontSize: 13,
+    textAlign: 'center',
   },
 });
-
