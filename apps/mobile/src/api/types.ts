@@ -123,3 +123,4 @@ export interface ApiClientModules {
   moderation: ModerationModule;
   notifications: NotificationsModule;
 }
+

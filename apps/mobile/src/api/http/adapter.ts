@@ -82,3 +82,4 @@ export const httpAdapter: ApiClientModules = {
     updatePreferences: (prefs) => apiClient('/notifications/preferences', { method: 'PUT', body: JSON.stringify(prefs) }),
   },
 };
+

@@ -192,7 +192,7 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [ ] Cold start under 3s on mid-range device
 - [ ] No memory leaks in video pager (profiled)
 - [x] Accessibility: screen reader labels, contrast AA, font scaling, RTL checks
-- [ ] Offline/poor network behaviour reviewed
+- [x] Offline/poor network behaviour reviewed
 - [ ] Sentry configured for app and API; alerts set
 - [ ] Uptime monitoring configured
 
@@ -203,7 +203,7 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [ ] Internal testing (TestFlight / Play Internal)
 - [ ] Closed beta with 20-50 scholars and feedback triaged
 - [ ] Store listings written; content rating completed
-- [ ] Reviewer test account and notes prepared (explain scholar-only posting)
+- [x] Reviewer test account and notes prepared (explain scholar-only posting)
 - [ ] Staged rollout plan (10% → 50% → 100%)
 - [ ] Support email and report-handling team ready
 - [ ] Incident response and rollback plan documented

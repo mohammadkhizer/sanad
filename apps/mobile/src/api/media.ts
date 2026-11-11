@@ -26,3 +26,4 @@ export class MockMediaSession implements MediaSession {
 }
 
 export const createMediaSession = (): MediaSession => new MockMediaSession();
+

@@ -294,3 +294,4 @@ const styles = StyleSheet.create({
     borderColor: colors.light.error,
   },
 });
+

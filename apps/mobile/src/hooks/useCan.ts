@@ -5,3 +5,4 @@ export function useCan(permission: Permission): boolean {
   const user = useAuthStore((state) => state.user);
   return can(user?.roles || ['guest'], permission);
 }
+

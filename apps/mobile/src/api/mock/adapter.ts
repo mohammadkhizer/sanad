@@ -772,3 +772,4 @@ export const mockAdapter: ApiClientModules = {
   moderation: moderationMock,
   notifications: notificationsMock,
 };
+
