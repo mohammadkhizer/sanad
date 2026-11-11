@@ -187,7 +187,9 @@ export default function FeedScreen() {
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
-            onRefresh={refetch}
+            onRefresh={() => {
+              refetch();
+            }}
             tintColor={colors.light.primary}
           />
         }

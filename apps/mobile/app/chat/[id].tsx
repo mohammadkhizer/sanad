@@ -131,7 +131,7 @@ export default function ChatScreen() {
               <View style={styles.typingBox}>
                 <Text style={styles.typingText}>Scholar is typing...</Text>
               </View>
-            ) : null
+            ) : undefined
           }
         />
       )}
