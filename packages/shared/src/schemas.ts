@@ -90,6 +90,8 @@ export const credentialItemSchema = z.object({
   year: z.number().int().min(1900).max(2100),
 });
 
+export type CredentialItem = z.infer<typeof credentialItemSchema>;
+
 export const submitScholarApplicationSchema = z.object({
   credentials: z.array(credentialItemSchema).min(1, 'At least one credential is required'),
   statement: z.string().min(20, 'Statement must be at least 20 characters').max(2000),
@@ -212,4 +214,237 @@ export interface ApiErrorDetail {
 export interface ApiErrorResponse {
   error: ApiErrorDetail;
 }
+
+// Entity schemas for validation and contract testing
+export const scholarProfileSchema = z.object({
+  verified: z.boolean(),
+  verifiedAt: z.string().optional(),
+  institution: z.string().optional(),
+  specialties: z.array(z.string()).default([]),
+  languages: z.array(z.string()).default([]),
+});
+
+export type ScholarProfile = z.infer<typeof scholarProfileSchema>;
+
+export const userEntitySchema = z.object({
+  _id: z.string(),
+  displayName: z.string(),
+  email: z.string().optional(),
+  phone: z.string().optional(),
+  avatarUrl: z.string().optional(),
+  bio: z.string().optional(),
+  roles: z.array(z.enum(['guest', 'member', 'scholar', 'moderator', 'admin'])),
+  scholarProfile: scholarProfileSchema.optional(),
+  twoFA: z.object({ enabled: z.boolean() }).optional(),
+  status: z.enum(['active', 'suspended', 'deleted']).default('active'),
+  createdAt: z.string().optional(),
+});
+
+export type UserEntity = z.infer<typeof userEntitySchema>;
+
+export const postCountsSchema = z.object({
+  likes: z.number().int().default(0),
+  comments: z.number().int().default(0),
+  views: z.number().int().default(0),
+  shares: z.number().int().default(0),
+});
+
+export const postEntitySchema = z.object({
+  _id: z.string(),
+  authorId: z.union([
+    z.string(),
+    z.object({
+      _id: z.string(),
+      displayName: z.string(),
+      avatarUrl: z.string().optional(),
+      scholarProfile: scholarProfileSchema.optional(),
+    }),
+  ]),
+  type: z.enum(['reel', 'video', 'text']),
+  muxAssetId: z.string().optional(),
+  playbackId: z.string().optional(),
+  videoUrl: z.string().optional(),
+  caption: z.string().default(''),
+  tags: z.array(z.string()).default([]),
+  language: z.string().default('en'),
+  visibility: z.enum(['public', 'followers']).default('public'),
+  status: z.enum(['processing', 'live', 'removed']).default('live'),
+  counts: postCountsSchema.default({ likes: 0, comments: 0, views: 0, shares: 0 }),
+  isLiked: z.boolean().optional(),
+  isSaved: z.boolean().optional(),
+  createdAt: z.string(),
+});
+
+export type PostEntity = z.infer<typeof postEntitySchema>;
+
+export const commentEntitySchema = z.object({
+  _id: z.string(),
+  postId: z.string(),
+  userId: z.union([
+    z.string(),
+    z.object({
+      _id: z.string(),
+      displayName: z.string(),
+      avatarUrl: z.string().optional(),
+      roles: z.array(z.string()).optional(),
+      scholarProfile: scholarProfileSchema.optional(),
+    }),
+  ]),
+  parentId: z.string().optional(),
+  text: z.string(),
+  status: z.enum(['active', 'hidden', 'pinned', 'removed']).default('active'),
+  createdAt: z.string(),
+});
+
+export type CommentEntity = z.infer<typeof commentEntitySchema>;
+
+export const scholarApplicationEntitySchema = z.object({
+  _id: z.string(),
+  userId: z.union([
+    z.string(),
+    z.object({
+      _id: z.string(),
+      displayName: z.string(),
+      email: z.string().optional(),
+      avatarUrl: z.string().optional(),
+    }),
+  ]),
+  credentials: z.array(credentialItemSchema),
+  statement: z.string(),
+  institution: z.string(),
+  specialties: z.array(z.string()),
+  languages: z.array(z.string()),
+  endorsements: z.array(z.object({ scholarId: z.string(), at: z.string() })).default([]),
+  status: z.enum(['pending', 'approved', 'rejected', 'more_info']).default('pending'),
+  reviewedBy: z.string().optional(),
+  reviewNote: z.string().optional(),
+  createdAt: z.string(),
+});
+
+export type ScholarApplicationEntity = z.infer<typeof scholarApplicationEntitySchema>;
+
+export const messageEntitySchema = z.object({
+  _id: z.string(),
+  conversationId: z.string(),
+  senderId: z.union([
+    z.string(),
+    z.object({
+      _id: z.string(),
+      displayName: z.string(),
+      avatarUrl: z.string().optional(),
+    }),
+  ]),
+  type: z.enum(['text', 'image']),
+  body: z.string(),
+  attachmentUrl: z.string().optional(),
+  readBy: z.array(z.string()).default([]),
+  createdAt: z.string(),
+});
+
+export type MessageEntity = z.infer<typeof messageEntitySchema>;
+
+export const conversationEntitySchema = z.object({
+  _id: z.string(),
+  participants: z.array(
+    z.object({
+      _id: z.string(),
+      displayName: z.string(),
+      avatarUrl: z.string().optional(),
+      roles: z.array(z.string()).optional(),
+      scholarProfile: scholarProfileSchema.optional(),
+    })
+  ),
+  lastMessage: messageEntitySchema.optional(),
+  lastMessageAt: z.string().optional(),
+  unreadCount: z.number().int().default(0),
+  isRequest: z.boolean().default(false),
+  requestStatus: z.enum(['pending', 'accepted', 'declined']).optional(),
+  createdAt: z.string().optional(),
+});
+
+export type ConversationEntity = z.infer<typeof conversationEntitySchema>;
+
+export const liveSessionEntitySchema = z.object({
+  _id: z.string(),
+  hostId: z.union([
+    z.string(),
+    z.object({
+      _id: z.string(),
+      displayName: z.string(),
+      avatarUrl: z.string().optional(),
+      scholarProfile: scholarProfileSchema.optional(),
+    }),
+  ]),
+  roomName: z.string(),
+  title: z.string(),
+  description: z.string().optional(),
+  status: z.enum(['scheduled', 'live', 'ended']).default('scheduled'),
+  viewerCount: z.number().int().default(0),
+  startedAt: z.string().optional(),
+  endedAt: z.string().optional(),
+  scheduledFor: z.string().optional(),
+  createdAt: z.string(),
+});
+
+export type LiveSessionEntity = z.infer<typeof liveSessionEntitySchema>;
+
+export const callSessionEntitySchema = z.object({
+  _id: z.string(),
+  callerId: z.string(),
+  calleeId: z.string(),
+  callerName: z.string().optional(),
+  callerAvatar: z.string().optional(),
+  roomName: z.string(),
+  status: z.enum(['ringing', 'connected', 'ended', 'declined']),
+  startedAt: z.string().optional(),
+  endedAt: z.string().optional(),
+  createdAt: z.string(),
+});
+
+export type CallSessionEntity = z.infer<typeof callSessionEntitySchema>;
+
+export const reportEntitySchema = z.object({
+  _id: z.string(),
+  reporterId: z.union([
+    z.string(),
+    z.object({
+      _id: z.string(),
+      displayName: z.string(),
+    }),
+  ]),
+  targetType: z.enum(['post', 'comment', 'user', 'message', 'live']),
+  targetId: z.string(),
+  targetSummary: z.string().optional(),
+  priority: z.enum(['P0', 'P1', 'P2']).default('P1'),
+  reason: z.string(),
+  status: z.enum(['pending', 'reviewed', 'actioned', 'dismissed']).default('pending'),
+  handledBy: z.string().optional(),
+  actionTaken: z.string().optional(),
+  createdAt: z.string(),
+});
+
+export type ReportEntity = z.infer<typeof reportEntitySchema>;
+
+export const auditLogEntitySchema = z.object({
+  _id: z.string(),
+  actorId: z.string(),
+  actorName: z.string().optional(),
+  action: z.string(),
+  targetType: z.string(),
+  targetId: z.string(),
+  meta: z.record(z.unknown()).optional(),
+  ip: z.string().optional(),
+  createdAt: z.string(),
+});
+
+export type AuditLogEntity = z.infer<typeof auditLogEntitySchema>;
+
+export function createPaginatedResponseSchema<T extends z.ZodTypeAny>(itemSchema: T) {
+  return z.object({
+    items: z.array(itemSchema),
+    nextCursor: z.string().optional(),
+    total: z.number().int().optional(),
+  });
+}
+
 

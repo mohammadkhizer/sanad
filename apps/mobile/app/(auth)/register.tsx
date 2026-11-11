@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
 import { colors } from '../../src/theme/colors';
-import { apiClient } from '../../src/api/client';
+import { api } from '../../src/api';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -31,22 +31,21 @@ export default function RegisterScreen() {
       setLoading(true);
       setError(null);
 
-      const res = await apiClient<{ message: string; identifier: string }>('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({
-          displayName: displayName.trim(),
-          email: email.trim() || undefined,
-          phone: phone.trim() || undefined,
-          password,
-        }),
+      const targetIdentifier = email.trim() || phone.trim();
+      await api.auth.register({
+        displayName: displayName.trim(),
+        email: email.trim() || undefined,
+        phone: phone.trim() || undefined,
+        password,
       });
 
       router.push({
         pathname: '/(auth)/otp',
-        params: { identifier: res.identifier },
+        params: { identifier: targetIdentifier },
       });
-    } catch (err: any) {
-      setError(err.message || 'Registration failed');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Registration failed';
+      setError(msg);
     } finally {
       setLoading(false);
     }

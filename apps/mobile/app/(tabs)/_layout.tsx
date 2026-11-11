@@ -29,15 +29,23 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="feed"
         options={{
-          title: 'Feed',
-          tabBarLabel: 'Feed',
+          title: 'Home',
+          tabBarLabel: 'Home',
+        }}
+      />
+      <Tabs.Screen
+        name="reels"
+        options={{
+          title: 'Reels',
+          tabBarLabel: 'Reels',
+          headerShown: false,
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Explore',
-          tabBarLabel: 'Explore',
+          title: 'Discover',
+          tabBarLabel: 'Discover',
         }}
       />
       <Tabs.Screen
@@ -65,4 +73,3 @@ export default function TabsLayout() {
     </Tabs>
   );
 }
-

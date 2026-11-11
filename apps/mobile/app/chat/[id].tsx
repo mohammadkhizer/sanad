@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,22 +9,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '../../src/api/client';
+import { api } from '../../src/api';
 import { colors } from '../../src/theme/colors';
 import { useAuthStore } from '../../src/store/authStore';
-
-interface MessageItem {
-  _id: string;
-  senderId: {
-    _id: string;
-    displayName: string;
-  };
-  body: string;
-  createdAt: string;
-}
+import { ReportModal } from '../../src/components/ReportModal';
+import { MessageEntity } from '@sanad/shared';
 
 export default function ChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -32,18 +25,21 @@ export default function ChatScreen() {
   const queryClient = useQueryClient();
 
   const [text, setText] = useState('');
+  const [reportModalVisible, setReportModalVisible] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
 
-  const { data, isLoading } = useQuery<{ messages: MessageItem[] }>({
+  const { data, isLoading } = useQuery<MessageEntity[]>({
     queryKey: ['messages', id],
-    queryFn: () => apiClient<{ messages: MessageItem[] }>(`/conversations/${id}/messages`),
-    refetchInterval: 4000,
+    queryFn: () => api.chat.getMessages(id || 'conv_301'),
+    refetchInterval: 5000,
   });
 
   const sendMutation = useMutation({
     mutationFn: (body: string) =>
-      apiClient(`/conversations/${id}/messages`, {
-        method: 'POST',
-        body: JSON.stringify({ body, type: 'text' }),
+      api.chat.sendMessage({
+        conversationId: id || 'conv_301',
+        body,
+        type: 'text',
       }),
     onSuccess: () => {
       setText('');
@@ -56,14 +52,29 @@ export default function ChatScreen() {
     sendMutation.mutate(text.trim());
   };
 
-  const messages = data?.messages || [];
+  const handleAttachImage = () => {
+    Alert.alert('Attach Document / Image', 'Manuscript or citation image selected for attachment.');
+    sendMutation.mutate('[ATTACHMENT: Classical Manuscript Folio Scan (PDF/Image)]');
+  };
+
+  const messages = data || [];
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={80}
+      keyboardVerticalOffset={88}
     >
+      {/* Consultation Safety Banner */}
+      <View style={styles.topBanner}>
+        <Text style={styles.bannerText}>
+          Sanad Scholarly Consultation: Adhere to respectful academic discourse.
+        </Text>
+        <TouchableOpacity onPress={() => setReportModalVisible(true)}>
+          <Text style={styles.reportLink}>[REPORT]</Text>
+        </TouchableOpacity>
+      </View>
+
       {isLoading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={colors.light.primary} />
@@ -74,7 +85,11 @@ export default function ChatScreen() {
           keyExtractor={(item) => item._id}
           contentContainerStyle={styles.messageList}
           renderItem={({ item }) => {
-            const isMine = item.senderId._id === user?.id;
+            const sender = typeof item.senderId === 'object' ? item.senderId : null;
+            const senderId = sender?._id || item.senderId;
+            const isMine = senderId === user?.id;
+            const senderName = sender?.displayName || 'Scholar';
+
             return (
               <View
                 style={[
@@ -83,7 +98,7 @@ export default function ChatScreen() {
                 ]}
               >
                 {!isMine && (
-                  <Text style={styles.senderName}>{item.senderId.displayName}</Text>
+                  <Text style={styles.senderName}>{senderName}</Text>
                 )}
                 <Text
                   style={[
@@ -93,29 +108,64 @@ export default function ChatScreen() {
                 >
                   {item.body}
                 </Text>
+                <View style={styles.metaRow}>
+                  <Text
+                    style={[
+                      styles.timestampText,
+                      isMine ? styles.myTimestamp : styles.theirTimestamp,
+                    ]}
+                  >
+                    {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </Text>
+                  {isMine && (
+                    <Text style={styles.readReceiptText}>
+                      {item.readBy?.length > 1 ? '[READ]' : '[SENT]'}
+                    </Text>
+                  )}
+                </View>
               </View>
             );
           }}
+          ListFooterComponent={
+            isTyping ? (
+              <View style={styles.typingBox}>
+                <Text style={styles.typingText}>Scholar is typing...</Text>
+              </View>
+            ) : null
+          }
         />
       )}
 
-      {/* Input bar */}
-      <View style={styles.inputBar}>
+      {/* Message Input Box */}
+      <View style={styles.inputContainer}>
+        <TouchableOpacity style={styles.attachBtn} onPress={handleAttachImage}>
+          <Text style={styles.attachText}>[+]</Text>
+        </TouchableOpacity>
         <TextInput
           style={styles.input}
-          placeholder="Type your question or response..."
+          placeholder="Ask a scholarly question..."
           placeholderTextColor={colors.light.textMuted}
           value={text}
           onChangeText={setText}
+          multiline
         />
         <TouchableOpacity
-          style={[styles.sendBtn, !text.trim() && styles.sendBtnDisabled]}
+          style={styles.sendButton}
           onPress={handleSend}
-          disabled={!text.trim() || sendMutation.isPending}
+          disabled={sendMutation.isPending || !text.trim()}
         >
-          <Text style={styles.sendText}>Send</Text>
+          <Text style={styles.sendButtonText}>Send</Text>
         </TouchableOpacity>
       </View>
+
+      {reportModalVisible && (
+        <ReportModal
+          visible={reportModalVisible}
+          targetType="message"
+          targetId={id || 'conv_301'}
+          onClose={() => setReportModalVisible(false)}
+        />
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -125,6 +175,27 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.light.background,
   },
+  topBanner: {
+    backgroundColor: colors.light.surfaceElevated,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.light.border,
+  },
+  bannerText: {
+    fontSize: 11,
+    color: colors.light.textSecondary,
+    flex: 1,
+    paddingRight: 8,
+  },
+  reportLink: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: colors.light.error,
+  },
   center: {
     flex: 1,
     justifyContent: 'center',
@@ -132,14 +203,12 @@ const styles = StyleSheet.create({
   },
   messageList: {
     padding: 16,
-    flexGrow: 1,
-    justifyContent: 'flex-end',
+    gap: 12,
   },
   messageBubble: {
     maxWidth: '80%',
     padding: 12,
     borderRadius: 14,
-    marginBottom: 8,
   },
   myBubble: {
     alignSelf: 'flex-end',
@@ -160,7 +229,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   messageText: {
-    fontSize: 15,
+    fontSize: 14,
     lineHeight: 20,
   },
   myText: {
@@ -169,39 +238,75 @@ const styles = StyleSheet.create({
   theirText: {
     color: colors.light.text,
   },
-  inputBar: {
+  metaRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginTop: 4,
+    gap: 6,
+  },
+  timestampText: {
+    fontSize: 10,
+  },
+  myTimestamp: {
+    color: '#A2C2BD',
+  },
+  theirTimestamp: {
+    color: colors.light.textMuted,
+  },
+  readReceiptText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: colors.light.accent,
+  },
+  typingBox: {
+    padding: 8,
+  },
+  typingText: {
+    fontSize: 11,
+    color: colors.light.textMuted,
+    fontStyle: 'italic',
+  },
+  inputContainer: {
     flexDirection: 'row',
     padding: 12,
     backgroundColor: colors.light.surface,
     borderTopWidth: 1,
     borderTopColor: colors.light.border,
     alignItems: 'center',
+    gap: 8,
+  },
+  attachBtn: {
+    padding: 8,
+    borderRadius: 6,
+    backgroundColor: colors.light.surfaceElevated,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  attachText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: colors.light.primary,
   },
   input: {
     flex: 1,
-    backgroundColor: colors.light.background,
-    height: 44,
-    borderRadius: 22,
-    paddingHorizontal: 16,
-    fontSize: 15,
+    backgroundColor: colors.light.surfaceElevated,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    maxHeight: 100,
+    fontSize: 13,
     color: colors.light.text,
   },
-  sendBtn: {
-    marginLeft: 10,
+  sendButton: {
     backgroundColor: colors.light.primary,
-    paddingHorizontal: 18,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
   },
-  sendBtnDisabled: {
-    backgroundColor: '#D1D5DB',
-  },
-  sendText: {
+  sendButtonText: {
     color: '#FFFFFF',
     fontWeight: '700',
-    fontSize: 14,
+    fontSize: 13,
   },
 });
-

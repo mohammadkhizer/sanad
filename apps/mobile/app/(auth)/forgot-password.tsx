@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
 import { colors } from '../../src/theme/colors';
+import { api } from '../../src/api';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -11,18 +12,22 @@ export default function ForgotPasswordScreen() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleResetRequest = () => {
+  const handleResetRequest = async () => {
     if (!identifier.trim()) return;
     setLoading(true);
-    // Simulate/Call API
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await api.auth.forgotPassword(identifier.trim());
       setSubmitted(true);
       Alert.alert(
         'Recovery Link Sent',
         'If an account exists with this email or phone, a secure single-use recovery code has been dispatched.'
       );
-    }, 800);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Reset failed';
+      Alert.alert('Error', msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

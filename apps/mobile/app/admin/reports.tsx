@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,102 +9,93 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '../../src/api/client';
+import { useRouter } from 'expo-router';
+import { api } from '../../src/api';
 import { colors } from '../../src/theme/colors';
 import { Card } from '../../src/components/Card';
 import { EmptyState } from '../../src/components/EmptyState';
+import { ReportEntity } from '@sanad/shared';
 
 export default function AdminReportsScreen() {
+  const router = useRouter();
   const queryClient = useQueryClient();
+  const [priorityFilter, setPriorityFilter] = useState<'all' | 'P0' | 'P1' | 'P2'>('all');
 
-  const { data, isLoading } = useQuery<{ reports: any[] }>({
-    queryKey: ['adminReports'],
-    queryFn: () => apiClient<{ reports: any[] }>('/admin/reports?status=pending'),
+  const { data: reports, isLoading } = useQuery<ReportEntity[]>({
+    queryKey: ['adminReports', priorityFilter],
+    queryFn: () => api.moderation.getReports({ priority: priorityFilter }),
   });
 
-  const actionMutation = useMutation({
-    mutationFn: ({
-      reportId,
-      action,
-      reason,
-    }: {
-      reportId: string;
-      action: string;
-      reason: string;
-    }) =>
-      apiClient(`/admin/reports/${reportId}/action`, {
-        method: 'POST',
-        body: JSON.stringify({ action, reason }),
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminReports'] });
-      Alert.alert('Action Taken', 'The report has been resolved and logged.');
-    },
-    onError: (err: any) => {
-      Alert.alert('Error', err.message || 'Failed to take action');
-    },
-  });
-
-  const handleTakeAction = (reportId: string, action: string) => {
-    actionMutation.mutate({
-      reportId,
-      action,
-      reason: `Moderator action ${action} executed per platform policy.`,
-    });
-  };
-
-  if (isLoading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.light.primary} />
-      </View>
-    );
-  }
-
-  const reports = data?.reports || [];
+  const list = reports || [];
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={reports}
-        keyExtractor={(item) => item._id}
-        contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <Card style={styles.reportCard}>
-            <View style={styles.headerRow}>
-              <Text style={styles.targetBadge}>
-                [{item.targetType.toUpperCase()}]
+      {/* Priority Filter Bar */}
+      <View style={styles.filterBar}>
+        {(['all', 'P0', 'P1', 'P2'] as const).map((p) => {
+          const isSelected = priorityFilter === p;
+          return (
+            <TouchableOpacity
+              key={p}
+              style={[styles.filterBtn, isSelected && styles.filterBtnActive]}
+              onPress={() => setPriorityFilter(p)}
+            >
+              <Text style={[styles.filterText, isSelected && styles.filterTextActive]}>
+                {p === 'all' ? 'All Priority' : `[${p} PRIORITY]`}
               </Text>
-              <Text style={styles.statusBadge}>{item.status}</Text>
-            </View>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
 
-            <Text style={styles.reasonText}>Reason: {item.reason}</Text>
-            <Text style={styles.targetIdText}>Target ID: {item.targetId}</Text>
+      {isLoading ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={colors.light.primary} />
+        </View>
+      ) : (
+        <FlatList
+          data={list}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.list}
+          renderItem={({ item }) => {
+            const isP0 = item.priority === 'P0';
 
-            <View style={styles.actionRow}>
-              <TouchableOpacity
-                style={[styles.btn, styles.removeBtn]}
-                onPress={() => handleTakeAction(item._id, 'remove_content')}
-              >
-                <Text style={styles.btnText}>Remove Content</Text>
-              </TouchableOpacity>
+            return (
+              <Card style={styles.reportCard}>
+                <TouchableOpacity
+                  onPress={() => router.push(`/admin/reports/${item._id}`)}
+                >
+                  <View style={styles.headerRow}>
+                    <View style={[styles.priorityBadge, isP0 ? styles.p0Badge : styles.p1Badge]}>
+                      <Text style={styles.priorityText}>[{item.priority}]</Text>
+                    </View>
+                    <Text style={styles.targetTypeBadge}>[{item.targetType.toUpperCase()}]</Text>
+                    <Text style={styles.statusText}>{item.status.toUpperCase()}</Text>
+                  </View>
 
-              <TouchableOpacity
-                style={[styles.btn, styles.suspendBtn]}
-                onPress={() => handleTakeAction(item._id, 'suspend')}
-              >
-                <Text style={styles.btnText}>Suspend User</Text>
-              </TouchableOpacity>
-            </View>
-          </Card>
-        )}
-        ListEmptyComponent={
-          <EmptyState
-            title="All Reports Cleared"
-            subtitle="No pending user reports requiring moderator intervention."
-          />
-        }
-      />
+                  <Text style={styles.reasonText}>{item.reason}</Text>
+                  <Text style={styles.summaryText} numberOfLines={2}>
+                    {item.targetSummary || `Target: ${item.targetId}`}
+                  </Text>
+
+                  <View style={styles.footerRow}>
+                    <Text style={styles.dateText}>
+                      {new Date(item.createdAt).toLocaleDateString()}
+                    </Text>
+                    <Text style={styles.actionPromptText}>{'Review & Enforce >'}</Text>
+                  </View>
+                </TouchableOpacity>
+              </Card>
+            );
+          }}
+          ListEmptyComponent={
+            <EmptyState
+              title="Reports Queue Clear"
+              description="No open reports matching selected priority criteria."
+            />
+          }
+        />
+      )}
     </View>
   );
 }
@@ -114,6 +105,32 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.light.background,
   },
+  filterBar: {
+    flexDirection: 'row',
+    padding: 12,
+    backgroundColor: colors.light.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.light.border,
+    gap: 8,
+  },
+  filterBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 6,
+    backgroundColor: colors.light.surfaceElevated,
+    alignItems: 'center',
+  },
+  filterBtnActive: {
+    backgroundColor: colors.light.primary,
+  },
+  filterText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.light.textSecondary,
+  },
+  filterTextActive: {
+    color: '#FFFFFF',
+  },
   center: {
     flex: 1,
     justifyContent: 'center',
@@ -121,59 +138,71 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: 16,
+    gap: 12,
   },
   reportCard: {
-    padding: 16,
-    marginBottom: 12,
+    padding: 14,
+    gap: 6,
   },
   headerRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  targetBadge: {
-    color: colors.light.primary,
-    fontWeight: '800',
-    fontSize: 12,
-  },
-  statusBadge: {
-    color: colors.light.warning,
-    fontWeight: '700',
-    fontSize: 12,
-    textTransform: 'uppercase',
-  },
-  reasonText: {
-    fontSize: 14,
-    color: colors.light.text,
-    fontWeight: '600',
+    alignItems: 'center',
+    gap: 8,
     marginBottom: 4,
   },
-  targetIdText: {
-    fontSize: 12,
-    color: colors.light.textSecondary,
-    marginBottom: 12,
+  priorityBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
   },
-  actionRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  btn: {
-    flex: 1,
-    height: 38,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  removeBtn: {
-    backgroundColor: colors.light.warning,
-  },
-  suspendBtn: {
+  p0Badge: {
     backgroundColor: colors.light.error,
   },
-  btnText: {
+  p1Badge: {
+    backgroundColor: colors.light.warning,
+  },
+  priorityText: {
     color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '800',
+  },
+  targetTypeBadge: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: colors.light.primary,
+  },
+  statusText: {
+    marginLeft: 'auto',
+    fontSize: 10,
     fontWeight: '700',
+    color: colors.light.textMuted,
+  },
+  reasonText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.light.text,
+  },
+  summaryText: {
     fontSize: 12,
+    color: colors.light.textSecondary,
+    lineHeight: 17,
+  },
+  footerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: colors.light.border,
+    paddingTop: 8,
+    marginTop: 4,
+  },
+  dateText: {
+    fontSize: 11,
+    color: colors.light.textMuted,
+  },
+  actionPromptText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.light.primary,
   },
 });
-

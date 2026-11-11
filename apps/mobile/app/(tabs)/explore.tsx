@@ -5,95 +5,149 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
 } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '../../src/api/client';
+import { api } from '../../src/api';
 import { colors } from '../../src/theme/colors';
 import { Card } from '../../src/components/Card';
 import { Avatar } from '../../src/components/Avatar';
 import { VerifiedBadge } from '../../src/components/VerifiedBadge';
 import { Input } from '../../src/components/Input';
 import { useRouter } from 'expo-router';
+import { LiveSessionEntity, UserEntity } from '@sanad/shared';
+
+const POPULAR_TOPICS = [
+  'Hadith Sciences',
+  'Usul al-Fiqh',
+  'Tafsir al-Quran',
+  'Islamic Finance',
+  'Manuscript Heritage',
+  'Classical Arabic',
+];
 
 export default function ExploreScreen() {
   const router = useRouter();
   const [search, setSearch] = useState('');
 
-  const { data: livesData } = useQuery<{ lives: any[] }>({
+  const { data: livesData } = useQuery<LiveSessionEntity[]>({
     queryKey: ['activeLives'],
-    queryFn: () => apiClient<{ lives: any[] }>('/live'),
+    queryFn: () => api.live.getLiveSessions(),
   });
 
-  const lives = livesData?.lives || [];
+  const { data: scholarsData } = useQuery<UserEntity[]>({
+    queryKey: ['exploreScholars', search],
+    queryFn: () => api.moderation.getUsers(search),
+  });
+
+  const lives = livesData || [];
+  const scholars = (scholarsData || []).filter((u) => u.roles.includes('scholar'));
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Input
-        label="Search Knowledge"
-        placeholder="Search scholars, topics, fiqh, hadith..."
+        label="Search Verified Knowledge"
+        placeholder="Search accredited scholars, Hadith, Fiqh, topics..."
         value={search}
         onChangeText={setSearch}
       />
 
-      {/* Active Live Streams Section */}
+      {/* Active Live Broadcasts */}
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Live Scholarly Circles</Text>
-        <Text style={styles.badgeLive}>[LIVE NOW]</Text>
+        <Text style={styles.sectionTitle}>Active Study Circles</Text>
+        <View style={styles.badgeLive}>
+          <Text style={styles.badgeLiveText}>[LIVE NOW]</Text>
+        </View>
       </View>
 
       {lives.length === 0 ? (
         <Card style={styles.emptyCard}>
           <Text style={styles.emptyText}>
-            No live sessions active at this moment. Scheduled circles will appear here.
+            No live study circles currently broadcasting. Scheduled sessions will appear here.
           </Text>
         </Card>
       ) : (
-        lives.map((session) => (
-          <TouchableOpacity
-            key={session._id}
-            activeOpacity={0.8}
-            onPress={() => router.push(`/live/${session._id}`)}
-          >
-            <Card style={styles.liveCard}>
-              <View style={styles.liveRow}>
-                <Avatar
-                  name={session.hostId.displayName}
-                  url={session.hostId.avatarUrl}
-                  size={44}
-                />
-                <View style={styles.liveInfo}>
-                  <Text style={styles.liveTitle}>{session.title}</Text>
-                  <Text style={styles.liveHost}>
-                    {session.hostId.displayName}
-                  </Text>
-                  <Text style={styles.viewersCount}>
-                    {session.viewerCount} watching
-                  </Text>
+        lives.map((session) => {
+          const host = typeof session.hostId === 'object' ? session.hostId : null;
+          return (
+            <TouchableOpacity
+              key={session._id}
+              activeOpacity={0.8}
+              onPress={() => router.push(`/live/${session._id}`)}
+            >
+              <Card style={styles.liveCard}>
+                <View style={styles.liveRow}>
+                  <Avatar
+                    name={host?.displayName || 'Host Scholar'}
+                    url={host?.avatarUrl}
+                    size={44}
+                  />
+                  <View style={styles.liveInfo}>
+                    <Text style={styles.liveTitle}>{session.title}</Text>
+                    <Text style={styles.liveHost}>
+                      {host?.displayName || 'Accredited Teacher'}
+                    </Text>
+                    <Text style={styles.viewersCount}>
+                      {session.viewerCount} verified learners watching
+                    </Text>
+                  </View>
+                  <View style={styles.joinPill}>
+                    <Text style={styles.joinText}>Join</Text>
+                  </View>
                 </View>
-                <View style={styles.joinPill}>
-                  <Text style={styles.joinText}>Join</Text>
+              </Card>
+            </TouchableOpacity>
+          );
+        })
+      )}
+
+      {/* Verified Scholars Directory */}
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Verified Scholars</Text>
+      </View>
+
+      <View style={styles.scholarsList}>
+        {scholars.map((sch) => (
+          <TouchableOpacity
+            key={sch._id}
+            onPress={() => router.push(`/scholar/${sch._id}`)}
+          >
+            <Card style={styles.scholarCard}>
+              <View style={styles.scholarRow}>
+                <Avatar name={sch.displayName} url={sch.avatarUrl} size={42} />
+                <View style={styles.scholarInfo}>
+                  <View style={styles.nameRow}>
+                    <Text style={styles.scholarName}>{sch.displayName}</Text>
+                    <VerifiedBadge size="small" />
+                  </View>
+                  <Text style={styles.scholarInst} numberOfLines={1}>
+                    {sch.scholarProfile?.institution || 'Accredited Institution'}
+                  </Text>
+                  <Text style={styles.scholarSpecialties} numberOfLines={1}>
+                    {sch.scholarProfile?.specialties?.join(', ') || 'Classical Islamic Sciences'}
+                  </Text>
                 </View>
               </View>
             </Card>
           </TouchableOpacity>
-        ))
-      )}
+        ))}
+      </View>
 
-      {/* Topics */}
+      {/* Featured Topics */}
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Featured Subjects</Text>
+        <Text style={styles.sectionTitle}>Curated Fields of Study</Text>
       </View>
 
       <View style={styles.topicsGrid}>
-        {['Quranic Exegesis (Tafsir)', 'Hadith Sciences', 'Islamic Jurisprudence (Fiqh)', 'Creed & Theology (Aqidah)', 'Spiritual Purification (Tazkiyah)'].map(
-          (topic, idx) => (
-            <Card key={idx} style={styles.topicCard}>
-              <Text style={styles.topicTitle}>{topic}</Text>
-              <Text style={styles.topicSub}>Verified lessons & reels</Text>
-            </Card>
-          )
-        )}
+        {POPULAR_TOPICS.map((topic, idx) => (
+          <TouchableOpacity
+            key={idx}
+            style={styles.topicCard}
+            onPress={() => setSearch(topic)}
+          >
+            <Text style={styles.topicTitle}>{topic}</Text>
+            <Text style={styles.topicSub}>Explore verified lessons</Text>
+          </TouchableOpacity>
+        ))}
       </View>
     </ScrollView>
   );
@@ -106,38 +160,41 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
+    paddingBottom: 40,
+    gap: 16,
   },
   sectionHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 16,
-    marginBottom: 12,
+    alignItems: 'center',
+    marginTop: 6,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
     color: colors.light.primary,
   },
   badgeLive: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.light.error,
-    letterSpacing: 0.5,
+    backgroundColor: colors.light.error,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
+  badgeLiveText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
   },
   emptyCard: {
-    padding: 20,
-    alignItems: 'center',
+    padding: 14,
   },
   emptyText: {
+    fontSize: 12,
     color: colors.light.textSecondary,
-    fontSize: 13,
-    textAlign: 'center',
+    lineHeight: 18,
   },
   liveCard: {
     padding: 12,
-    marginBottom: 10,
-    borderColor: colors.light.accent,
   },
   liveRow: {
     flexDirection: 'row',
@@ -148,47 +205,88 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   liveTitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: colors.light.text,
   },
   liveHost: {
-    fontSize: 13,
+    fontSize: 12,
     color: colors.light.primary,
+    fontWeight: '600',
     marginTop: 2,
   },
   viewersCount: {
     fontSize: 11,
-    color: colors.light.textMuted,
+    color: colors.light.textSecondary,
     marginTop: 2,
   },
   joinPill: {
     backgroundColor: colors.light.primary,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 999,
+    borderRadius: 6,
   },
   joinText: {
     color: '#FFFFFF',
-    fontSize: 12,
     fontWeight: '700',
+    fontSize: 12,
   },
-  topicsGrid: {
-    gap: 8,
+  scholarsList: {
+    gap: 10,
   },
-  topicCard: {
-    padding: 14,
-    marginBottom: 8,
+  scholarCard: {
+    padding: 12,
   },
-  topicTitle: {
-    fontSize: 15,
+  scholarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  scholarInfo: {
+    flex: 1,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  scholarName: {
+    fontSize: 14,
     fontWeight: '700',
     color: colors.light.text,
   },
-  topicSub: {
+  scholarInst: {
     fontSize: 12,
+    color: colors.light.primary,
+    fontWeight: '600',
+    marginTop: 1,
+  },
+  scholarSpecialties: {
+    fontSize: 11,
     color: colors.light.textSecondary,
-    marginTop: 4,
+    marginTop: 2,
+  },
+  topicsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  topicCard: {
+    width: '48%',
+    backgroundColor: colors.light.surface,
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    gap: 4,
+  },
+  topicTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.light.primary,
+  },
+  topicSub: {
+    fontSize: 11,
+    color: colors.light.textSecondary,
   },
 });
-

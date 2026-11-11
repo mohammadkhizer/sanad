@@ -5,14 +5,16 @@ import { colors } from '../theme/colors';
 interface EmptyStateProps {
   title: string;
   subtitle?: string;
+  description?: string;
   action?: React.ReactNode;
 }
 
-export const EmptyState: React.FC<EmptyStateProps> = ({ title, subtitle, action }) => {
+export const EmptyState: React.FC<EmptyStateProps> = ({ title, subtitle, description, action }) => {
+  const message = subtitle || description;
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{title}</Text>
-      {Boolean(subtitle) && <Text style={styles.subtitle}>{subtitle}</Text>}
+      {Boolean(message) && <Text style={styles.subtitle}>{message}</Text>}
       {Boolean(action) && <View style={styles.action}>{action}</View>}
     </View>
   );

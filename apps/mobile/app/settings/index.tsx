@@ -1,148 +1,99 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Switch,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors } from '../../src/theme/colors';
 import { Card } from '../../src/components/Card';
 import { Button } from '../../src/components/Button';
 import { useAuthStore } from '../../src/store/authStore';
-import { apiClient } from '../../src/api/client';
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
+  const isStaff = user?.roles.includes('moderator') || user?.roles.includes('admin');
+  const isAdmin = user?.roles.includes('admin');
 
-  const [quietHours, setQuietHours] = useState(true);
-  const [notifications, setNotifications] = useState(true);
-  const [locale, setLocale] = useState<'en' | 'ar' | 'ur'>('en');
-
-  const handleDeleteAccount = () => {
-    Alert.alert(
-      'Delete Account',
-      'This will permanently delete your profile, credentials, and data according to store compliance standards. This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Permanently Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await apiClient('/users/me', { method: 'DELETE' });
-              await logout();
-              router.replace('/(auth)/login');
-            } catch (err: any) {
-              Alert.alert('Error', err.message || 'Failed to delete account');
-            }
-          },
+  const handleLogout = async () => {
+    Alert.alert('Sign Out', 'Are you sure you want to log out of Sanad?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          await logout();
+          router.replace('/(auth)/login');
         },
-      ]
-    );
+      },
+    ]);
   };
+
+  const renderLink = (title: string, subtitle: string, route: string) => (
+    <TouchableOpacity style={styles.menuItem} onPress={() => router.push(route as any)}>
+      <View style={styles.menuTextCol}>
+        <Text style={styles.menuTitle}>{title}</Text>
+        <Text style={styles.menuSubtitle}>{subtitle}</Text>
+      </View>
+      <Text style={styles.chevron}>{'>'}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.headerTitle}>Settings & Preferences</Text>
-
-      {/* Language Section */}
+      {/* Account & Profile */}
       <Card style={styles.card}>
-        <Text style={styles.cardTitle}>Language / اللغة</Text>
-        <View style={styles.langRow}>
-          {[
-            { id: 'en', label: 'English' },
-            { id: 'ar', label: 'العربية (RTL)' },
-            { id: 'ur', label: 'اردو (RTL)' },
-          ].map((l) => (
-            <TouchableOpacity
-              key={l.id}
-              style={[
-                styles.langBtn,
-                locale === l.id && styles.langBtnActive,
-              ]}
-              onPress={() => setLocale(l.id as any)}
-            >
-              <Text
-                style={[
-                  styles.langBtnText,
-                  locale === l.id && styles.langBtnTextActive,
-                ]}
-              >
-                {l.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </Card>
-
-      {/* Notifications & Prayer Quiet Hours */}
-      <Card style={styles.card}>
-        <Text style={styles.cardTitle}>Notifications</Text>
-        <View style={styles.settingRow}>
-          <View style={styles.settingTextCol}>
-            <Text style={styles.settingLabel}>Push Notifications</Text>
-            <Text style={styles.settingDesc}>New lectures, Q&A replies, and live circles</Text>
-          </View>
-          <Switch
-            value={notifications}
-            onValueChange={setNotifications}
-            trackColor={{ true: colors.light.primary, false: '#D1D5DB' }}
-          />
-        </View>
-
+        <Text style={styles.cardHeader}>Account & Credentials</Text>
+        {renderLink('Personal Details', 'Display name, contact, biographical summary', '/settings/account')}
         <View style={styles.divider} />
-
-        <View style={styles.settingRow}>
-          <View style={styles.settingTextCol}>
-            <Text style={styles.settingLabel}>Prayer-Time Quiet Hours</Text>
-            <Text style={styles.settingDesc}>
-              Automatically silence notifications during local prayer windows
-            </Text>
-          </View>
-          <Switch
-            value={quietHours}
-            onValueChange={setQuietHours}
-            trackColor={{ true: colors.light.primary, false: '#D1D5DB' }}
-          />
-        </View>
+        {renderLink('Active Devices & Sessions', 'Review authorized phones and browsers', '/settings/sessions')}
+        <View style={styles.divider} />
+        {renderLink('Two-Factor Authentication (TOTP)', user?.twoFactorEnabled ? 'Active (Secured)' : 'Not configured', '/settings/two-factor')}
+        <View style={styles.divider} />
+        {renderLink('Blocked Accounts', 'Manage blocked profiles and restricted users', '/settings/blocked-users')}
       </Card>
 
-      {/* Security & 2FA */}
+      {/* Preferences */}
       <Card style={styles.card}>
-        <Text style={styles.cardTitle}>Security</Text>
-        <TouchableOpacity
-          style={styles.menuLink}
-          onPress={() => router.push('/settings/two-factor')}
-        >
-          <View>
-            <Text style={styles.settingLabel}>Two-Factor Authentication (TOTP)</Text>
-            <Text style={styles.settingDesc}>
-              {user?.twoFactorEnabled ? 'Status: Active' : 'Status: Not configured'}
-            </Text>
-          </View>
-          <Text style={styles.arrowText}>Configure</Text>
-        </TouchableOpacity>
+        <Text style={styles.cardHeader}>Preferences</Text>
+        {renderLink('Notifications & Quiet Hours', 'Configure prayer-time quiet windows', '/settings/notifications')}
+        <View style={styles.divider} />
+        {renderLink('Language & Theme', 'English, Arabic (RTL), Urdu (RTL), Dark mode', '/settings/language-theme')}
       </Card>
 
-      {/* Privacy and Account Deletion (Store requirement) */}
+      {/* Staff & Governance (Role-Gated) */}
+      {isStaff && (
+        <Card style={styles.card}>
+          <Text style={styles.cardHeader}>Staff Governance Tools</Text>
+          {renderLink('Scholar Application Queue', 'Review incoming credential dossiers', '/admin/review-queue')}
+          <View style={styles.divider} />
+          {renderLink('Trust & Safety Reports', 'Review user and content reports (P0/P1/P2)', '/admin/reports')}
+          {isAdmin && (
+            <>
+              <View style={styles.divider} />
+              {renderLink('Audit Trail & Event Log', 'Immutable log of administrative actions', '/admin/audit-logs')}
+              <View style={styles.divider} />
+              {renderLink('Role Management & Badges', 'Assign roles and revoke scholar accreditation', '/admin/roles')}
+              <View style={styles.divider} />
+              {renderLink('Platform Configuration', 'Verification thresholds, quiet hours defaults', '/admin/config')}
+            </>
+          )}
+        </Card>
+      )}
+
+      {/* Legal & Privacy Compliance */}
       <Card style={styles.card}>
-        <Text style={styles.cardTitle}>Privacy and Account</Text>
-        <Text style={styles.complianceDesc}>
-          Sanad provides complete data ownership. You can export your data or delete your account
-          permanently.
-        </Text>
-        <Button
-          title="Permanently Delete Account"
-          variant="danger"
-          onPress={handleDeleteAccount}
-          style={styles.deleteBtn}
-        />
+        <Text style={styles.cardHeader}>Policy & Data Rights</Text>
+        {renderLink('Content Policy & Terms', 'Community rules, sectarian takfir ban', '/settings/privacy-terms')}
+        <View style={styles.divider} />
+        {renderLink('Export Account Data', 'Download archive of scholarly lessons and chat history', '/settings/data-export')}
+        <View style={styles.divider} />
+        {renderLink('Delete Account', 'Permanently erase credentials and profile', '/settings/delete-account')}
       </Card>
+
+      <Button
+        title="Sign Out"
+        variant="outline"
+        onPress={handleLogout}
+        style={styles.logoutBtn}
+      />
     </ScrollView>
   );
 }
@@ -154,96 +105,50 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: colors.light.primary,
-    marginBottom: 16,
+    paddingBottom: 40,
+    gap: 16,
   },
   card: {
     padding: 16,
-    marginBottom: 14,
   },
-  cardTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.light.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 12,
-  },
-  langRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  langBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.light.border,
-    alignItems: 'center',
-    backgroundColor: colors.light.surface,
-  },
-  langBtnActive: {
-    backgroundColor: colors.light.primary,
-    borderColor: colors.light.primary,
-  },
-  langBtnText: {
+  cardHeader: {
     fontSize: 12,
-    fontWeight: '600',
-    color: colors.light.text,
+    fontWeight: '800',
+    color: colors.light.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 10,
   },
-  langBtnTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
-  settingRow: {
+  menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: 10,
   },
-  settingTextCol: {
+  menuTextCol: {
     flex: 1,
-    marginRight: 12,
+    paddingRight: 12,
   },
-  settingLabel: {
-    fontSize: 15,
+  menuTitle: {
+    fontSize: 14,
     fontWeight: '700',
     color: colors.light.text,
   },
-  settingDesc: {
+  menuSubtitle: {
     fontSize: 12,
     color: colors.light.textSecondary,
     marginTop: 2,
-    lineHeight: 16,
+  },
+  chevron: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.light.textMuted,
   },
   divider: {
     height: 1,
     backgroundColor: colors.light.border,
-    marginVertical: 8,
   },
-  menuLink: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 6,
-  },
-  arrowText: {
-    color: colors.light.primary,
-    fontWeight: '700',
-    fontSize: 13,
-  },
-  complianceDesc: {
-    fontSize: 12,
-    color: colors.light.textSecondary,
-    lineHeight: 18,
-    marginBottom: 12,
-  },
-  deleteBtn: {
-    marginTop: 4,
+  logoutBtn: {
+    marginTop: 8,
   },
 });
-

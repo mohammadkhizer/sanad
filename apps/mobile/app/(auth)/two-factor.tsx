@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
 import { colors } from '../../src/theme/colors';
-import { apiClient } from '../../src/api/client';
+import { api } from '../../src/api';
 import { useAuthStore } from '../../src/store/authStore';
 
 export default function TwoFactorAuthScreen() {
@@ -26,23 +26,11 @@ export default function TwoFactorAuthScreen() {
       setLoading(true);
       setError(null);
 
-      const res = await apiClient<{
-        accessToken: string;
-        refreshToken: string;
-        user: any;
-      }>('/auth/2fa/verify', {
-        method: 'POST',
-        body: JSON.stringify({ code: code.trim() }),
-      });
-
-      if (res.accessToken && res.refreshToken && res.user) {
-        await login(res.accessToken, res.refreshToken, res.user);
-        router.replace('/(tabs)/feed');
-      } else {
-        router.replace('/(auth)/login');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Two-factor verification failed');
+      await api.auth.verify2FA(code.trim());
+      router.replace('/(tabs)/feed');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Two-factor verification failed';
+      setError(msg);
     } finally {
       setLoading(false);
     }

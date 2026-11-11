@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,117 +9,131 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '../../src/api/client';
+import { useRouter } from 'expo-router';
+import { api } from '../../src/api';
 import { colors } from '../../src/theme/colors';
 import { Card } from '../../src/components/Card';
 import { EmptyState } from '../../src/components/EmptyState';
+import { ScholarApplicationEntity } from '@sanad/shared';
 
 export default function ReviewQueueScreen() {
+  const router = useRouter();
   const queryClient = useQueryClient();
+  const [filter, setFilter] = useState<'pending' | 'more_info' | 'all'>('pending');
 
-  const { data, isLoading } = useQuery<{ applications: any[] }>({
-    queryKey: ['adminApplications'],
-    queryFn: () => apiClient<{ applications: any[] }>('/admin/applications?status=pending'),
+  const { data: applications, isLoading } = useQuery<ScholarApplicationEntity[]>({
+    queryKey: ['adminApplications', filter],
+    queryFn: () => api.verification.getApplications(filter),
   });
 
   const decisionMutation = useMutation({
-    mutationFn: ({ id, decision, reviewNote }: { id: string; decision: string; reviewNote?: string }) =>
-      apiClient(`/admin/applications/${id}/decision`, {
-        method: 'POST',
-        body: JSON.stringify({ decision, reviewNote }),
-      }),
+    mutationFn: ({ id, decision, reviewNote }: { id: string; decision: 'approved' | 'rejected' | 'more_info'; reviewNote?: string }) =>
+      api.verification.reviewApplication(id, { decision, reviewNote }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminApplications'] });
-      Alert.alert('Decision Recorded', 'The scholar application has been updated.');
+      Alert.alert('Decision Recorded', 'The scholar application status has been updated.');
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       Alert.alert('Error', err.message || 'Failed to process decision');
     },
   });
 
-  const handleApprove = (id: string) => {
-    decisionMutation.mutate({ id, decision: 'approved', reviewNote: 'Credentials verified.' });
+  const handleQuickApprove = (id: string) => {
+    decisionMutation.mutate({ id, decision: 'approved', reviewNote: 'Approved in quick triage.' });
   };
 
-  const handleReject = (id: string) => {
-    Alert.prompt
-      ? Alert.prompt(
-          'Rejection Reason',
-          'Please provide the specific reason for rejecting this application:',
-          (reason) => {
-            if (!reason) return;
-            decisionMutation.mutate({ id, decision: 'rejected', reviewNote: reason });
-          }
-        )
-      : decisionMutation.mutate({
-          id,
-          decision: 'rejected',
-          reviewNote: 'Credentials did not satisfy traditional verification threshold.',
-        });
-  };
-
-  if (isLoading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.light.primary} />
-      </View>
-    );
-  }
-
-  const applications = data?.applications || [];
+  const list = applications || [];
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={applications}
-        keyExtractor={(item) => item._id}
-        contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <Card style={styles.appCard}>
-            <Text style={styles.applicantName}>
-              {item.userId?.displayName || 'Applicant'}
-            </Text>
-            <Text style={styles.institution}>
-              Institution: {item.institution}
-            </Text>
-            <Text style={styles.specialties}>
-              Specialties: {item.specialties?.join(', ')}
-            </Text>
-            <Text style={styles.statementText}>{item.statement}</Text>
+      {/* Filter Tabs */}
+      <View style={styles.filterBar}>
+        {(['pending', 'more_info', 'all'] as const).map((f) => {
+          const isSelected = filter === f;
+          return (
+            <TouchableOpacity
+              key={f}
+              style={[styles.filterBtn, isSelected && styles.filterBtnActive]}
+              onPress={() => setFilter(f)}
+            >
+              <Text style={[styles.filterText, isSelected && styles.filterTextActive]}>
+                {f === 'pending' ? 'Pending Review' : f === 'more_info' ? 'Needs Info' : 'All Applications'}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
 
-            <View style={styles.credentialsBox}>
-              <Text style={styles.credTitle}>Attached Credentials:</Text>
-              {item.credentials?.map((c: any, idx: number) => (
-                <Text key={idx} style={styles.credItem}>
-                  - {c.type.toUpperCase()}: {c.institution} ({c.year})
-                </Text>
-              ))}
-            </View>
+      {isLoading ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={colors.light.primary} />
+        </View>
+      ) : (
+        <FlatList
+          data={list}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.list}
+          renderItem={({ item }) => {
+            const applicant = typeof item.userId === 'object' ? item.userId : null;
+            const applicantName = applicant?.displayName || 'Applicant';
 
-            <View style={styles.actionRow}>
-              <TouchableOpacity
-                style={[styles.btn, styles.approveBtn]}
-                onPress={() => handleApprove(item._id)}
-              >
-                <Text style={styles.btnText}>Approve as Scholar</Text>
-              </TouchableOpacity>
+            return (
+              <Card style={styles.appCard}>
+                <TouchableOpacity
+                  onPress={() => router.push(`/admin/applications/${item._id}`)}
+                >
+                  <View style={styles.headerRow}>
+                    <Text style={styles.applicantName}>{applicantName}</Text>
+                    <View style={styles.statusBadge}>
+                      <Text style={styles.statusBadgeText}>[{item.status.toUpperCase()}]</Text>
+                    </View>
+                  </View>
 
-              <TouchableOpacity
-                style={[styles.btn, styles.rejectBtn]}
-                onPress={() => handleReject(item._id)}
-              >
-                <Text style={styles.btnText}>Reject</Text>
-              </TouchableOpacity>
-            </View>
-          </Card>
-        )}
-        ListEmptyComponent={
-          <EmptyState
-            title="Review Queue Clear"
-            subtitle="No pending scholar applications awaiting verification."
-          />
-        }
-      />
+                  <Text style={styles.institution}>
+                    Institution: {item.institution}
+                  </Text>
+                  <Text style={styles.specialties}>
+                    Specialties: {item.specialties?.join(', ')}
+                  </Text>
+                  <Text style={styles.statementText} numberOfLines={2}>
+                    "{item.statement}"
+                  </Text>
+
+                  <View style={styles.credentialsSummary}>
+                    <Text style={styles.credCountText}>
+                      Documents: {item.credentials.length} credential file(s) attached
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
+                {item.status === 'pending' && (
+                  <View style={styles.actionRow}>
+                    <TouchableOpacity
+                      style={styles.reviewFullBtn}
+                      onPress={() => router.push(`/admin/applications/${item._id}`)}
+                    >
+                      <Text style={styles.reviewFullText}>View Full Dossier</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.quickApproveBtn}
+                      onPress={() => handleQuickApprove(item._id)}
+                    >
+                      <Text style={styles.quickApproveText}>Approve</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </Card>
+            );
+          }}
+          ListEmptyComponent={
+            <EmptyState
+              title="Queue Clear"
+              description="No applications currently awaiting verification review."
+            />
+          }
+        />
+      )}
     </View>
   );
 }
@@ -129,6 +143,32 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.light.background,
   },
+  filterBar: {
+    flexDirection: 'row',
+    padding: 12,
+    backgroundColor: colors.light.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.light.border,
+    gap: 8,
+  },
+  filterBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 6,
+    backgroundColor: colors.light.surfaceElevated,
+    alignItems: 'center',
+  },
+  filterBtnActive: {
+    backgroundColor: colors.light.primary,
+  },
+  filterText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.light.textSecondary,
+  },
+  filterTextActive: {
+    color: '#FFFFFF',
+  },
   center: {
     flex: 1,
     justifyContent: 'center',
@@ -136,69 +176,92 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: 16,
+    gap: 12,
   },
   appCard: {
     padding: 16,
-    marginBottom: 14,
+    gap: 8,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   applicantName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '800',
-    color: colors.light.text,
+    color: colors.light.primary,
+  },
+  statusBadge: {
+    backgroundColor: colors.light.accent,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  statusBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: colors.light.accentText,
   },
   institution: {
-    fontSize: 14,
-    color: colors.light.primary,
+    fontSize: 13,
     fontWeight: '600',
-    marginTop: 4,
+    color: colors.light.text,
   },
   specialties: {
-    fontSize: 13,
+    fontSize: 12,
     color: colors.light.textSecondary,
-    marginTop: 2,
   },
   statementText: {
-    fontSize: 14,
-    color: colors.light.text,
-    backgroundColor: colors.light.surfaceElevated,
-    padding: 10,
-    borderRadius: 8,
-    marginVertical: 10,
-  },
-  credentialsBox: {
-    marginBottom: 14,
-  },
-  credTitle: {
     fontSize: 12,
-    fontWeight: '700',
-    color: colors.light.textMuted,
-    marginBottom: 4,
+    color: colors.light.text,
+    fontStyle: 'italic',
+    lineHeight: 17,
   },
-  credItem: {
-    fontSize: 13,
-    color: colors.light.textSecondary,
+  credentialsSummary: {
+    backgroundColor: colors.light.surfaceElevated,
+    padding: 8,
+    borderRadius: 6,
+    marginTop: 4,
+  },
+  credCountText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.light.primary,
   },
   actionRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderTopWidth: 1,
+    borderTopColor: colors.light.border,
+    paddingTop: 10,
+    marginTop: 4,
     gap: 10,
   },
-  btn: {
+  reviewFullBtn: {
     flex: 1,
-    height: 40,
-    borderRadius: 8,
-    justifyContent: 'center',
+    backgroundColor: colors.light.surfaceElevated,
+    paddingVertical: 8,
+    borderRadius: 6,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.light.border,
+  },
+  reviewFullText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.light.text,
+  },
+  quickApproveBtn: {
+    flex: 1,
+    backgroundColor: colors.light.success,
+    paddingVertical: 8,
+    borderRadius: 6,
     alignItems: 'center',
   },
-  approveBtn: {
-    backgroundColor: colors.light.primary,
-  },
-  rejectBtn: {
-    backgroundColor: colors.light.error,
-  },
-  btnText: {
+  quickApproveText: {
     color: '#FFFFFF',
     fontWeight: '700',
-    fontSize: 13,
+    fontSize: 12,
   },
 });
-

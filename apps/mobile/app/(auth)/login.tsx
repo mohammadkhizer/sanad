@@ -4,15 +4,15 @@ import { useRouter } from 'expo-router';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
 import { colors } from '../../src/theme/colors';
-import { apiClient } from '../../src/api/client';
+import { api } from '../../src/api';
 import { useAuthStore } from '../../src/store/authStore';
 
 export default function LoginScreen() {
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
 
-  const [identifier, setIdentifier] = useState('');
-  const [password, setPassword] = useState('');
+  const [identifier, setIdentifier] = useState('omar.farooq@al-azhar.edu');
+  const [password, setPassword] = useState('Password1234!');
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const [requires2FA, setRequires2FA] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -28,18 +28,10 @@ export default function LoginScreen() {
       setLoading(true);
       setError(null);
 
-      const res = await apiClient<{
-        requires2FA?: boolean;
-        accessToken?: string;
-        refreshToken?: string;
-        user?: any;
-      }>('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({
-          identifier: identifier.trim(),
-          password,
-          twoFactorCode: requires2FA ? twoFactorCode.trim() : undefined,
-        }),
+      const res = await api.auth.login({
+        identifier: identifier.trim(),
+        password,
+        twoFactorCode: requires2FA ? twoFactorCode.trim() : undefined,
       });
 
       if (res.requires2FA) {
@@ -48,11 +40,19 @@ export default function LoginScreen() {
       }
 
       if (res.accessToken && res.refreshToken && res.user) {
-        await login(res.accessToken, res.refreshToken, res.user);
+        await login(res.accessToken, res.refreshToken, {
+          id: res.user._id,
+          displayName: res.user.displayName,
+          email: res.user.email,
+          phone: res.user.phone,
+          roles: res.user.roles,
+          twoFactorEnabled: res.user.twoFA?.enabled,
+        });
         router.replace('/(tabs)/feed');
       }
-    } catch (err: any) {
-      setError(err.message || 'Login failed. Please check your credentials.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Login failed. Please check your credentials.';
+      setError(msg);
     } finally {
       setLoading(false);
     }

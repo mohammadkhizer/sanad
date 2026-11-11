@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
 import { colors } from '../../src/theme/colors';
-import { apiClient } from '../../src/api/client';
+import { api } from '../../src/api';
 import { useAuthStore } from '../../src/store/authStore';
 
 export default function OtpScreen() {
@@ -12,7 +12,7 @@ export default function OtpScreen() {
   const params = useLocalSearchParams<{ identifier: string }>();
   const login = useAuthStore((state) => state.login);
 
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState('123456');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,22 +26,23 @@ export default function OtpScreen() {
       setLoading(true);
       setError(null);
 
-      const res = await apiClient<{
-        accessToken: string;
-        refreshToken: string;
-        user: any;
-      }>('/auth/verify-otp', {
-        method: 'POST',
-        body: JSON.stringify({
-          identifier: params.identifier,
-          code: code.trim(),
-        }),
+      const res = await api.auth.verifyOtp({
+        identifier: params.identifier || 'user@example.com',
+        code: code.trim(),
       });
 
-      await login(res.accessToken, res.refreshToken, res.user);
+      await login(res.accessToken, res.refreshToken, {
+        id: res.user._id,
+        displayName: res.user.displayName,
+        email: res.user.email,
+        phone: res.user.phone,
+        roles: res.user.roles,
+        twoFactorEnabled: res.user.twoFA?.enabled,
+      });
       router.replace('/(tabs)/feed');
-    } catch (err: any) {
-      setError(err.message || 'OTP verification failed');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'OTP verification failed';
+      setError(msg);
     } finally {
       setLoading(false);
     }

@@ -11,7 +11,7 @@ import {
 import { colors } from '../theme/colors';
 import { Button } from './Button';
 import { Input } from './Input';
-import { apiClient } from '../api/client';
+import { api } from '../api';
 
 interface ReportModalProps {
   visible: boolean;
@@ -46,13 +46,10 @@ export const ReportModal: React.FC<ReportModalProps> = ({
         ? `${selectedReason}: ${customDetails.trim()}`
         : selectedReason;
 
-      await apiClient('/reports', {
-        method: 'POST',
-        body: JSON.stringify({
-          targetType,
-          targetId,
-          reason: reasonText,
-        }),
+      await api.moderation.createReport({
+        targetType,
+        targetId,
+        reason: reasonText,
       });
 
       Alert.alert(
@@ -60,8 +57,9 @@ export const ReportModal: React.FC<ReportModalProps> = ({
         'Thank you for helping keep Sanad trustworthy. Our moderation panel will review this item within 24 hours.'
       );
       onClose();
-    } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to submit report');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to submit report';
+      Alert.alert('Error', msg);
     } finally {
       setLoading(false);
     }

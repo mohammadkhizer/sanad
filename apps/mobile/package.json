@@ -14,7 +14,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "typecheck": "tsc --noEmit",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test": "npx tsx --test src/__tests__/mockApi.test.ts"
   },
   "dependencies": {
     "@sanad/shared": "*",
