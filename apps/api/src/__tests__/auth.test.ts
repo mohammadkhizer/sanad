@@ -51,3 +51,4 @@ describe('Authentication & Token Security', () => {
     expect(secret.length).toBeGreaterThanOrEqual(16);
   });
 });
+

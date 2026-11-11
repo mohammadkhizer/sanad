@@ -13,6 +13,7 @@ import {
 
 const router = Router();
 
+router.get('/check-username', authRateLimiter, authController.checkUsername);
 router.post('/register', authRateLimiter, validate(registerSchema), authController.register);
 router.post('/verify-otp', authRateLimiter, validate(verifyOtpSchema), authController.verifyOtp);
 router.post('/login', authRateLimiter, validate(loginSchema), authController.login);

@@ -2,6 +2,12 @@ import { z } from 'zod';
 import { ROLES } from './roles.js';
 
 export const registerSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(/^[a-z0-9_]{3,30}$/, 'Username must be 3-30 lowercase alphanumeric characters or underscores')
+    .optional(),
   email: z.string().email().optional(),
   phone: z.string().regex(/^\+?[1-9]\d{6,14}$/, 'Invalid phone number format').optional(),
   password: z
@@ -13,6 +19,17 @@ export const registerSchema = z.object({
   message: 'Either email or phone must be provided',
   path: ['email'],
 });
+
+export const checkUsernameQuerySchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .min(3, 'Username must be at least 3 characters')
+    .max(30, 'Username cannot exceed 30 characters'),
+});
+
+export type CheckUsernameQueryInput = z.infer<typeof checkUsernameQuerySchema>;
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 

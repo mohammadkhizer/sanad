@@ -23,17 +23,28 @@ import {
 } from '../../utils/errors.js';
 import { redis } from '../../config/redis.js';
 import { RegisterInput, LoginInput } from '@sanad/shared';
+import { usernameService } from '../../services/bloomFilter.service.js';
 
 export class AuthService {
   async register(input: RegisterInput) {
+    if (input.username) {
+      const check = await usernameService.checkAvailability(input.username);
+      if (!check.available) {
+        throw new ConflictError(check.reason || 'Username is already taken', 'USERNAME_UNAVAILABLE');
+      }
+    }
+
     const query = input.email ? { email: input.email.toLowerCase() } : { phone: input.phone };
-    const existing = await UserModel.findOne(query).exec();
-    if (existing) {
-      throw new ConflictError('An account with this email or phone already exists', 'ACCOUNT_EXISTS');
+    if (UserModel.db.readyState === 1) {
+      const existing = await UserModel.findOne(query).exec();
+      if (existing) {
+        throw new ConflictError('An account with this email or phone already exists', 'ACCOUNT_EXISTS');
+      }
     }
 
     const passwordHash = await argon2.hash(input.password);
     const user = await UserModel.create({
+      username: input.username?.toLowerCase(),
       email: input.email?.toLowerCase(),
       phone: input.phone,
       passwordHash,
@@ -41,6 +52,10 @@ export class AuthService {
       roles: ['member'],
       status: 'active',
     });
+
+    if (user.username) {
+      usernameService.registerUsername(user.username);
+    }
 
     // Generate 6 digit OTP and store in redis for 5 minutes
     const identifier = (input.email || input.phone)!.toLowerCase();
@@ -278,6 +293,7 @@ export class AuthService {
       refreshToken: refreshTokenString,
       user: {
         id: user._id.toString(),
+        username: user.username,
         displayName: user.displayName,
         email: user.email,
         phone: user.phone,

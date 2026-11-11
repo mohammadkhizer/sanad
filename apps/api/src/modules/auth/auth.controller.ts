@@ -1,8 +1,32 @@
 import { Request, Response, NextFunction } from 'express';
 import { authService } from './auth.service.js';
 import { UserModel, SessionModel } from './auth.model.js';
+import { usernameService } from '../../services/bloomFilter.service.js';
 
 export class AuthController {
+  async checkUsername(req: Request, res: Response, next: NextFunction) {
+    try {
+      const username = req.query.username as string;
+      if (!username) {
+        return res.status(400).json({
+          code: 'VALIDATION_ERROR',
+          message: 'Username parameter is required',
+        });
+      }
+      const result = await usernameService.checkAvailability(username);
+      res.status(200).json({
+        success: true,
+        data: {
+          username,
+          available: result.available,
+          reason: result.reason,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async register(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await authService.register(req.body);

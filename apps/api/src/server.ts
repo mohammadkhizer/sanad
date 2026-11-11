@@ -5,6 +5,7 @@ import { env } from './config/env.js';
 import { logger } from './config/logger.js';
 import { connectDB, disconnectDB } from './config/db.js';
 import { setupSocketIO } from './realtime/socket.js';
+import { usernameService } from './services/bloomFilter.service.js';
 
 const server = http.createServer(app);
 
@@ -20,6 +21,7 @@ setupSocketIO(io);
 async function bootstrap() {
   try {
     await connectDB();
+    await usernameService.initialize();
     server.listen(env.PORT, () => {
       logger.info(`Sanad API server running on port ${env.PORT} in ${env.NODE_ENV} mode`);
     });

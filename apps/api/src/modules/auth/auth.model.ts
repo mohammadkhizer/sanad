@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 import { Role, ROLES } from '@sanad/shared';
 
 export interface IUser extends Document {
+  username?: string;
   email?: string;
   phone?: string;
   passwordHash: string;
@@ -28,6 +29,7 @@ export interface IUser extends Document {
 
 const userSchema = new Schema<IUser>(
   {
+    username: { type: String, unique: true, sparse: true, lowercase: true, trim: true },
     email: { type: String, unique: true, sparse: true, lowercase: true, trim: true },
     phone: { type: String, unique: true, sparse: true, trim: true },
     passwordHash: { type: String, required: true },
