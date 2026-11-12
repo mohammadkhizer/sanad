@@ -6,6 +6,7 @@ import { updateProfileSchema } from '@sanad/shared';
 
 const router = Router();
 
+router.get('/', optionalAuthenticate, usersController.listUsers);
 router.get('/me', authenticate, usersController.getMe);
 router.patch('/me', authenticate, validate(updateProfileSchema), usersController.updateMe);
 router.get('/:id', optionalAuthenticate, usersController.getUser);

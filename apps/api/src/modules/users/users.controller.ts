@@ -183,6 +183,38 @@ export class UsersController {
       next(error);
     }
   }
+
+  async listUsers(req: Request, res: Response, next: NextFunction) {
+    try {
+      const q = req.query.q as string;
+      const role = req.query.role as string;
+      const query: Record<string, unknown> = { status: 'active' };
+
+      if (role) {
+        query.roles = role;
+      }
+
+      if (q && q.trim()) {
+        const regex = new RegExp(q.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+        query.$or = [
+          { displayName: regex },
+          { username: regex },
+          { bio: regex },
+          { 'scholarProfile.specialties': regex },
+        ];
+      }
+
+      const users = await UserModel.find(query)
+        .select('displayName username avatarUrl bio roles scholarProfile createdAt')
+        .sort({ 'scholarProfile.verified': -1, createdAt: -1 })
+        .limit(50)
+        .exec();
+
+      res.status(200).json({ users });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const usersController = new UsersController();

@@ -1,12 +1,21 @@
 import { Router } from 'express';
 import { scholarController } from '../scholar/scholar.controller.js';
 import { moderationController } from '../moderation/moderation.controller.js';
+import { usersController } from '../users/users.controller.js';
 import { authenticate } from '../../middlewares/auth.js';
 import { requirePermission } from '../../middlewares/rbac.js';
 import { validate } from '../../middlewares/validate.js';
 import { reviewScholarApplicationSchema, moderationActionSchema } from '@sanad/shared';
 
 const router = Router();
+
+// User management
+router.get(
+  '/users',
+  authenticate,
+  requirePermission('application:review'),
+  usersController.listUsers
+);
 
 // Scholar Application Moderation
 router.get(

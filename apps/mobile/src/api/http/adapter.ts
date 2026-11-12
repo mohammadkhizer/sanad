@@ -1,5 +1,6 @@
 import { ApiClientModules } from '../types';
 import { apiClient } from '../client';
+import { PostEntity } from '@sanad/shared';
 
 export const httpAdapter: ApiClientModules = {
   auth: {
@@ -13,79 +14,196 @@ export const httpAdapter: ApiClientModules = {
     forgotPassword: (identifier) => apiClient('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ identifier }) }),
     resetPassword: (token, newPass) => apiClient('/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, newPassword: newPass }) }),
   },
+
   users: {
-    getMe: () => apiClient('/users/me'),
-    updateProfile: (data) => apiClient('/users/me', { method: 'PATCH', body: JSON.stringify(data) }),
-    getUser: (id) => apiClient(`/users/${id}`),
-    createUser: (input) => apiClient('/admin/users', { method: 'POST', body: JSON.stringify(input) }),
+    getMe: async () => {
+      const data = await apiClient<any>('/users/me');
+      return data.user || data;
+    },
+    updateProfile: async (data) => {
+      const res = await apiClient<any>('/users/me', { method: 'PATCH', body: JSON.stringify(data) });
+      return res.user || res;
+    },
+    getUser: async (id) => {
+      const data = await apiClient<any>(`/users/${id}`);
+      return data.user || data;
+    },
+    createUser: async (input) => {
+      const res = await apiClient<any>('/admin/users', { method: 'POST', body: JSON.stringify(input) });
+      return res.user || res;
+    },
     deleteUser: (userId) => apiClient(`/admin/users/${userId}`, { method: 'DELETE' }),
     getNetwork: (userId) => apiClient(`/users/${userId}/network`),
     follow: (userId) => apiClient(`/users/${userId}/follow`, { method: 'POST' }),
     unfollow: (userId) => apiClient(`/users/${userId}/follow`, { method: 'DELETE' }),
-    getBlockedUsers: () => apiClient('/users/blocked'),
+    getBlockedUsers: async () => {
+      const data = await apiClient<any>('/users/blocked');
+      return Array.isArray(data) ? data : data.users || [];
+    },
     blockUser: (userId) => apiClient(`/users/${userId}/block`, { method: 'POST' }),
     unblockUser: (userId) => apiClient(`/users/${userId}/block`, { method: 'DELETE' }),
     deleteAccount: (confirmation) => apiClient('/users/me', { method: 'DELETE', body: JSON.stringify({ confirmation }) }),
     exportData: () => apiClient('/users/me/export', { method: 'POST' }),
   },
+
   content: {
-    getFeed: (params) => apiClient(`/feed?${new URLSearchParams(params as Record<string, string>).toString()}`),
-    getReels: (params) => apiClient(`/reels?${new URLSearchParams(params as Record<string, string>).toString()}`),
-    getPost: (id) => apiClient(`/posts/${id}`),
-    createPost: (input) => apiClient('/posts', { method: 'POST', body: JSON.stringify(input) }),
-    updatePost: (id, patch) => apiClient(`/posts/${id}`, { method: 'PATCH', body: JSON.stringify(patch) }),
+    getFeed: async (params) => {
+      const search = params
+        ? `?${new URLSearchParams(params as unknown as Record<string, string>).toString()}`
+        : '';
+      const data = await apiClient<any>(`/feed${search}`);
+      return {
+        items: data.items || data.posts || [],
+        nextCursor: data.nextCursor,
+      };
+    },
+    getReels: async (params) => {
+      const search = params
+        ? `?${new URLSearchParams({ ...params, type: 'reel' } as unknown as Record<string, string>).toString()}`
+        : '?type=reel';
+      const data = await apiClient<any>(`/feed${search}`);
+      return {
+        items: data.items || data.posts || [],
+        nextCursor: data.nextCursor,
+      };
+    },
+    getPost: async (id) => {
+      const data = await apiClient<any>(`/posts/${id}`);
+      if (data && data.post) {
+        return {
+          ...data.post,
+          isLiked: data.isLiked ?? data.post.isLiked ?? false,
+          isSaved: data.isSaved ?? data.post.isSaved ?? false,
+        } as PostEntity;
+      }
+      return data as PostEntity;
+    },
+    createPost: async (input) => {
+      const res = await apiClient<any>('/posts', { method: 'POST', body: JSON.stringify(input) });
+      return res.post || res;
+    },
+    updatePost: async (id, patch) => {
+      const res = await apiClient<any>(`/posts/${id}`, { method: 'PATCH', body: JSON.stringify(patch) });
+      return res.post || res;
+    },
     deletePost: (id) => apiClient(`/posts/${id}`, { method: 'DELETE' }),
-    getComments: (postId) => apiClient(`/posts/${postId}/comments`),
-    addComment: (postId, input) => apiClient(`/posts/${postId}/comments`, { method: 'POST', body: JSON.stringify(input) }),
+    getComments: async (postId) => {
+      const data = await apiClient<any>(`/posts/${postId}/comments`);
+      return Array.isArray(data) ? data : data.comments || [];
+    },
+    addComment: async (postId, input) => {
+      const res = await apiClient<any>(`/posts/${postId}/comments`, { method: 'POST', body: JSON.stringify(input) });
+      return res.comment || res;
+    },
     deleteComment: (postId, commentId) => apiClient(`/posts/${postId}/comments/${commentId}`, { method: 'DELETE' }),
-    likePost: (postId) => apiClient(`/posts/${postId}/like`, { method: 'POST' }),
-    savePost: (postId) => apiClient(`/posts/${postId}/save`, { method: 'POST' }),
+    likePost: async (postId) => {
+      const res = await apiClient<any>(`/posts/${postId}/like`, { method: 'POST' });
+      return { liked: true, count: res.count ?? 1 };
+    },
+    savePost: async (postId) => {
+      const res = await apiClient<any>(`/posts/${postId}/save`, { method: 'POST' });
+      return { saved: res.saved ?? true };
+    },
     pinComment: (postId, commentId) => apiClient(`/posts/${postId}/comments/${commentId}/pin`, { method: 'POST' }),
     hideComment: (postId, commentId) => apiClient(`/posts/${postId}/comments/${commentId}/hide`, { method: 'POST' }),
   },
+
   verification: {
-    submitApplication: (input) => apiClient('/scholar/applications', { method: 'POST', body: JSON.stringify(input) }),
-    getMyApplication: () => apiClient('/scholar/applications/me'),
-    getApplications: (status) => apiClient(`/admin/applications${status ? `?status=${status}` : ''}`),
-    getApplication: (id) => apiClient(`/admin/applications/${id}`),
-    reviewApplication: (id, input) => apiClient(`/admin/applications/${id}/decision`, { method: 'POST', body: JSON.stringify(input) }),
+    submitApplication: async (input) => {
+      const res = await apiClient<any>('/scholar/applications', { method: 'POST', body: JSON.stringify(input) });
+      return res.application || res;
+    },
+    getMyApplication: async () => {
+      const res = await apiClient<any>('/scholar/applications/me');
+      return res.application || res || null;
+    },
+    getApplications: async (status) => {
+      const data = await apiClient<any>(`/admin/applications${status ? `?status=${status}` : ''}`);
+      return Array.isArray(data) ? data : data.applications || [];
+    },
+    getApplication: async (id) => {
+      const data = await apiClient<any>(`/admin/applications/${id}`);
+      return data.application || data;
+    },
+    reviewApplication: async (id, input) => {
+      const res = await apiClient<any>(`/admin/applications/${id}/decision`, { method: 'POST', body: JSON.stringify(input) });
+      return res.application || res;
+    },
     endorseApplication: (id) => apiClient(`/scholar/applications/${id}/endorse`, { method: 'POST' }),
   },
+
   chat: {
-    getConversations: (filter) => apiClient(`/conversations${filter ? `?filter=${filter}` : ''}`),
-    getMessages: (conversationId) => apiClient(`/conversations/${conversationId}/messages`),
-    sendMessage: (input) => apiClient(`/conversations/${input.conversationId}/messages`, { method: 'POST', body: JSON.stringify(input) }),
+    getConversations: async (filter) => {
+      const data = await apiClient<any>(`/conversations${filter ? `?filter=${filter}` : ''}`);
+      return Array.isArray(data) ? data : data.conversations || [];
+    },
+    getMessages: async (conversationId) => {
+      const data = await apiClient<any>(`/conversations/${conversationId}/messages`);
+      return Array.isArray(data) ? data : data.messages || [];
+    },
+    sendMessage: async (input) => {
+      const res = await apiClient<any>(`/conversations/${input.conversationId}/messages`, { method: 'POST', body: JSON.stringify(input) });
+      return res.message || res;
+    },
     sendChatRequest: (input) => apiClient('/chat/requests', { method: 'POST', body: JSON.stringify(input) }),
     respondChatRequest: (requestId, decision) => apiClient(`/chat/requests/${requestId}/respond`, { method: 'POST', body: JSON.stringify({ decision }) }),
   },
+
   live: {
-    getLiveSessions: () => apiClient('/live'),
-    getLiveSession: (id) => apiClient(`/live/${id}`),
-    createLiveSession: (input) => apiClient('/live', { method: 'POST', body: JSON.stringify(input) }),
+    getLiveSessions: async () => {
+      const data = await apiClient<any>('/live');
+      return Array.isArray(data) ? data : data.sessions || [];
+    },
+    getLiveSession: async (id) => {
+      const data = await apiClient<any>(`/live/${id}`);
+      return data.session || data;
+    },
+    createLiveSession: async (input) => {
+      const res = await apiClient<any>('/live', { method: 'POST', body: JSON.stringify(input) });
+      return res.session || res;
+    },
     endLiveSession: (id) => apiClient(`/live/${id}/end`, { method: 'POST' }),
     deleteLiveSession: (id) => apiClient(`/live/${id}`, { method: 'DELETE' }),
     getViewerToken: (id) => apiClient(`/live/${id}/token`, { method: 'POST' }),
   },
+
   calls: {
     initiateCall: (calleeId) => apiClient('/calls', { method: 'POST', body: JSON.stringify({ calleeId }) }),
-    getCallSession: (id) => apiClient(`/calls/${id}`),
+    getCallSession: async (id) => {
+      const data = await apiClient<any>(`/calls/${id}`);
+      return data.session || data;
+    },
     respondCall: (id, decision) => apiClient(`/calls/${id}/respond`, { method: 'POST', body: JSON.stringify({ decision }) }),
     endCall: (id) => apiClient(`/calls/${id}/end`, { method: 'POST' }),
   },
+
   moderation: {
     createReport: (input) => apiClient('/reports', { method: 'POST', body: JSON.stringify(input) }),
-    getReports: (params) => apiClient(`/admin/reports?${new URLSearchParams(params as Record<string, string>).toString()}`),
-    getReport: (id) => apiClient(`/admin/reports/${id}`),
+    getReports: async (params) => {
+      const query = params ? `?${new URLSearchParams(params as Record<string, string>).toString()}` : '';
+      const data = await apiClient<any>(`/admin/reports${query}`);
+      return Array.isArray(data) ? data : data.reports || [];
+    },
+    getReport: async (id) => {
+      const data = await apiClient<any>(`/admin/reports/${id}`);
+      return data.report || data;
+    },
     takeAction: (reportId, action) => apiClient(`/admin/reports/${reportId}/action`, { method: 'POST', body: JSON.stringify(action) }),
     deleteReport: (reportId) => apiClient(`/admin/reports/${reportId}`, { method: 'DELETE' }),
-    getAuditLogs: () => apiClient('/admin/audit-logs'),
-    getUsers: (query) => apiClient(`/admin/users${query ? `?q=${encodeURIComponent(query)}` : ''}`),
+    getAuditLogs: async () => {
+      const data = await apiClient<any>('/admin/audit-logs');
+      return Array.isArray(data) ? data : data.logs || data.auditLogs || [];
+    },
+    getUsers: async (query) => {
+      const data = await apiClient<any>(`/users${query ? `?q=${encodeURIComponent(query)}` : ''}`);
+      return Array.isArray(data) ? data : data.users || [];
+    },
     updateUserRole: (userId, roles) => apiClient(`/admin/users/${userId}/roles`, { method: 'PATCH', body: JSON.stringify({ roles }) }),
     revokeScholar: (userId, reason) => apiClient(`/admin/users/${userId}/revoke-scholar`, { method: 'POST', body: JSON.stringify({ reason }) }),
   },
+
   notifications: {
     getPreferences: () => apiClient('/notifications/preferences'),
     updatePreferences: (prefs) => apiClient('/notifications/preferences', { method: 'PUT', body: JSON.stringify(prefs) }),
   },
 };
-

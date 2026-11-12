@@ -1,7 +1,7 @@
 export type AdapterMode = 'mock' | 'http';
 
 let currentGlobalMode: AdapterMode =
-  (process.env.EXPO_PUBLIC_API_MODE as AdapterMode) || 'mock';
+  (process.env.EXPO_PUBLIC_API_MODE as AdapterMode) || 'http';
 
 type ModeListener = (mode: AdapterMode) => void;
 const modeListeners: Set<ModeListener> = new Set();

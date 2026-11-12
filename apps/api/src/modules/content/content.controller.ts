@@ -53,6 +53,7 @@ export class ContentController {
 
       res.status(200).json({
         posts: items,
+        items,
         nextCursor,
       });
     } catch (error) {
