@@ -104,6 +104,12 @@ export default function SettingsScreen() {
           {renderLink('close', 'Delete Account Permanently', 'GDPR / App Store compliant irrevocable account deletion', '/settings/delete-account')}
         </Card>
 
+        {/* Engineering & Developer Attribution */}
+        <Card style={styles.card}>
+          <Text style={styles.cardHeader}>Engineering & Architecture</Text>
+          {renderLink('profile', 'Lead Architect & Developer', 'Mohammed Khizer Shaikh portfolio & LinkedIn', '/settings/developer-info')}
+        </Card>
+
         {/* Logout */}
         <Button
           title="Sign Out of Sanad"

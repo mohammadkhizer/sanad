@@ -63,7 +63,7 @@ let messagesState: Record<string, MessageEntity[]> = { ...mockMessages };
 let liveSessionsState: LiveSessionEntity[] = [...mockLiveSessions];
 let reportsState: ReportEntity[] = [...mockReports];
 let auditLogsState: AuditLogEntity[] = [...mockAuditLogs];
-let currentUser: UserEntity = { ...mockUsers.scholar1 };
+let currentUser: UserEntity = { ...mockUsers.admin1 };
 
 const authMock: AuthModule = {
   async register(input) {
@@ -112,8 +112,10 @@ const authMock: AuthModule = {
       currentUser = { ...mockUsers.scholar2 };
     } else if (input.identifier.includes('member') || input.identifier.includes('zayd')) {
       currentUser = { ...mockUsers.member1 };
-    } else {
+    } else if (input.identifier.includes('scholar1') || input.identifier.includes('omar')) {
       currentUser = { ...mockUsers.scholar1 };
+    } else {
+      currentUser = { ...mockUsers.admin1 };
     }
 
     return {
@@ -179,6 +181,28 @@ const usersMock: UsersModule = {
     await simulateLatency();
     const found = Object.values(mockUsers).find((u) => u._id === id) || mockUsers.scholar1;
     return userEntitySchema.parse(found);
+  },
+
+  async createUser(input) {
+    await simulateLatency();
+    const newUser: UserEntity = {
+      _id: `usr_${Date.now()}`,
+      displayName: input.displayName || 'New User',
+      email: input.email,
+      phone: input.phone,
+      roles: input.roles || ['member'],
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      ...input,
+    };
+    mockUsers[newUser._id] = newUser;
+    return userEntitySchema.parse(newUser);
+  },
+
+  async deleteUser(userId) {
+    await simulateLatency();
+    delete mockUsers[userId];
+    return { success: true };
   },
 
   async getNetwork(userId) {
@@ -273,6 +297,20 @@ const contentMock: ContentModule = {
     return postEntitySchema.parse(newPost);
   },
 
+  async updatePost(id, patch) {
+    await simulateLatency();
+    const index = postsState.findIndex((p) => p._id === id);
+    if (index === -1) {
+      throw new Error('Post not found');
+    }
+    const updated = {
+      ...postsState[index],
+      ...patch,
+    };
+    postsState[index] = updated;
+    return postEntitySchema.parse(updated);
+  },
+
   async deletePost(id) {
     await simulateLatency();
     postsState = postsState.filter((p) => p._id !== id);
@@ -306,6 +344,14 @@ const contentMock: ContentModule = {
     if (!commentsState[postId]) commentsState[postId] = [];
     commentsState[postId].push(newComment);
     return commentEntitySchema.parse(newComment);
+  },
+
+  async deleteComment(postId, commentId) {
+    await simulateLatency();
+    if (commentsState[postId]) {
+      commentsState[postId] = commentsState[postId].filter((c) => c._id !== commentId);
+    }
+    return { success: true };
   },
 
   async likePost(postId) {
@@ -551,6 +597,12 @@ const liveMock: LiveModule = {
     return { success: true };
   },
 
+  async deleteLiveSession(id) {
+    await simulateLatency();
+    liveSessionsState = liveSessionsState.filter((l) => l._id !== id);
+    return { success: true };
+  },
+
   async getViewerToken(id) {
     await simulateLatency();
     return { token: 'mock_livekit_viewer_jwt_token', roomName: 'sanad-live-room' };
@@ -668,6 +720,12 @@ const moderationMock: ModerationModule = {
       ip: '127.0.0.1',
       createdAt: new Date().toISOString(),
     });
+    return { success: true };
+  },
+
+  async deleteReport(reportId) {
+    await simulateLatency();
+    reportsState = reportsState.filter((r) => r._id !== reportId);
     return { success: true };
   },
 

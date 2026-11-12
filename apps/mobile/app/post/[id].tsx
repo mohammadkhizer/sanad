@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
   TextInput,
   Share,
+  Alert,
+  Modal,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -16,6 +18,7 @@ import { colors } from '../../src/theme/colors';
 import { Avatar } from '../../src/components/Avatar';
 import { VerifiedBadge } from '../../src/components/VerifiedBadge';
 import { Card } from '../../src/components/Card';
+import { Button } from '../../src/components/Button';
 import { AppHeader } from '../../src/components/AppHeader';
 import { Icon } from '../../src/components/Icon';
 import { ReportModal } from '../../src/components/ReportModal';
@@ -31,12 +34,19 @@ export default function PostDetailScreen() {
 
   const [commentText, setCommentText] = useState('');
   const [reportModalVisible, setReportModalVisible] = useState(false);
+  const [isEditingPost, setIsEditingPost] = useState(false);
+  const [editCaption, setEditCaption] = useState('');
+  const [editTags, setEditTags] = useState('');
+
   const isScholar = Boolean(user?.roles?.includes('scholar') || user?.roles?.includes('admin'));
 
   const { data: post, isLoading } = useQuery<PostEntity>({
     queryKey: ['post', id],
     queryFn: () => api.content.getPost(id || 'post_reel_101'),
   });
+
+  const authorId = typeof post?.authorId === 'object' ? post.authorId._id : post?.authorId;
+  const canManagePost = Boolean(user?.roles?.includes('admin') || (user?.id && user.id === authorId));
 
   const { data: comments } = useQuery<CommentEntity[]>({
     queryKey: ['comments', id],
@@ -82,6 +92,66 @@ export default function PostDetailScreen() {
       queryClient.invalidateQueries({ queryKey: ['comments', id] });
     },
   });
+
+  const deleteCommentMutation = useMutation({
+    mutationFn: (commentId: string) =>
+      api.content.deleteComment(id || 'post_reel_101', commentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['comments', id] });
+      queryClient.invalidateQueries({ queryKey: ['post', id] });
+    },
+  });
+
+  const updatePostMutation = useMutation({
+    mutationFn: (patch: { caption: string; tags: string[] }) =>
+      api.content.updatePost(id || 'post_reel_101', patch as any),
+    onSuccess: () => {
+      setIsEditingPost(false);
+      queryClient.invalidateQueries({ queryKey: ['post', id] });
+      queryClient.invalidateQueries({ queryKey: ['feed'] });
+      Alert.alert('Updated', 'Lesson updated successfully');
+    },
+  });
+
+  const deletePostMutation = useMutation({
+    mutationFn: () => api.content.deletePost(id || 'post_reel_101'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['feed'] });
+      queryClient.invalidateQueries({ queryKey: ['reels'] });
+      Alert.alert('Deleted', 'Lesson was deleted successfully');
+      router.replace('/(tabs)/feed');
+    },
+  });
+
+  const handleOpenEdit = () => {
+    if (!post) return;
+    setEditCaption(post.caption);
+    setEditTags((post.tags || []).join(', '));
+    setIsEditingPost(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editCaption.trim()) return;
+    const tagsArray = editTags
+      .split(',')
+      .map((t) => t.trim().replace(/^#/, ''))
+      .filter(Boolean);
+    updatePostMutation.mutate({
+      caption: editCaption.trim(),
+      tags: tagsArray,
+    });
+  };
+
+  const handleDeletePost = () => {
+    Alert.alert('Delete Lesson', 'Are you sure you want to permanently delete this lesson?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete Permanently',
+        style: 'destructive',
+        onPress: () => deletePostMutation.mutate(),
+      },
+    ]);
+  };
 
   const handleShare = async () => {
     if (!post) return;
@@ -209,6 +279,24 @@ export default function PostDetailScreen() {
               />
             </TouchableOpacity>
           </View>
+
+          {/* Post Management (Author / Admin CRUD) */}
+          {canManagePost && (
+            <View style={styles.postManageBar}>
+              <TouchableOpacity style={styles.manageBtn} onPress={handleOpenEdit}>
+                <Icon name="settings" size={16} color={colors.light.primary} />
+                <Text style={styles.manageBtnText}>Edit Lesson</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.manageBtn, styles.deleteBtn]}
+                onPress={handleDeletePost}
+                disabled={deletePostMutation.isPending}
+              >
+                <Icon name="close" size={16} color="#B3261E" />
+                <Text style={[styles.manageBtnText, { color: '#B3261E' }]}>Delete Lesson</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </Card>
 
         {/* Comments Section */}
@@ -269,6 +357,14 @@ export default function PostDetailScreen() {
                     <Icon name="close" size={14} color="#B3261E" />
                     <Text style={[styles.modActionText, { color: '#B3261E' }]}>Hide</Text>
                   </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => deleteCommentMutation.mutate(comm._id)}
+                    style={styles.modAction}
+                  >
+                    <Icon name="close" size={14} color="#B3261E" />
+                    <Text style={[styles.modActionText, { color: '#B3261E' }]}>Delete</Text>
+                  </TouchableOpacity>
                 </View>
               )}
             </Card>
@@ -304,6 +400,53 @@ export default function PostDetailScreen() {
           onClose={() => setReportModalVisible(false)}
         />
       )}
+
+      {/* Edit Lesson Modal */}
+      <Modal visible={isEditingPost} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Edit Scholarly Lesson</Text>
+              <TouchableOpacity onPress={() => setIsEditingPost(false)}>
+                <Icon name="close" size={20} color={colors.light.textMuted} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.modalLabel}>Lesson Caption</Text>
+            <TextInput
+              style={styles.modalInput}
+              multiline
+              numberOfLines={4}
+              value={editCaption}
+              onChangeText={setEditCaption}
+              placeholder="Enter lesson text..."
+              placeholderTextColor={colors.light.textMuted}
+            />
+            <Text style={styles.modalLabel}>Tags (comma separated)</Text>
+            <TextInput
+              style={[styles.modalInput, { height: 44 }]}
+              value={editTags}
+              onChangeText={setEditTags}
+              placeholder="Hadith, Fiqh, Usul"
+              placeholderTextColor={colors.light.textMuted}
+            />
+            <View style={styles.modalActions}>
+              <Button
+                title="Cancel"
+                variant="outline"
+                onPress={() => setIsEditingPost(false)}
+                style={{ flex: 1 }}
+              />
+              <Button
+                title="Save Changes"
+                variant="primary"
+                onPress={handleSaveEdit}
+                loading={updatePostMutation.isPending}
+                style={{ flex: 1 }}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -543,5 +686,79 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     backgroundColor: colors.light.border,
+  },
+  postManageBar: {
+    flexDirection: 'row',
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.light.border,
+    paddingTop: 12,
+    marginTop: 12,
+  },
+  manageBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: colors.light.surfaceElevated,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+  },
+  deleteBtn: {
+    borderColor: '#F8D7DA',
+    backgroundColor: '#FFF5F5',
+  },
+  manageBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.light.primary,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: colors.light.surface,
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.light.primary,
+  },
+  modalLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.light.text,
+    marginBottom: 6,
+    marginTop: 10,
+  },
+  modalInput: {
+    backgroundColor: colors.light.surfaceElevated,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 14,
+    color: colors.light.text,
+    textAlignVertical: 'top',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 20,
   },
 });

@@ -40,6 +40,8 @@ export interface UsersModule {
   getMe(): Promise<UserEntity>;
   updateProfile(data: Partial<UserEntity>): Promise<UserEntity>;
   getUser(id: string): Promise<UserEntity>;
+  createUser(input: Partial<UserEntity>): Promise<UserEntity>;
+  deleteUser(userId: string): Promise<{ success: boolean }>;
   getNetwork(userId: string): Promise<{ followers: UserEntity[]; following: UserEntity[] }>;
   follow(userId: string): Promise<{ following: boolean }>;
   unfollow(userId: string): Promise<{ following: boolean }>;
@@ -55,9 +57,11 @@ export interface ContentModule {
   getReels(params?: { cursor?: string; limit?: number }): Promise<{ items: PostEntity[]; nextCursor?: string }>;
   getPost(id: string): Promise<PostEntity>;
   createPost(input: CreatePostInput): Promise<PostEntity>;
+  updatePost(id: string, patch: Partial<CreatePostInput>): Promise<PostEntity>;
   deletePost(id: string): Promise<{ success: boolean }>;
   getComments(postId: string): Promise<CommentEntity[]>;
   addComment(postId: string, input: AddCommentInput): Promise<CommentEntity>;
+  deleteComment(postId: string, commentId: string): Promise<{ success: boolean }>;
   likePost(postId: string): Promise<{ liked: boolean; count: number }>;
   savePost(postId: string): Promise<{ saved: boolean }>;
   pinComment(postId: string, commentId: string): Promise<{ success: boolean }>;
@@ -86,6 +90,7 @@ export interface LiveModule {
   getLiveSession(id: string): Promise<LiveSessionEntity>;
   createLiveSession(input: CreateLiveInput): Promise<LiveSessionEntity>;
   endLiveSession(id: string): Promise<{ success: boolean }>;
+  deleteLiveSession(id: string): Promise<{ success: boolean }>;
   getViewerToken(id: string): Promise<{ token: string; roomName: string }>;
 }
 
@@ -101,6 +106,7 @@ export interface ModerationModule {
   getReports(params?: { status?: string; priority?: string }): Promise<ReportEntity[]>;
   getReport(id: string): Promise<ReportEntity>;
   takeAction(reportId: string, action: ModerationActionInput): Promise<{ success: boolean }>;
+  deleteReport(reportId: string): Promise<{ success: boolean }>;
   getAuditLogs(): Promise<AuditLogEntity[]>;
   getUsers(query?: string): Promise<UserEntity[]>;
   updateUserRole(userId: string, roles: Role[]): Promise<UserEntity>;

@@ -1,0 +1,11 @@
+# Sanad Platform Robots Exclusion Directive
+User-agent: *
+Allow: /
+Allow: /llms.txt
+Allow: /sitemap.xml
+Allow: /geo.json
+Disallow: /admin/
+Disallow: /settings/
+Disallow: /api/
+
+Sitemap: https://sanad.app/sitemap.xml

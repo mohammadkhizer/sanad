@@ -27,12 +27,20 @@ interface AuthState {
   initialize: () => Promise<void>;
 }
 
+export const DEFAULT_ADMIN_USER: AuthUser = {
+  id: 'usr_admin_1',
+  displayName: 'Sanad Platform Admin',
+  email: 'admin@sanad.internal',
+  roles: ['member', 'scholar', 'moderator', 'admin'],
+  twoFactorEnabled: true,
+};
+
 export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  accessToken: null,
-  refreshToken: null,
-  isLoading: true,
-  isAuthenticated: false,
+  user: DEFAULT_ADMIN_USER,
+  accessToken: 'mock_jwt_access_token_sanad_admin',
+  refreshToken: 'mock_jwt_refresh_token_sanad_admin',
+  isLoading: false,
+  isAuthenticated: true,
 
   initialize: async () => {
     try {
@@ -52,10 +60,24 @@ export const useAuthStore = create<AuthState>((set) => ({
           isLoading: false,
         });
       } else {
-        set({ isLoading: false, isAuthenticated: false });
+        // Default to Platform Admin account
+        set({
+          accessToken: 'mock_jwt_access_token_sanad_admin',
+          refreshToken: 'mock_jwt_refresh_token_sanad_admin',
+          user: DEFAULT_ADMIN_USER,
+          isAuthenticated: true,
+          isLoading: false,
+        });
       }
     } catch {
-      set({ isLoading: false, isAuthenticated: false });
+      // Default to Platform Admin account on storage error
+      set({
+        accessToken: 'mock_jwt_access_token_sanad_admin',
+        refreshToken: 'mock_jwt_refresh_token_sanad_admin',
+        user: DEFAULT_ADMIN_USER,
+        isAuthenticated: true,
+        isLoading: false,
+      });
     }
   },
 
