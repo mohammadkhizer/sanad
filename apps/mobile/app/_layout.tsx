@@ -39,7 +39,6 @@ export default function RootLayout() {
           <Stack.Screen name="scholar/apply" options={{ presentation: 'modal', headerShown: false }} />
           <Stack.Screen name="scholar/status" options={{ headerShown: false }} />
           <Stack.Screen name="scholar/dashboard" options={{ headerShown: false }} />
-          <Stack.Screen name="scholar/schedule-live" options={{ headerShown: false }} />
           <Stack.Screen name="scholar/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="post/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="profile/[id]/network" options={{ headerShown: false }} />
@@ -54,7 +53,6 @@ export default function RootLayout() {
           <Stack.Screen name="settings/data-export" options={{ headerShown: false }} />
           <Stack.Screen name="settings/blocked-users" options={{ headerShown: false }} />
           <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
-          <Stack.Screen name="live/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="call/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="admin/review-queue" options={{ headerShown: false }} />
           <Stack.Screen name="admin/applications/[id]" options={{ headerShown: false }} />

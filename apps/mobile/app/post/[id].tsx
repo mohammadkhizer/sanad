@@ -10,6 +10,7 @@ import {
   Share,
   Alert,
   Modal,
+  Animated,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -37,6 +38,15 @@ export default function PostDetailScreen() {
   const [isEditingPost, setIsEditingPost] = useState(false);
   const [editCaption, setEditCaption] = useState('');
   const [editTags, setEditTags] = useState('');
+  const likeScale = React.useRef(new Animated.Value(1)).current;
+
+  const handleLike = () => {
+    Animated.sequence([
+      Animated.spring(likeScale, { toValue: 1.35, useNativeDriver: true, speed: 45 }),
+      Animated.spring(likeScale, { toValue: 1.0, useNativeDriver: true, speed: 30, bounciness: 6 }),
+    ]).start();
+    likeMutation.mutate();
+  };
 
   const isScholar = Boolean(user?.roles?.includes('scholar') || user?.roles?.includes('admin'));
 
@@ -248,14 +258,16 @@ export default function PostDetailScreen() {
             <View style={styles.actionsLeft}>
               <TouchableOpacity
                 style={styles.actionBtn}
-                onPress={() => likeMutation.mutate()}
+                onPress={handleLike}
                 disabled={likeMutation.isPending}
               >
-                <Icon
-                  name={post.isLiked ? 'heart' : 'heart-outline'}
-                  size={22}
-                  color={post.isLiked ? '#B3261E' : colors.light.textSecondary}
-                />
+                <Animated.View style={{ transform: [{ scale: likeScale }] }}>
+                  <Icon
+                    name={post.isLiked ? 'heart' : 'heart-outline'}
+                    size={22}
+                    color={post.isLiked ? '#B3261E' : colors.light.textSecondary}
+                  />
+                </Animated.View>
                 <Text style={[styles.actionCount, post.isLiked && styles.actionCountLiked]}>
                   {post.counts.likes}
                 </Text>

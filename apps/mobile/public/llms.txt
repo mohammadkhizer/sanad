@@ -37,3 +37,4 @@ Sanad (سند) is a verified-scholars-only social, educational, and live streami
 - API Base: https://api.sanad.app/api/v1 (Dev: http://localhost:4000/api/v1)
 - Liveness Check: /health
 - Discovery Files: /robots.txt, /sitemap.xml, /llms.txt, /geo.json
+

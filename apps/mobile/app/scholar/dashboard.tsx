@@ -16,30 +16,9 @@ export default function ScholarDashboardScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const [liveTitle, setLiveTitle] = useState('');
-  const [liveDesc, setLiveDesc] = useState('');
-
   const { data: postsData } = useQuery<{ items: PostEntity[] }>({
     queryKey: ['scholarMyPosts'],
     queryFn: () => api.content.getFeed(),
-  });
-
-  const goLiveMutation = useMutation({
-    mutationFn: async () => {
-      if (!liveTitle.trim()) {
-        throw new Error('Please provide a title for your live circle');
-      }
-      return api.live.createLiveSession({
-        title: liveTitle.trim(),
-        description: liveDesc.trim() || undefined,
-      });
-    },
-    onSuccess: (session) => {
-      router.push(`/live/${session._id}`);
-    },
-    onError: (e: Error) => {
-      Alert.alert('Error', e.message);
-    },
   });
 
   const deletePostMutation = useMutation({
@@ -74,7 +53,7 @@ export default function ScholarDashboardScreen() {
       <View style={styles.screen}>
       <AppHeader
         title="Scholar Studio"
-        subtitle="Broadcast and Curriculum Control"
+        subtitle="Curriculum and Teaching Control"
         showBack
         rightIcon="create"
         onRightPress={() => router.push('/(tabs)/create')}
@@ -99,52 +78,6 @@ export default function ScholarDashboardScreen() {
             <View style={styles.metricAccent} />
           </Card>
         </View>
-
-        {/* Live Circle Launcher */}
-        <Card style={styles.card}>
-          <View style={styles.cardHeaderRow}>
-            <View style={styles.cardTitleBox}>
-              <View style={styles.liveIndicator} />
-              <Text style={styles.sectionTitle}>Host Live Halaqah</Text>
-            </View>
-            <Text style={styles.liveTag}>Real-Time</Text>
-          </View>
-          <Text style={styles.sectionSubtitle}>
-            Broadcast live video lectures with moderated student questions and scholarly peer commentary.
-          </Text>
-
-          <Input
-            label="Halaqah Subject Title *"
-            placeholder="e.g. Sahih al-Bukhari Kitab al-Ilm Masterclass"
-            value={liveTitle}
-            onChangeText={setLiveTitle}
-          />
-
-          <Input
-            label="Curriculum Description (Optional)"
-            placeholder="Outline texts, chapters, and Q&A protocols..."
-            value={liveDesc}
-            onChangeText={setLiveDesc}
-            multiline
-            numberOfLines={2}
-          />
-
-          <View style={styles.btnRow}>
-            <Button
-              title="Broadcast Live Now"
-              variant="accent"
-              onPress={() => goLiveMutation.mutate()}
-              loading={goLiveMutation.isPending}
-              style={styles.flexBtn}
-            />
-            <Button
-              title="Schedule Later"
-              variant="outline"
-              onPress={() => router.push('/scholar/schedule-live')}
-              style={styles.flexBtn}
-            />
-          </View>
-        </Card>
 
         {/* Published Curriculum Management */}
         <Card style={styles.card}>

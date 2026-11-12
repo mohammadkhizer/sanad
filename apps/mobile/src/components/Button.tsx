@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   TouchableOpacity,
   Text,
@@ -7,6 +7,7 @@ import {
   ViewStyle,
   TextStyle,
   StyleProp,
+  Animated,
 } from 'react-native';
 import { colors } from '../theme/colors';
 
@@ -33,39 +34,66 @@ export const Button: React.FC<ButtonProps> = ({
   const isOutline = variant === 'outline';
   const isDanger = variant === 'danger';
 
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    if (disabled || loading) return;
+    Animated.spring(scaleAnim, {
+      toValue: 0.96,
+      useNativeDriver: true,
+      speed: 30,
+      bounciness: 4,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    if (disabled || loading) return;
+    Animated.spring(scaleAnim, {
+      toValue: 1.0,
+      useNativeDriver: true,
+      speed: 30,
+      bounciness: 4,
+    }).start();
+  };
+
   return (
-    <TouchableOpacity
-      activeOpacity={0.8}
-      onPress={onPress}
-      disabled={disabled || loading}
-      style={[
-        styles.button,
-        isAccent && styles.accentButton,
-        isOutline && styles.outlineButton,
-        isDanger && styles.dangerButton,
-        disabled && styles.disabledButton,
-        style,
-      ]}
-    >
-      {loading ? (
-        <ActivityIndicator
-          size="small"
-          color={isAccent ? colors.light.accentText : isOutline ? colors.light.primary : '#FFFFFF'}
-        />
-      ) : (
-        <Text
-          style={[
-            styles.text,
-            isAccent && styles.accentText,
-            isOutline && styles.outlineText,
-            disabled && styles.disabledText,
-            textStyle,
-          ]}
-        >
-          {title}
-        </Text>
-      )}
-    </TouchableOpacity>
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={disabled || loading}
+        style={[
+          styles.button,
+          isAccent && styles.accentButton,
+          isOutline && styles.outlineButton,
+          isDanger && styles.dangerButton,
+          disabled && styles.disabledButton,
+          style,
+        ]}
+      >
+        {loading ? (
+          <ActivityIndicator
+            size="small"
+            color={isAccent ? colors.light.accentText : isOutline ? colors.light.primary : '#FFFFFF'}
+          />
+        ) : (
+          <Text
+            style={[
+              styles.text,
+              isAccent && styles.accentText,
+              isOutline && styles.outlineText,
+              isDanger && styles.dangerText,
+              disabled && styles.disabledText,
+              textStyle,
+            ]}
+          >
+            {title}
+          </Text>
+        )}
+      </TouchableOpacity>
+    </Animated.View>
   );
 };
 
@@ -104,6 +132,9 @@ const styles = StyleSheet.create({
   },
   outlineText: {
     color: colors.light.primary,
+  },
+  dangerText: {
+    color: '#FFFFFF',
   },
   disabledText: {
     color: '#9CA3AF',

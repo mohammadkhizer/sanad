@@ -82,7 +82,7 @@ export default function TwoFactorSetupScreen() {
             </View>
             <Text style={styles.cardTitle}>Protect Your Sanad Authority</Text>
             <Text style={styles.cardText}>
-              Two-factor authentication adds cryptographic protection to your credentials. Verified scholars must enable 2FA prior to publishing lessons or hosting live circles.
+              Two-factor authentication adds cryptographic protection to your credentials. Verified scholars must enable 2FA prior to publishing video lessons or curricula.
             </Text>
             <Button
               title="Generate 2FA Secret Key"

@@ -21,7 +21,7 @@ const DEVELOPER_PROFILE = {
   title: 'Lead Software Architect & Senior Engineer',
   role: 'Creator & Architect of Sanad Platform',
   portfolioUrl: 'https://mohammedkhizershaikh.netlify.app',
-  linkedinUrl: 'https://www.linkedin.com/in/mohammedkhizershaikh',
+  linkedinUrl: 'https://www.linkedin.com/in/mohammed-khizer-shaikh',
   githubUrl: 'https://github.com/mohammedkhizer',
   location: 'Global / Remote',
   specializations: [
@@ -297,3 +297,4 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
 });
+

@@ -36,7 +36,11 @@
     "plugins": [
       "expo-router",
       "expo-secure-store"
-    ]
+    ],
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    }
   }
 }
 

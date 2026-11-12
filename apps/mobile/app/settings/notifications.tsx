@@ -10,7 +10,7 @@ import { api } from '../../src/api';
 export default function NotificationsSettingsScreen() {
   const [pushEnabled, setPushEnabled] = useState(true);
   const [prayerQuietHours, setPrayerQuietHours] = useState(true);
-  const [liveAlerts, setLiveAlerts] = useState(true);
+  const [newLessonsAlert, setNewLessonsAlert] = useState(true);
   const [chatRequests, setChatRequests] = useState(true);
   const [loading, setLoading] = useState(false);
 
@@ -59,12 +59,12 @@ export default function NotificationsSettingsScreen() {
 
           <View style={styles.settingRow}>
             <View style={styles.textContainer}>
-              <Text style={styles.settingLabel}>Scholar Live Broadcasts</Text>
-              <Text style={styles.settingSub}>Alerts when followed teachers begin broadcasting</Text>
+              <Text style={styles.settingLabel}>New Lesson Releases</Text>
+              <Text style={styles.settingSub}>Alerts when followed scholars publish new video lessons</Text>
             </View>
             <Switch
-              value={liveAlerts}
-              onValueChange={setLiveAlerts}
+              value={newLessonsAlert}
+              onValueChange={setNewLessonsAlert}
               trackColor={{ false: colors.light.border, true: colors.light.primary }}
             />
           </View>

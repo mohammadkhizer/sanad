@@ -15,7 +15,7 @@ import { VerifiedBadge } from '../../src/components/VerifiedBadge';
 import { AppHeader } from '../../src/components/AppHeader';
 import { Icon } from '../../src/components/Icon';
 import { useRouter } from 'expo-router';
-import { LiveSessionEntity, UserEntity } from '@sanad/shared';
+import { UserEntity } from '@sanad/shared';
 
 const POPULAR_TOPICS = [
   'Hadith Sciences',
@@ -31,24 +31,18 @@ export default function ExploreScreen() {
   const [search, setSearch] = useState('');
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
 
-  const { data: livesData } = useQuery<LiveSessionEntity[]>({
-    queryKey: ['activeLives'],
-    queryFn: () => api.live.getLiveSessions(),
-  });
-
   const { data: scholarsData } = useQuery<UserEntity[]>({
     queryKey: ['exploreScholars', search],
     queryFn: () => api.moderation.getUsers(search),
   });
 
-  const lives = livesData || [];
   const scholars = (scholarsData || []).filter((u) => u.roles.includes('scholar'));
 
   return (
     <View style={styles.container}>
       <AppHeader
         title="Discover Knowledge"
-        subtitle="Accredited teachers and live study circles"
+        subtitle="Accredited teachers and authentic curriculum"
         rightIcon="filter"
       />
 
@@ -85,57 +79,6 @@ export default function ExploreScreen() {
             })}
           </ScrollView>
         </View>
-
-        {/* Active Live Broadcasts */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Active Study Circles</Text>
-          <View style={styles.badgeLive}>
-            <Icon name="live" size={13} color="#FFFFFF" />
-            <Text style={styles.badgeLiveText}>LIVE CIRCLE</Text>
-          </View>
-        </View>
-
-        {lives.length === 0 ? (
-          <Card style={styles.emptyCard}>
-            <Text style={styles.emptyText}>
-              No live study circles currently broadcasting. Scheduled sessions will appear here.
-            </Text>
-          </Card>
-        ) : (
-          lives.map((session) => {
-            const host = typeof session.hostId === 'object' ? session.hostId : null;
-            return (
-              <TouchableOpacity
-                key={session._id}
-                activeOpacity={0.8}
-                onPress={() => router.push(`/live/${session._id}`)}
-              >
-                <Card style={styles.liveCard}>
-                  <View style={styles.liveRow}>
-                    <Avatar
-                      name={host?.displayName || 'Host Scholar'}
-                      url={host?.avatarUrl}
-                      size={44}
-                    />
-                    <View style={styles.liveInfo}>
-                      <Text style={styles.liveTitle}>{session.title}</Text>
-                      <Text style={styles.liveHost}>
-                        {host?.displayName || 'Accredited Teacher'}
-                      </Text>
-                      <Text style={styles.viewersCount}>
-                        {session.viewerCount} verified learners attending
-                      </Text>
-                    </View>
-                    <View style={styles.joinButton}>
-                      <Text style={styles.joinButtonText}>Enter</Text>
-                      <Icon name="chevron-right" size={14} color="#FFFFFF" />
-                    </View>
-                  </View>
-                </Card>
-              </TouchableOpacity>
-            );
-          })
-        )}
 
         {/* Accredited Scholars Directory */}
         <View style={styles.sectionHeader}>

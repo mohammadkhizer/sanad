@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { StyleSheet, ViewStyle, StyleProp, Animated } from 'react-native';
 import { colors } from '../theme/colors';
 
 interface CardProps {
@@ -8,7 +8,38 @@ interface CardProps {
 }
 
 export const Card: React.FC<CardProps> = ({ children, style }) => {
-  return <View style={[styles.card, style]}>{children}</View>;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const translateAnim = useRef(new Animated.Value(4)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 220,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateAnim, {
+        toValue: 0,
+        duration: 220,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  return (
+    <Animated.View
+      style={[
+        styles.card,
+        {
+          opacity: fadeAnim,
+          transform: [{ translateY: translateAnim }],
+        },
+        style,
+      ]}
+    >
+      {children}
+    </Animated.View>
+  );
 };
 
 const styles = StyleSheet.create({

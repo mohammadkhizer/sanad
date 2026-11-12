@@ -187,7 +187,7 @@ export default function ScholarApplicationStatusScreen() {
           <Card style={styles.card}>
             <Text style={styles.actionCardTitle}>Complete Scholar Onboarding</Text>
             <Text style={styles.actionCardText}>
-              Sanad policy mandates Two-Factor Authentication (2FA) for all accredited scholars before publishing video lessons or hosting live halaqahs.
+              Sanad policy mandates Two-Factor Authentication (2FA) for all accredited scholars before publishing video lessons or curricula.
             </Text>
             <Button
               title="Configure Mandatory 2FA"

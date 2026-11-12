@@ -18,7 +18,7 @@ Tick items as you complete them. Do not start the next phase until the current p
 | **Curriculum & Reels** | Following/Discover feeds, Reels pager, video trimmer UI, comment controls | Post model, upload signing controller, cursor pagination, rate limits | Mock Adapter active; Mux webhook secret pending |
 | **Social Engagements** | Likes, bookmarks, shares, replies, blocking, mute, report modal | Atomic increment counters, block list filtering, report schemas | Mock Adapter active; HTTP Adapter stubs ready |
 | **Scholarly Inquiries (Chat)**| Conversation list, message bubble UI, inquiry requests, attachments | Socket.io server, Redis adapter, block checks, read receipts | Mock Realtime active; Socket.io client cutover pending |
-| **Live Halaqah & Calls** | Schedule halaqah UI, host/viewer rooms, in-call signaling UI | LiveKit token generation, role grants, call signaling state | Mock MediaSession active; LiveKit cloud link pending |
+| **Scholarly Calls & Consultations** | Private consultation call UI (Audio/Video), WebRTC signaling | LiveKit token generation, role grants, call signaling state | Live halaqah stream removed; 1-on-1 consultations active |
 | **Moderation & Admin** | Triage queues (P0/P1/P2), dossier review, role management, audit viewer | Moderation routes, audit logging, suspension, scholar revocation | AccessGuard enforced; Mobile Admin operational |
 | **Notifications & System** | In-app notification list, category preferences, quiet hours settings | Device token registry, preferences endpoints | BullMQ workers & push dispatchers pending |
 | **Legal, Privacy & Compliance**| In-app deletion, data export, terms modal, 13+ age compliance | Data retention policies, NoSQL sanitization, rate limiters | Legal documents finalized in docs/ |
@@ -427,16 +427,16 @@ Tick items as you complete them. Do not start the next phase until the current p
 *Needed before store submission (privacy URL, support URL, account-deletion page).*
 
 ### 20.1 Public site
-- [ ] Domain purchased, HTTPS enforced
-- [ ] Home page with store download links
-- [ ] "How verification works" page
-- [ ] Scholar application info and FAQ
-- [ ] Legal pages published: Terms, Privacy, Code of Conduct, Content Policy (see section 21)
-- [ ] Contact and support page
-- [ ] Report-abuse form
-- [ ] Account deletion page (required for Google Play)
-- [ ] Optional: public scholar directory
-- [ ] Stack chosen (Next.js on Vercel or Cloudflare); npm only, no pnpm
+- [ ] Domain purchased, HTTPS enforced (Target: sanad.app and app.sanad.app)
+- [x] Home page with store download links and portal launch CTA
+- [x] "How verification works" page (`/how-verification-works`)
+- [x] Scholar application info and FAQ (`/#faq`)
+- [x] Legal pages published: Terms (`/terms`), Privacy (`/privacy`), Code of Conduct (`/conduct`)
+- [x] Contact and support instructions published
+- [x] Report-abuse in-app modal and procedures documented
+- [x] Account deletion page (`/delete-account`, required for Google Play & Apple Store)
+- [x] Stack chosen (Next.js App Router, TypeScript, npm workspaces only)
+- [ ] Production web hosting cutover (scheduled for final phase after mobile stabilization)
 
 ### 20.2 Deep links
 - [ ] `apple-app-site-association` file hosted

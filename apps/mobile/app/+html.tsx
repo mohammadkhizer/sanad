@@ -10,7 +10,7 @@ const SCHEMA_JSON_LD = JSON.stringify({
       name: 'Sanad',
       url: 'https://sanad.app',
       logo: 'https://sanad.app/assets/brand/icon.png',
-      description: 'The premier verified-scholars-only platform for classical Islamic sciences, isnad methodology, halaqah livestreams, and authentic curriculum.',
+      description: 'The premier verified-scholars-only platform for classical Islamic sciences, isnad methodology, authentic masterclasses, and traditional curriculum.',
       founder: {
         '@type': 'Person',
         name: 'Mohammed Khizer Shaikh',
@@ -61,16 +61,21 @@ export default function RootHtml({ children }: { children: React.ReactNode }) {
         <meta name="title" content="Sanad | Verified Scholars Knowledge & Learning Platform" />
         <meta
           name="description"
-          content="The premier verified-scholars-only platform for authentic Islamic sciences, isnad transmission chains, halaqah livestreams, and traditional curriculum."
+          content="The premier verified-scholars-only platform for authentic Islamic sciences, isnad transmission chains, structured masterclasses, and traditional curriculum."
         />
         <meta
           name="keywords"
-          content="Islamic scholarship, verified scholars, Hadith, Fiqh, Usul al-Fiqh, Isnad, Halaqah, traditional learning, Sanad, authentic knowledge"
+          content="Islamic scholarship, verified scholars, Hadith, Fiqh, Usul al-Fiqh, Isnad, masterclasses, traditional learning, Sanad, authentic knowledge"
         />
         <meta name="author" content="Mohammed Khizer Shaikh (mohammedkhizershaikh.netlify.app)" />
         <meta name="creator" content="Mohammed Khizer Shaikh" />
         <meta name="publisher" content="Sanad Platform" />
         <link rel="canonical" href="https://sanad.app" />
+
+        {/* Favicons & App Icons */}
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="48x48" href="/favicon.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
         {/* OpenGraph / Facebook */}
         <meta property="og:type" content="website" />
@@ -78,7 +83,7 @@ export default function RootHtml({ children }: { children: React.ReactNode }) {
         <meta property="og:title" content="Sanad | Verified Scholars Knowledge & Learning Platform" />
         <meta
           property="og:description"
-          content="Connect with accredited scholars across traditional chains of transmission (Isnad). Live Halaqah, verified lessons, and scholarly inquiries."
+          content="Connect with accredited scholars across traditional chains of transmission (Isnad). Verified lessons, curriculum, and scholarly inquiries."
         />
         <meta property="og:image" content="https://sanad.app/assets/brand/splash-mark.png" />
         <meta property="og:site_name" content="Sanad" />
@@ -118,3 +123,4 @@ export default function RootHtml({ children }: { children: React.ReactNode }) {
     </html>
   );
 }
+

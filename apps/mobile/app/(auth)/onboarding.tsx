@@ -19,7 +19,7 @@ const slides: Slide[] = [
     icon: 'verified',
     title: 'Authentic Knowledge, Verified Lineage',
     subtitle: 'Sanad connects you directly with accredited traditional and academic scholars.',
-    detail: 'Only verified scholars can publish lessons, host live sessions, and answer legal questions.',
+    detail: 'Only verified scholars can publish video lessons and answer legal questions.',
   },
   {
     badge: 'Scholarly Curriculum',

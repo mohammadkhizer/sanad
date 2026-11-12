@@ -95,7 +95,7 @@ export default function ScholarProfileScreen() {
   const handleBlockUser = () => {
     Alert.alert(
       'Block Scholar',
-      'Are you sure you want to block this user? You will no longer see their content or live circles.',
+      'Are you sure you want to block this user? You will no longer see their content or teachings.',
       [
         { text: 'Cancel', style: 'cancel' },
         {

@@ -9,3 +9,4 @@ Disallow: /settings/
 Disallow: /api/
 
 Sitemap: https://sanad.app/sitemap.xml
+

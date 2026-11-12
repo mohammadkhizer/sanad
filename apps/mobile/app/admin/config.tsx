@@ -61,7 +61,7 @@ export default function AdminConfigScreen() {
           <View style={styles.settingRow}>
             <View style={styles.textContainer}>
               <Text style={styles.settingLabel}>Mandatory 2FA Before Publishing</Text>
-              <Text style={styles.settingSub}>Blocks video/live publishing until 2FA is verified</Text>
+              <Text style={styles.settingSub}>Blocks video publishing until 2FA is verified</Text>
             </View>
             <Switch
               value={enforceTwoFactor}
