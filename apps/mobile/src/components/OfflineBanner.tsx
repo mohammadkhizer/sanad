@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Text, StyleSheet, Animated } from 'react-native';
+import { Text, StyleSheet, Animated, Platform } from 'react-native';
 import { colors } from '../theme/colors';
 
 interface OfflineBannerProps {
@@ -13,14 +13,14 @@ export function OfflineBanner({ isOffline }: OfflineBannerProps) {
     if (isOffline) {
       Animated.spring(slideAnim, {
         toValue: 0,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
         bounciness: 4,
       }).start();
     } else {
       Animated.timing(slideAnim, {
         toValue: -32,
         duration: 180,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }).start();
     }
   }, [isOffline]);

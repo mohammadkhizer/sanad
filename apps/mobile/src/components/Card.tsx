@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { StyleSheet, ViewStyle, StyleProp, Animated } from 'react-native';
+import { StyleSheet, ViewStyle, StyleProp, Animated, Platform } from 'react-native';
 import { colors } from '../theme/colors';
 
 interface CardProps {
@@ -16,12 +16,12 @@ export const Card: React.FC<CardProps> = ({ children, style }) => {
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 220,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
       Animated.timing(translateAnim, {
         toValue: 0,
         duration: 220,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
     ]).start();
   }, []);

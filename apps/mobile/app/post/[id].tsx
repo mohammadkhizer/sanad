@@ -11,6 +11,7 @@ import {
   Alert,
   Modal,
   Animated,
+  Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -42,8 +43,8 @@ export default function PostDetailScreen() {
 
   const handleLike = () => {
     Animated.sequence([
-      Animated.spring(likeScale, { toValue: 1.35, useNativeDriver: true, speed: 45 }),
-      Animated.spring(likeScale, { toValue: 1.0, useNativeDriver: true, speed: 30, bounciness: 6 }),
+      Animated.spring(likeScale, { toValue: 1.35, useNativeDriver: Platform.OS !== 'web', speed: 45 }),
+      Animated.spring(likeScale, { toValue: 1.0, useNativeDriver: Platform.OS !== 'web', speed: 30, bounciness: 6 }),
     ]).start();
     likeMutation.mutate();
   };

@@ -8,6 +8,7 @@ import {
   TextStyle,
   StyleProp,
   Animated,
+  Platform,
 } from 'react-native';
 import { colors } from '../theme/colors';
 
@@ -40,7 +41,7 @@ export const Button: React.FC<ButtonProps> = ({
     if (disabled || loading) return;
     Animated.spring(scaleAnim, {
       toValue: 0.96,
-      useNativeDriver: true,
+      useNativeDriver: Platform.OS !== 'web',
       speed: 30,
       bounciness: 4,
     }).start();
@@ -50,7 +51,7 @@ export const Button: React.FC<ButtonProps> = ({
     if (disabled || loading) return;
     Animated.spring(scaleAnim, {
       toValue: 1.0,
-      useNativeDriver: true,
+      useNativeDriver: Platform.OS !== 'web',
       speed: 30,
       bounciness: 4,
     }).start();
