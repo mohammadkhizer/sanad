@@ -1,5 +1,29 @@
 export type AdapterMode = 'mock' | 'http';
 
+function getExpoHostUri(): string | null {
+  try {
+    // Dynamic resolution so pure Node unit tests don't break when expo native modules are absent
+    const Constants = require('expo-constants')?.default || require('expo-constants');
+    return (
+      Constants?.expoConfig?.hostUri ||
+      Constants?.manifest?.debuggerHost ||
+      Constants?.manifest2?.extra?.expoGo?.debuggerHost ||
+      null
+    );
+  } catch {
+    return null;
+  }
+}
+
+function getPlatformOS(): string {
+  try {
+    const { Platform } = require('react-native');
+    return Platform?.OS || 'web';
+  } catch {
+    return 'node';
+  }
+}
+
 let currentGlobalMode: AdapterMode =
   (process.env.EXPO_PUBLIC_API_MODE as AdapterMode) || 'http';
 
@@ -56,7 +80,29 @@ export function subscribeApiMode(listener: ModeListener): () => void {
 }
 
 export function getApiBaseUrl(): string {
-  return process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+  const envUrl = process.env.EXPO_PUBLIC_API_URL;
+  if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+    return envUrl;
+  }
+
+  const os = getPlatformOS();
+  if (os === 'web' || os === 'node') {
+    return envUrl || 'http://localhost:4000/api/v1';
+  }
+
+  const hostUri = getExpoHostUri();
+  if (hostUri) {
+    const hostIp = hostUri.split(':')[0];
+    if (hostIp) {
+      return `http://${hostIp}:4000/api/v1`;
+    }
+  }
+
+  if (os === 'android') {
+    return 'http://10.0.2.2:4000/api/v1';
+  }
+
+  return envUrl || 'http://localhost:4000/api/v1';
 }
 
 export async function checkBackendHealth(): Promise<{

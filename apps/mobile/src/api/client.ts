@@ -1,6 +1,5 @@
 import { useAuthStore } from '../store/authStore';
-
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+import { getApiBaseUrl } from './config';
 
 let isRefreshing = false;
 let refreshSubscribers: ((token: string) => void)[] = [];
@@ -15,6 +14,7 @@ function onRefreshed(token: string) {
 }
 
 export async function apiClient<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const baseUrl = getApiBaseUrl();
   const authState = useAuthStore.getState();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -25,16 +25,22 @@ export async function apiClient<T>(endpoint: string, options: RequestInit = {}):
     headers['Authorization'] = `Bearer ${authState.accessToken}`;
   }
 
-  const url = `${BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  const url = `${baseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 
-  let res = await fetch(url, { ...options, headers });
+  let res: Response;
+  try {
+    res = await fetch(url, { ...options, headers });
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : 'Network request failed';
+    throw new Error(`Could not connect to server at ${baseUrl}. Ensure the API server is running on port 4000. (${errorMsg})`);
+  }
 
   // Handle 401 auto-refresh token rotation
   if (res.status === 401 && authState.refreshToken) {
     if (!isRefreshing) {
       isRefreshing = true;
       try {
-        const refreshRes = await fetch(`${BASE_URL}/auth/refresh`, {
+        const refreshRes = await fetch(`${baseUrl}/auth/refresh`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refreshToken: authState.refreshToken }),
@@ -62,7 +68,12 @@ export async function apiClient<T>(endpoint: string, options: RequestInit = {}):
     });
 
     headers['Authorization'] = `Bearer ${retryToken}`;
-    res = await fetch(url, { ...options, headers });
+    try {
+      res = await fetch(url, { ...options, headers });
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Network request failed';
+      throw new Error(`Could not connect to server at ${baseUrl}. (${errorMsg})`);
+    }
   }
 
   const data = await res.json();

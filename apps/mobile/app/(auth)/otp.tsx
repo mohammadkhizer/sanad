@@ -33,12 +33,12 @@ export default function OtpScreen() {
       });
 
       await login(res.accessToken, res.refreshToken, {
-        id: res.user._id,
+        id: (res.user as any)._id || (res.user as any).id,
         displayName: res.user.displayName,
         email: res.user.email,
         phone: res.user.phone,
         roles: res.user.roles,
-        twoFactorEnabled: res.user.twoFA?.enabled,
+        twoFactorEnabled: (res.user as any).twoFactorEnabled ?? res.user.twoFA?.enabled,
       });
       router.replace('/(tabs)/feed');
     } catch (err: unknown) {
