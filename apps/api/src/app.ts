@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
+import mongoose from 'mongoose';
 import { pinoHttp } from 'pino-http';
 import { env } from './config/env.js';
 import { logger } from './config/logger.js';
@@ -36,6 +37,7 @@ app.use(globalRateLimiter);
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({
     status: 'ok',
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
   });

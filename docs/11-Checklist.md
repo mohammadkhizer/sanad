@@ -542,14 +542,17 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [ ] Region chosen close to the API host
 - [ ] Separate DB users: app (read/write), backup (read-only), admin (you only)
 - [ ] Network access reviewed (no open `0.0.0.0/0` unless required for backups, then documented)
-- [ ] Connection string in env vars only, never committed
-- [ ] Mongoose connection pooling set low (M0 allows 500 connections, but throughput is about 100 ops/s)
+- [x] Connection string in env vars only, documented with step-by-step Atlas setup in .env.example
+- [x] Mongoose connection resilient with automatic offline fallback in development and health-check monitoring
+- [x] Database seed script implemented with admin, scholars, curriculum, and Bloom filter sync (`npm run db:seed`)
+- [x] Dynamic in-app data source switcher (Mock vs Live HTTP) with real-time ping and database health detection
+- [x] Mongoose connection pooling set low (M0 allows 500 connections, but throughput is about 100 ops/s)
 
 ### 23.2 Schema and indexes
-- [ ] Collections created: `users`, `sessions`, `scholarApplications`, `posts`, `media`, `likes`, `saves`, `follows`, `comments`, `shares`, `reports`, `conversations`, `messages`, `chatRequests`, `notifications`, `jobs`, `securityEvents`, `auditLogs`, `storageUsage`
-- [ ] Unique indexes: likes `{userId, postId}`, saves `{userId, postId}`, follows `{followerId, followeeId}`
-- [ ] Query indexes: posts `{authorId, createdAt}` and `{status, createdAt}`; saves `{userId, createdAt}`; comments `{postId, createdAt}`; notifications `{userId, createdAt}`; jobs `{status, runAt}`
-- [ ] Zod validation on every write; Mongoose strict mode on
+- [x] Collections defined: `users`, `sessions`, `scholarApplications`, `posts`, `media`, `likes`, `saves`, `follows`, `comments`, `shares`, `reports`, `conversations`, `messages`, `chatRequests`, `notifications`, `jobs`, `securityEvents`, `auditLogs`, `storageUsage`
+- [x] Unique indexes: likes `{userId, postId}`, saves `{userId, postId}`, follows `{followerId, followeeId}`
+- [x] Query indexes: posts `{authorId, createdAt}` and `{status, createdAt}`; saves `{userId, createdAt}`; comments `{postId, createdAt}`; notifications `{userId, createdAt}`; jobs `{status, runAt}`
+- [x] Zod validation on every write; Mongoose strict mode on
 - [ ] Explain-plan check: no collection scans on feed, saves or comments queries
 
 ### 23.3 Size and throughput control (512 MB, about 100 ops/s)

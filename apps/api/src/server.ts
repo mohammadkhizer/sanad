@@ -20,10 +20,12 @@ setupSocketIO(io);
 
 async function bootstrap() {
   try {
-    await connectDB();
+    const dbOk = await connectDB();
     await usernameService.initialize();
     server.listen(env.PORT, () => {
-      logger.info(`Sanad API server running on port ${env.PORT} in ${env.NODE_ENV} mode`);
+      logger.info(
+        `Sanad API server running on port ${env.PORT} in ${env.NODE_ENV} mode [DB: ${dbOk ? 'connected' : 'offline-fallback'}]`
+      );
     });
   } catch (error) {
     logger.error({ error }, 'Failed to bootstrap server');

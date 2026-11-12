@@ -128,9 +128,9 @@ export default function ProfileScreen() {
                 <Icon name="verified" size={20} color={colors.light.accentText} />
               </View>
               <View style={styles.hubTextCol}>
-                <Text style={styles.hubTitle}>Scholar Studio & Broadcast</Text>
+                <Text style={styles.hubTitle}>Scholar Studio & Curriculum</Text>
                 <Text style={styles.hubSubtitle}>
-                  Schedule study circles, start broadcasts, and review consultation inquiries
+                  Schedule study circles, publish lessons, and review consultation inquiries
                 </Text>
               </View>
             </View>
