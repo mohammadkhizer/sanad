@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
+import { BrandLogo } from '../../src/components/BrandLogo';
 import { colors } from '../../src/theme/colors';
 import { api } from '../../src/api';
 import { useAuthStore } from '../../src/store/authStore';
@@ -12,8 +13,8 @@ export default function LoginScreen() {
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
 
-  const [identifier, setIdentifier] = useState('omar.farooq@al-azhar.edu');
-  const [password, setPassword] = useState('Password1234!');
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const [requires2FA, setRequires2FA] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -59,47 +60,10 @@ export default function LoginScreen() {
     }
   };
 
-  const handleAdminQuickLogin = async () => {
-    setIdentifier('admin@sanad.app');
-    setPassword('SanadSecure2026!');
-    setRequires2FA(false);
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await api.auth.login({
-        identifier: 'admin@sanad.app',
-        password: 'SanadSecure2026!',
-      });
-      if (res.accessToken && res.refreshToken && res.user) {
-        await login(res.accessToken, res.refreshToken, {
-          id: res.user._id || (res.user as any).id,
-          displayName: res.user.displayName,
-          email: res.user.email,
-          phone: res.user.phone,
-          roles: res.user.roles,
-          twoFactorEnabled: (res.user as any).twoFactorEnabled ?? res.user.twoFA?.enabled,
-        });
-        router.replace('/(tabs)/feed');
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Admin login failed';
-      setError(msg);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Classical Masthead */}
-      <View style={styles.masthead}>
-        <View style={styles.emblemBox}>
-          <Icon name="verified" size={44} color={colors.light.accent} />
-        </View>
-        <Text style={styles.title}>SANAD</Text>
-        <Text style={styles.arabicSubtitle}>سند · المعرفة الموثوقة</Text>
-        <Text style={styles.subtitle}>Knowledge, with an unbroken chain of trust</Text>
-      </View>
+      {/* Classical Masthead Brand Logo */}
+      <BrandLogo size="medium" style={styles.masthead} />
 
       <View style={styles.card}>
         {Boolean(error) && (
@@ -147,14 +111,6 @@ export default function LoginScreen() {
           onPress={handleLogin}
           loading={loading}
           style={styles.submitBtn}
-        />
-
-        <Button
-          title="Sign In with Admin Account (Database)"
-          variant="outline"
-          onPress={handleAdminQuickLogin}
-          loading={loading}
-          style={styles.adminQuickBtn}
         />
 
         <View style={styles.footer}>

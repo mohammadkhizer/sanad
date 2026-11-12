@@ -22,6 +22,7 @@ export async function connectDB(retries = 3, delay = 1000): Promise<boolean> {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       await mongoose.connect(env.MONGODB_URI, {
+        dbName: 'sanad',
         serverSelectionTimeoutMS: timeoutMs,
         connectTimeoutMS: timeoutMs,
       });

@@ -18,6 +18,7 @@ import { Card } from '../../src/components/Card';
 import { EmptyState } from '../../src/components/EmptyState';
 import { ReportModal } from '../../src/components/ReportModal';
 import { Icon } from '../../src/components/Icon';
+import { BrandLogo } from '../../src/components/BrandLogo';
 import { useAuthStore } from '../../src/store/authStore';
 import { useRouter } from 'expo-router';
 import { PostEntity } from '@sanad/shared';
@@ -190,11 +191,8 @@ export default function FeedScreen() {
       {/* Classical Top Masthead */}
       <View style={[styles.masthead, { paddingTop: insets.top || 14 }]}>
         <View style={styles.mastheadRow}>
-          {/* Logo Mark */}
-          <View style={styles.logoRow}>
-            <Icon name="verified" size={24} color={colors.light.accent} />
-            <Text style={styles.logoTitle}>SANAD</Text>
-          </View>
+          {/* Official Brand Logo Mark */}
+          <BrandLogo size="small" variant="horizontal" showArabic={false} />
 
           {/* Quick Actions */}
           <View style={styles.mastheadActions}>

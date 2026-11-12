@@ -6,6 +6,7 @@ import { Card } from '../../src/components/Card';
 import { Button } from '../../src/components/Button';
 import { AppHeader } from '../../src/components/AppHeader';
 import { Icon, IconName } from '../../src/components/Icon';
+import { BrandLogo } from '../../src/components/BrandLogo';
 import { useAuthStore } from '../../src/store/authStore';
 import {
   getApiMode,
@@ -247,6 +248,8 @@ export default function SettingsScreen() {
           <Text style={styles.cardHeader}>Engineering & Architecture</Text>
           {renderLink('profile', 'Lead Architect & Developer', 'Mohammed Khizer Shaikh portfolio & LinkedIn', '/settings/developer-info')}
         </Card>
+
+        <BrandLogo size="small" showArabic={true} style={{ marginTop: 12, marginBottom: 16, alignSelf: 'center', opacity: 0.85 }} />
 
         {/* Logout */}
         <Button

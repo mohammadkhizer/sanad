@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, StyleProp, ViewStyle } from '
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, IconName } from './Icon';
+import { BrandLogo } from './BrandLogo';
 import { colors } from '../theme/colors';
 
 interface AppHeaderProps {
@@ -15,6 +16,7 @@ interface AppHeaderProps {
   rightAction?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   titleAlign?: 'left' | 'center';
+  showLogo?: boolean;
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
@@ -27,6 +29,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   rightAction,
   style,
   titleAlign = 'center',
+  showLogo = false,
 }) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -58,13 +61,19 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
         {/* Center/Left Title Column */}
         <View style={[styles.titleCol, titleAlign === 'left' && styles.titleColLeft]}>
-          <Text style={[styles.title, titleAlign === 'left' && styles.titleLeft]} numberOfLines={1}>
-            {title}
-          </Text>
-          {Boolean(subtitle) && (
-            <Text style={[styles.subtitle, titleAlign === 'left' && styles.titleLeft]} numberOfLines={1}>
-              {subtitle}
-            </Text>
+          {showLogo ? (
+            <BrandLogo size="small" variant="horizontal" showArabic={false} />
+          ) : (
+            <>
+              <Text style={[styles.title, titleAlign === 'left' && styles.titleLeft]} numberOfLines={1}>
+                {title}
+              </Text>
+              {Boolean(subtitle) && (
+                <Text style={[styles.subtitle, titleAlign === 'left' && styles.titleLeft]} numberOfLines={1}>
+                  {subtitle}
+                </Text>
+              )}
+            </>
           )}
         </View>
 

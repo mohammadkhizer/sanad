@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { colors } from '../../src/theme/colors';
 import { Button } from '../../src/components/Button';
 import { Icon, IconName } from '../../src/components/Icon';
+import { BrandLogo } from '../../src/components/BrandLogo';
 
 interface Slide {
   badge: string;
@@ -54,12 +55,7 @@ export default function OnboardingScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.emblemBox}>
-          <Icon name="verified" size={40} color={colors.light.accent} />
-        </View>
-        <Text style={styles.brandTitle}>SANAD</Text>
-        <Text style={styles.brandArabic}>سند · المعرفة الموثوقة</Text>
-        <Text style={styles.tagline}>Knowledge with an unbroken chain of trust</Text>
+        <BrandLogo size="medium" />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>

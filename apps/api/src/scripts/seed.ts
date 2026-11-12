@@ -28,8 +28,8 @@ export async function seedDatabase() {
 
     // 2. Create Default Admin
     const adminUser = await UserModel.create({
-      username: 'admin',
-      email: 'admin@sanad.app',
+      username: 'khizer',
+      email: 'mkhizer@sanad.app',
       displayName: 'System Administrator',
       passwordHash,
       roles: ['admin', 'moderator', 'scholar', 'member'],
@@ -43,8 +43,8 @@ export async function seedDatabase() {
         languages: ['Arabic', 'English', 'Urdu'],
       },
       twoFA: {
-        enabled: true,
-        backupCodes: ['BK-101', 'BK-102', 'BK-103'],
+        enabled: false,
+        backupCodes: [],
       },
       status: 'active',
     });

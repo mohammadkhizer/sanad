@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
 import { AppHeader } from '../../src/components/AppHeader';
+import { BrandLogo } from '../../src/components/BrandLogo';
 import { colors } from '../../src/theme/colors';
 import { api } from '../../src/api';
 
@@ -86,6 +87,7 @@ export default function RegisterScreen() {
       />
 
       <ScrollView contentContainerStyle={styles.container}>
+        <BrandLogo size="small" variant="horizontal" style={styles.brandLogoHeader} />
         <View style={styles.card}>
           {Boolean(error) && (
             <View style={styles.errorBox}>
@@ -159,6 +161,10 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
+  brandLogoHeader: {
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
   screen: {
     flex: 1,
     backgroundColor: colors.light.background,

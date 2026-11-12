@@ -6,6 +6,7 @@ import { Button } from '../../src/components/Button';
 import { AppHeader } from '../../src/components/AppHeader';
 import { Card } from '../../src/components/Card';
 import { Icon } from '../../src/components/Icon';
+import { BrandLogo } from '../../src/components/BrandLogo';
 import { colors } from '../../src/theme/colors';
 import { api } from '../../src/api';
 import { useAuthStore } from '../../src/store/authStore';
@@ -107,6 +108,7 @@ export default function AdminRegisterScreen() {
       />
 
       <ScrollView contentContainerStyle={styles.container}>
+        <BrandLogo size="small" variant="horizontal" style={{ alignSelf: 'center', marginBottom: 16 }} />
         <View style={styles.banner}>
           <View style={styles.badgeBox}>
             <Icon name="shield" size={28} color={colors.light.primary} />
