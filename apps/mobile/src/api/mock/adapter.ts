@@ -186,7 +186,7 @@ const authMock: AuthModule = {
     return { success: true, message: 'Reset instructions have been sent to your registered address.' };
   },
 
-  async resetPassword(token, newPass) {
+  async resetPassword(token, newPass, _identifier) {
     await simulateLatency();
     return { success: true };
   },

@@ -35,7 +35,7 @@ export interface AuthModule {
   setup2FA(): Promise<{ secret: string; qrCodeUri: string; backupCodes: string[] }>;
   verify2FA(code: string): Promise<{ success: boolean }>;
   forgotPassword(identifier: string): Promise<{ success: boolean; message: string }>;
-  resetPassword(token: string, newPass: string): Promise<{ success: boolean }>;
+  resetPassword(token: string, newPass: string, identifier?: string): Promise<{ success: boolean; message?: string }>;
 }
 
 export interface UsersModule {

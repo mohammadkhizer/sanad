@@ -13,7 +13,7 @@ export const httpAdapter: ApiClientModules = {
     setup2FA: () => apiClient('/auth/2fa/setup', { method: 'POST' }),
     verify2FA: (code) => apiClient('/auth/2fa/verify', { method: 'POST', body: JSON.stringify({ code }) }),
     forgotPassword: (identifier) => apiClient('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ identifier }) }),
-    resetPassword: (token, newPass) => apiClient('/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, newPassword: newPass }) }),
+    resetPassword: (token, newPass, identifier) => apiClient('/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, newPassword: newPass, identifier }) }),
   },
 
   users: {

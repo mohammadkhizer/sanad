@@ -108,7 +108,7 @@
       "source_file": "apps\\api\\src\\config\\redis.ts",
       "source_location": "L5",
       "id": "config_redis_memoryredismock",
-      "community": 14,
+      "community": 13,
       "norm_label": "memoryredismock"
     },
     {
@@ -117,7 +117,7 @@
       "source_file": "apps\\api\\src\\config\\redis.ts",
       "source_location": "L8",
       "id": "config_redis_memoryredismock_get",
-      "community": 14,
+      "community": 13,
       "norm_label": ".get()"
     },
     {
@@ -126,7 +126,7 @@
       "source_file": "apps\\api\\src\\config\\redis.ts",
       "source_location": "L12",
       "id": "config_redis_memoryredismock_set",
-      "community": 14,
+      "community": 13,
       "norm_label": ".set()"
     },
     {
@@ -135,7 +135,7 @@
       "source_file": "apps\\api\\src\\config\\redis.ts",
       "source_location": "L17",
       "id": "config_redis_memoryredismock_del",
-      "community": 14,
+      "community": 13,
       "norm_label": ".del()"
     },
     {
@@ -144,7 +144,7 @@
       "source_file": "apps\\api\\src\\config\\redis.ts",
       "source_location": "L21",
       "id": "config_redis_memoryredismock_incr",
-      "community": 14,
+      "community": 13,
       "norm_label": ".incr()"
     },
     {
@@ -153,7 +153,7 @@
       "source_file": "apps\\api\\src\\config\\redis.ts",
       "source_location": "L27",
       "id": "config_redis_memoryredismock_expire",
-      "community": 14,
+      "community": 13,
       "norm_label": ".expire()"
     },
     {
@@ -342,7 +342,7 @@
       "source_file": "apps\\api\\src\\modules\\auth\\auth.controller.ts",
       "source_location": "L6",
       "id": "auth_auth_controller_authcontroller",
-      "community": 4,
+      "community": 3,
       "norm_label": "authcontroller"
     },
     {
@@ -351,7 +351,7 @@
       "source_file": "apps\\api\\src\\modules\\auth\\auth.controller.ts",
       "source_location": "L7",
       "id": "auth_auth_controller_authcontroller_checkusername",
-      "community": 4,
+      "community": 3,
       "norm_label": ".checkusername()"
     },
     {
@@ -360,7 +360,7 @@
       "source_file": "apps\\api\\src\\modules\\auth\\auth.controller.ts",
       "source_location": "L30",
       "id": "auth_auth_controller_authcontroller_adminregister",
-      "community": 4,
+      "community": 3,
       "norm_label": ".adminregister()"
     },
     {
@@ -369,7 +369,7 @@
       "source_file": "apps\\api\\src\\modules\\auth\\auth.controller.ts",
       "source_location": "L41",
       "id": "auth_auth_controller_authcontroller_register",
-      "community": 4,
+      "community": 3,
       "norm_label": ".register()"
     },
     {
@@ -378,7 +378,7 @@
       "source_file": "apps\\api\\src\\modules\\auth\\auth.controller.ts",
       "source_location": "L50",
       "id": "auth_auth_controller_authcontroller_verifyotp",
-      "community": 4,
+      "community": 3,
       "norm_label": ".verifyotp()"
     },
     {
@@ -387,7 +387,7 @@
       "source_file": "apps\\api\\src\\modules\\auth\\auth.controller.ts",
       "source_location": "L62",
       "id": "auth_auth_controller_authcontroller_login",
-      "community": 4,
+      "community": 3,
       "norm_label": ".login()"
     },
     {
@@ -396,7 +396,7 @@
       "source_file": "apps\\api\\src\\modules\\auth\\auth.controller.ts",
       "source_location": "L73",
       "id": "auth_auth_controller_authcontroller_refresh",
-      "community": 4,
+      "community": 3,
       "norm_label": ".refresh()"
     },
     {
@@ -405,7 +405,7 @@
       "source_file": "apps\\api\\src\\modules\\auth\\auth.controller.ts",
       "source_location": "L85",
       "id": "auth_auth_controller_authcontroller_logout",
-      "community": 4,
+      "community": 3,
       "norm_label": ".logout()"
     },
     {
@@ -414,43 +414,61 @@
       "source_file": "apps\\api\\src\\modules\\auth\\auth.controller.ts",
       "source_location": "L96",
       "id": "auth_auth_controller_authcontroller_logoutall",
-      "community": 4,
+      "community": 3,
       "norm_label": ".logoutall()"
+    },
+    {
+      "label": ".forgotPassword()",
+      "file_type": "code",
+      "source_file": "apps\\api\\src\\modules\\auth\\auth.controller.ts",
+      "source_location": "L107",
+      "id": "auth_auth_controller_authcontroller_forgotpassword",
+      "community": 3,
+      "norm_label": ".forgotpassword()"
+    },
+    {
+      "label": ".resetPassword()",
+      "file_type": "code",
+      "source_file": "apps\\api\\src\\modules\\auth\\auth.controller.ts",
+      "source_location": "L117",
+      "id": "auth_auth_controller_authcontroller_resetpassword",
+      "community": 3,
+      "norm_label": ".resetpassword()"
     },
     {
       "label": ".setup2FA()",
       "file_type": "code",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.controller.ts",
-      "source_location": "L107",
+      "source_location": "L126",
       "id": "auth_auth_controller_authcontroller_setup2fa",
-      "community": 4,
+      "community": 3,
       "norm_label": ".setup2fa()"
     },
     {
       "label": ".verify2FA()",
       "file_type": "code",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.controller.ts",
-      "source_location": "L116",
+      "source_location": "L135",
       "id": "auth_auth_controller_authcontroller_verify2fa",
-      "community": 4,
+      "community": 3,
       "norm_label": ".verify2fa()"
     },
     {
       "label": ".getSessions()",
       "file_type": "code",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.controller.ts",
-      "source_location": "L126",
+      "source_location": "L145",
       "id": "auth_auth_controller_authcontroller_getsessions",
-      "community": 4,
+      "community": 3,
       "norm_label": ".getsessions()"
     },
     {
       "label": ".deleteAccount()",
       "file_type": "code",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.controller.ts",
-      "source_location": "L142",
+      "source_location": "L161",
       "id": "auth_auth_controller_authcontroller_deleteaccount",
-      "community": 4,
+      "community": 3,
       "norm_label": ".deleteaccount()"
     },
     {
@@ -484,7 +502,7 @@
       "label": "AuthService",
       "file_type": "code",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L29",
+      "source_location": "L31",
       "id": "auth_auth_service_authservice",
       "community": 2,
       "norm_label": "authservice"
@@ -493,7 +511,7 @@
       "label": ".adminRegister()",
       "file_type": "code",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L30",
+      "source_location": "L32",
       "id": "auth_auth_service_authservice_adminregister",
       "community": 2,
       "norm_label": ".adminregister()"
@@ -502,7 +520,7 @@
       "label": ".register()",
       "file_type": "code",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L76",
+      "source_location": "L78",
       "id": "auth_auth_service_authservice_register",
       "community": 2,
       "norm_label": ".register()"
@@ -511,7 +529,7 @@
       "label": ".verifyOtp()",
       "file_type": "code",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L119",
+      "source_location": "L121",
       "id": "auth_auth_service_authservice_verifyotp",
       "community": 2,
       "norm_label": ".verifyotp()"
@@ -520,7 +538,7 @@
       "label": ".login()",
       "file_type": "code",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L141",
+      "source_location": "L143",
       "id": "auth_auth_service_authservice_login",
       "community": 2,
       "norm_label": ".login()"
@@ -529,7 +547,7 @@
       "label": ".rotateRefreshToken()",
       "file_type": "code",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L180",
+      "source_location": "L182",
       "id": "auth_auth_service_authservice_rotaterefreshtoken",
       "community": 2,
       "norm_label": ".rotaterefreshtoken()"
@@ -538,7 +556,7 @@
       "label": ".logout()",
       "file_type": "code",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L247",
+      "source_location": "L249",
       "id": "auth_auth_service_authservice_logout",
       "community": 2,
       "norm_label": ".logout()"
@@ -547,16 +565,34 @@
       "label": ".logoutAll()",
       "file_type": "code",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L254",
+      "source_location": "L256",
       "id": "auth_auth_service_authservice_logoutall",
       "community": 2,
       "norm_label": ".logoutall()"
     },
     {
+      "label": ".forgotPassword()",
+      "file_type": "code",
+      "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
+      "source_location": "L263",
+      "id": "auth_auth_service_authservice_forgotpassword",
+      "community": 2,
+      "norm_label": ".forgotpassword()"
+    },
+    {
+      "label": ".resetPassword()",
+      "file_type": "code",
+      "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
+      "source_location": "L297",
+      "id": "auth_auth_service_authservice_resetpassword",
+      "community": 2,
+      "norm_label": ".resetpassword()"
+    },
+    {
       "label": ".setup2FA()",
       "file_type": "code",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L261",
+      "source_location": "L362",
       "id": "auth_auth_service_authservice_setup2fa",
       "community": 2,
       "norm_label": ".setup2fa()"
@@ -565,7 +601,7 @@
       "label": ".verifyAndEnable2FA()",
       "file_type": "code",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L277",
+      "source_location": "L378",
       "id": "auth_auth_service_authservice_verifyandenable2fa",
       "community": 2,
       "norm_label": ".verifyandenable2fa()"
@@ -574,7 +610,7 @@
       "label": ".createSession()",
       "file_type": "code",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L308",
+      "source_location": "L409",
       "id": "auth_auth_service_authservice_createsession",
       "community": 2,
       "norm_label": ".createsession()"
@@ -729,7 +765,7 @@
       "source_file": "apps\\api\\src\\modules\\live\\live.controller.ts",
       "source_location": "L9",
       "id": "live_live_controller_livecontroller",
-      "community": 12,
+      "community": 11,
       "norm_label": "livecontroller"
     },
     {
@@ -738,7 +774,7 @@
       "source_file": "apps\\api\\src\\modules\\live\\live.controller.ts",
       "source_location": "L10",
       "id": "live_live_controller_livecontroller_createlivekittoken",
-      "community": 12,
+      "community": 11,
       "norm_label": ".createlivekittoken()"
     },
     {
@@ -747,7 +783,7 @@
       "source_file": "apps\\api\\src\\modules\\live\\live.controller.ts",
       "source_location": "L27",
       "id": "live_live_controller_livecontroller_startlive",
-      "community": 12,
+      "community": 11,
       "norm_label": ".startlive()"
     },
     {
@@ -756,7 +792,7 @@
       "source_file": "apps\\api\\src\\modules\\live\\live.controller.ts",
       "source_location": "L53",
       "id": "live_live_controller_livecontroller_endlive",
-      "community": 12,
+      "community": 11,
       "norm_label": ".endlive()"
     },
     {
@@ -765,7 +801,7 @@
       "source_file": "apps\\api\\src\\modules\\live\\live.controller.ts",
       "source_location": "L79",
       "id": "live_live_controller_livecontroller_getactivelives",
-      "community": 12,
+      "community": 11,
       "norm_label": ".getactivelives()"
     },
     {
@@ -774,7 +810,7 @@
       "source_file": "apps\\api\\src\\modules\\live\\live.controller.ts",
       "source_location": "L92",
       "id": "live_live_controller_livecontroller_getviewertoken",
-      "community": 12,
+      "community": 11,
       "norm_label": ".getviewertoken()"
     },
     {
@@ -783,7 +819,7 @@
       "source_file": "apps\\api\\src\\modules\\live\\live.controller.ts",
       "source_location": "L116",
       "id": "live_live_controller_livecontroller_initiatecall",
-      "community": 12,
+      "community": 11,
       "norm_label": ".initiatecall()"
     },
     {
@@ -792,7 +828,7 @@
       "source_file": "apps\\api\\src\\modules\\live\\live.controller.ts",
       "source_location": "L141",
       "id": "live_live_controller_livecontroller_respondcall",
-      "community": 12,
+      "community": 11,
       "norm_label": ".respondcall()"
     },
     {
@@ -819,7 +855,7 @@
       "source_file": "apps\\api\\src\\modules\\messaging\\messaging.controller.ts",
       "source_location": "L1",
       "id": "apps_api_src_modules_messaging_messaging_controller_ts",
-      "community": 7,
+      "community": 5,
       "norm_label": "messaging.controller.ts"
     },
     {
@@ -828,7 +864,7 @@
       "source_file": "apps\\api\\src\\modules\\messaging\\messaging.controller.ts",
       "source_location": "L7",
       "id": "messaging_messaging_controller_messagingcontroller",
-      "community": 7,
+      "community": 5,
       "norm_label": "messagingcontroller"
     },
     {
@@ -837,7 +873,7 @@
       "source_file": "apps\\api\\src\\modules\\messaging\\messaging.controller.ts",
       "source_location": "L8",
       "id": "messaging_messaging_controller_messagingcontroller_sendchatrequest",
-      "community": 7,
+      "community": 5,
       "norm_label": ".sendchatrequest()"
     },
     {
@@ -846,7 +882,7 @@
       "source_file": "apps\\api\\src\\modules\\messaging\\messaging.controller.ts",
       "source_location": "L49",
       "id": "messaging_messaging_controller_messagingcontroller_respondchatrequest",
-      "community": 7,
+      "community": 5,
       "norm_label": ".respondchatrequest()"
     },
     {
@@ -855,7 +891,7 @@
       "source_file": "apps\\api\\src\\modules\\messaging\\messaging.controller.ts",
       "source_location": "L88",
       "id": "messaging_messaging_controller_messagingcontroller_getconversations",
-      "community": 7,
+      "community": 5,
       "norm_label": ".getconversations()"
     },
     {
@@ -864,7 +900,7 @@
       "source_file": "apps\\api\\src\\modules\\messaging\\messaging.controller.ts",
       "source_location": "L104",
       "id": "messaging_messaging_controller_messagingcontroller_getmessages",
-      "community": 7,
+      "community": 5,
       "norm_label": ".getmessages()"
     },
     {
@@ -873,7 +909,7 @@
       "source_file": "apps\\api\\src\\modules\\messaging\\messaging.controller.ts",
       "source_location": "L138",
       "id": "messaging_messaging_controller_messagingcontroller_sendmessage",
-      "community": 7,
+      "community": 5,
       "norm_label": ".sendmessage()"
     },
     {
@@ -882,7 +918,7 @@
       "source_file": "apps\\api\\src\\modules\\messaging\\messaging.model.ts",
       "source_location": "L1",
       "id": "apps_api_src_modules_messaging_messaging_model_ts",
-      "community": 7,
+      "community": 5,
       "norm_label": "messaging.model.ts"
     },
     {
@@ -891,7 +927,7 @@
       "source_file": "apps\\api\\src\\modules\\messaging\\messaging.routes.ts",
       "source_location": "L1",
       "id": "apps_api_src_modules_messaging_messaging_routes_ts",
-      "community": 7,
+      "community": 5,
       "norm_label": "messaging.routes.ts"
     },
     {
@@ -909,7 +945,7 @@
       "source_file": "apps\\api\\src\\modules\\moderation\\moderation.controller.ts",
       "source_location": "L8",
       "id": "moderation_moderation_controller_moderationcontroller",
-      "community": 0,
+      "community": 14,
       "norm_label": "moderationcontroller"
     },
     {
@@ -918,7 +954,7 @@
       "source_file": "apps\\api\\src\\modules\\moderation\\moderation.controller.ts",
       "source_location": "L9",
       "id": "moderation_moderation_controller_moderationcontroller_createreport",
-      "community": 0,
+      "community": 14,
       "norm_label": ".createreport()"
     },
     {
@@ -927,7 +963,7 @@
       "source_file": "apps\\api\\src\\modules\\moderation\\moderation.controller.ts",
       "source_location": "L27",
       "id": "moderation_moderation_controller_moderationcontroller_listreports",
-      "community": 0,
+      "community": 14,
       "norm_label": ".listreports()"
     },
     {
@@ -936,7 +972,7 @@
       "source_file": "apps\\api\\src\\modules\\moderation\\moderation.controller.ts",
       "source_location": "L44",
       "id": "moderation_moderation_controller_moderationcontroller_handlereportaction",
-      "community": 0,
+      "community": 14,
       "norm_label": ".handlereportaction()"
     },
     {
@@ -945,7 +981,7 @@
       "source_file": "apps\\api\\src\\modules\\moderation\\moderation.controller.ts",
       "source_location": "L94",
       "id": "moderation_moderation_controller_moderationcontroller_suspenduser",
-      "community": 0,
+      "community": 14,
       "norm_label": ".suspenduser()"
     },
     {
@@ -954,7 +990,7 @@
       "source_file": "apps\\api\\src\\modules\\moderation\\moderation.controller.ts",
       "source_location": "L122",
       "id": "moderation_moderation_controller_moderationcontroller_getauditlogs",
-      "community": 0,
+      "community": 14,
       "norm_label": ".getauditlogs()"
     },
     {
@@ -990,7 +1026,7 @@
       "source_file": "apps\\api\\src\\modules\\scholar\\scholar.controller.ts",
       "source_location": "L8",
       "id": "scholar_scholar_controller_scholarcontroller",
-      "community": 13,
+      "community": 12,
       "norm_label": "scholarcontroller"
     },
     {
@@ -999,7 +1035,7 @@
       "source_file": "apps\\api\\src\\modules\\scholar\\scholar.controller.ts",
       "source_location": "L9",
       "id": "scholar_scholar_controller_scholarcontroller_submitapplication",
-      "community": 13,
+      "community": 12,
       "norm_label": ".submitapplication()"
     },
     {
@@ -1008,7 +1044,7 @@
       "source_file": "apps\\api\\src\\modules\\scholar\\scholar.controller.ts",
       "source_location": "L37",
       "id": "scholar_scholar_controller_scholarcontroller_getmyapplication",
-      "community": 13,
+      "community": 12,
       "norm_label": ".getmyapplication()"
     },
     {
@@ -1017,7 +1053,7 @@
       "source_file": "apps\\api\\src\\modules\\scholar\\scholar.controller.ts",
       "source_location": "L49",
       "id": "scholar_scholar_controller_scholarcontroller_getuploadurl",
-      "community": 13,
+      "community": 12,
       "norm_label": ".getuploadurl()"
     },
     {
@@ -1026,7 +1062,7 @@
       "source_file": "apps\\api\\src\\modules\\scholar\\scholar.controller.ts",
       "source_location": "L65",
       "id": "scholar_scholar_controller_scholarcontroller_endorsescholar",
-      "community": 13,
+      "community": 12,
       "norm_label": ".endorsescholar()"
     },
     {
@@ -1035,7 +1071,7 @@
       "source_file": "apps\\api\\src\\modules\\scholar\\scholar.controller.ts",
       "source_location": "L99",
       "id": "scholar_scholar_controller_scholarcontroller_listapplications",
-      "community": 13,
+      "community": 12,
       "norm_label": ".listapplications()"
     },
     {
@@ -1044,7 +1080,7 @@
       "source_file": "apps\\api\\src\\modules\\scholar\\scholar.controller.ts",
       "source_location": "L115",
       "id": "scholar_scholar_controller_scholarcontroller_decideapplication",
-      "community": 13,
+      "community": 12,
       "norm_label": ".decideapplication()"
     },
     {
@@ -1053,7 +1089,7 @@
       "source_file": "apps\\api\\src\\modules\\scholar\\scholar.controller.ts",
       "source_location": "L162",
       "id": "scholar_scholar_controller_scholarcontroller_revokescholar",
-      "community": 13,
+      "community": 12,
       "norm_label": ".revokescholar()"
     },
     {
@@ -1089,7 +1125,7 @@
       "source_file": "apps\\api\\src\\modules\\users\\users.controller.ts",
       "source_location": "L9",
       "id": "users_users_controller_userscontroller",
-      "community": 9,
+      "community": 8,
       "norm_label": "userscontroller"
     },
     {
@@ -1098,7 +1134,7 @@
       "source_file": "apps\\api\\src\\modules\\users\\users.controller.ts",
       "source_location": "L10",
       "id": "users_users_controller_userscontroller_getme",
-      "community": 9,
+      "community": 8,
       "norm_label": ".getme()"
     },
     {
@@ -1107,7 +1143,7 @@
       "source_file": "apps\\api\\src\\modules\\users\\users.controller.ts",
       "source_location": "L37",
       "id": "users_users_controller_userscontroller_updateme",
-      "community": 9,
+      "community": 8,
       "norm_label": ".updateme()"
     },
     {
@@ -1116,7 +1152,7 @@
       "source_file": "apps\\api\\src\\modules\\users\\users.controller.ts",
       "source_location": "L58",
       "id": "users_users_controller_userscontroller_getuser",
-      "community": 9,
+      "community": 8,
       "norm_label": ".getuser()"
     },
     {
@@ -1125,7 +1161,7 @@
       "source_file": "apps\\api\\src\\modules\\users\\users.controller.ts",
       "source_location": "L113",
       "id": "users_users_controller_userscontroller_getnetwork",
-      "community": 9,
+      "community": 8,
       "norm_label": ".getnetwork()"
     },
     {
@@ -1134,7 +1170,7 @@
       "source_file": "apps\\api\\src\\modules\\users\\users.controller.ts",
       "source_location": "L146",
       "id": "users_users_controller_userscontroller_followuser",
-      "community": 9,
+      "community": 8,
       "norm_label": ".followuser()"
     },
     {
@@ -1143,7 +1179,7 @@
       "source_file": "apps\\api\\src\\modules\\users\\users.controller.ts",
       "source_location": "L168",
       "id": "users_users_controller_userscontroller_unfollowuser",
-      "community": 9,
+      "community": 8,
       "norm_label": ".unfollowuser()"
     },
     {
@@ -1152,7 +1188,7 @@
       "source_file": "apps\\api\\src\\modules\\users\\users.controller.ts",
       "source_location": "L182",
       "id": "users_users_controller_userscontroller_blockuser",
-      "community": 9,
+      "community": 8,
       "norm_label": ".blockuser()"
     },
     {
@@ -1161,7 +1197,7 @@
       "source_file": "apps\\api\\src\\modules\\users\\users.controller.ts",
       "source_location": "L212",
       "id": "users_users_controller_userscontroller_unblockuser",
-      "community": 9,
+      "community": 8,
       "norm_label": ".unblockuser()"
     },
     {
@@ -1170,7 +1206,7 @@
       "source_file": "apps\\api\\src\\modules\\users\\users.controller.ts",
       "source_location": "L226",
       "id": "users_users_controller_userscontroller_listusers",
-      "community": 9,
+      "community": 8,
       "norm_label": ".listusers()"
     },
     {
@@ -1179,7 +1215,7 @@
       "source_file": "apps\\api\\src\\modules\\users\\users.controller.ts",
       "source_location": "L258",
       "id": "users_users_controller_userscontroller_updateuserroles",
-      "community": 9,
+      "community": 8,
       "norm_label": ".updateuserroles()"
     },
     {
@@ -1188,7 +1224,7 @@
       "source_file": "apps\\api\\src\\modules\\users\\users.model.ts",
       "source_location": "L1",
       "id": "apps_api_src_modules_users_users_model_ts",
-      "community": 7,
+      "community": 5,
       "norm_label": "users.model.ts"
     },
     {
@@ -1206,7 +1242,7 @@
       "source_file": "apps\\api\\src\\realtime\\socket.ts",
       "source_location": "L1",
       "id": "apps_api_src_realtime_socket_ts",
-      "community": 7,
+      "community": 5,
       "norm_label": "socket.ts"
     },
     {
@@ -1215,7 +1251,7 @@
       "source_file": "apps\\api\\src\\realtime\\socket.ts",
       "source_location": "L13",
       "id": "realtime_socket_setupsocketio",
-      "community": 7,
+      "community": 5,
       "norm_label": "setupsocketio()"
     },
     {
@@ -1260,7 +1296,7 @@
       "source_file": "apps\\api\\src\\services\\bloomFilter.service.ts",
       "source_location": "L4",
       "id": "services_bloomfilter_service_bloomfilter",
-      "community": 8,
+      "community": 7,
       "norm_label": "bloomfilter"
     },
     {
@@ -1269,7 +1305,7 @@
       "source_file": "apps\\api\\src\\services\\bloomFilter.service.ts",
       "source_location": "L9",
       "id": "services_bloomfilter_service_bloomfilter_constructor",
-      "community": 8,
+      "community": 7,
       "norm_label": ".constructor()"
     },
     {
@@ -1278,7 +1314,7 @@
       "source_file": "apps\\api\\src\\services\\bloomFilter.service.ts",
       "source_location": "L16",
       "id": "services_bloomfilter_service_bloomfilter_gethashes",
-      "community": 8,
+      "community": 7,
       "norm_label": ".gethashes()"
     },
     {
@@ -1287,7 +1323,7 @@
       "source_file": "apps\\api\\src\\services\\bloomFilter.service.ts",
       "source_location": "L32",
       "id": "services_bloomfilter_service_bloomfilter_add",
-      "community": 8,
+      "community": 7,
       "norm_label": ".add()"
     },
     {
@@ -1296,7 +1332,7 @@
       "source_file": "apps\\api\\src\\services\\bloomFilter.service.ts",
       "source_location": "L42",
       "id": "services_bloomfilter_service_bloomfilter_has",
-      "community": 8,
+      "community": 7,
       "norm_label": ".has()"
     },
     {
@@ -1305,7 +1341,7 @@
       "source_file": "apps\\api\\src\\services\\bloomFilter.service.ts",
       "source_location": "L55",
       "id": "services_bloomfilter_service_bloomfilter_clear",
-      "community": 8,
+      "community": 7,
       "norm_label": ".clear()"
     },
     {
@@ -1314,7 +1350,7 @@
       "source_file": "apps\\api\\src\\services\\bloomFilter.service.ts",
       "source_location": "L78",
       "id": "services_bloomfilter_service_usernameservice",
-      "community": 8,
+      "community": 7,
       "norm_label": "usernameservice"
     },
     {
@@ -1323,7 +1359,7 @@
       "source_file": "apps\\api\\src\\services\\bloomFilter.service.ts",
       "source_location": "L82",
       "id": "services_bloomfilter_service_usernameservice_constructor",
-      "community": 8,
+      "community": 7,
       "norm_label": ".constructor()"
     },
     {
@@ -1332,7 +1368,7 @@
       "source_file": "apps\\api\\src\\services\\bloomFilter.service.ts",
       "source_location": "L86",
       "id": "services_bloomfilter_service_usernameservice_initialize",
-      "community": 8,
+      "community": 7,
       "norm_label": ".initialize()"
     },
     {
@@ -1341,7 +1377,7 @@
       "source_file": "apps\\api\\src\\services\\bloomFilter.service.ts",
       "source_location": "L114",
       "id": "services_bloomfilter_service_usernameservice_registerusername",
-      "community": 8,
+      "community": 7,
       "norm_label": ".registerusername()"
     },
     {
@@ -1350,7 +1386,7 @@
       "source_file": "apps\\api\\src\\services\\bloomFilter.service.ts",
       "source_location": "L119",
       "id": "services_bloomfilter_service_usernameservice_checkavailability",
-      "community": 8,
+      "community": 7,
       "norm_label": ".checkavailability()"
     },
     {
@@ -1359,7 +1395,7 @@
       "source_file": "apps\\api\\src\\services\\bloomFilter.service.ts",
       "source_location": "L167",
       "id": "services_bloomfilter_service_usernameservice_getbloomfilter",
-      "community": 8,
+      "community": 7,
       "norm_label": ".getbloomfilter()"
     },
     {
@@ -1368,7 +1404,7 @@
       "source_file": "apps\\api\\src\\utils\\errors.ts",
       "source_location": "L1",
       "id": "apps_api_src_utils_errors_ts",
-      "community": 5,
+      "community": 0,
       "norm_label": "errors.ts"
     },
     {
@@ -1377,7 +1413,7 @@
       "source_file": "apps\\api\\src\\utils\\errors.ts",
       "source_location": "L1",
       "id": "utils_errors_apperror",
-      "community": 5,
+      "community": 0,
       "norm_label": "apperror"
     },
     {
@@ -1386,7 +1422,7 @@
       "source_file": "apps\\api\\src\\utils\\errors.ts",
       "source_location": "L6",
       "id": "utils_errors_apperror_constructor",
-      "community": 5,
+      "community": 0,
       "norm_label": ".constructor()"
     },
     {
@@ -1395,7 +1431,7 @@
       "source_file": "apps\\api\\src\\utils\\errors.ts",
       "source_location": "L16",
       "id": "utils_errors_notfounderror",
-      "community": 5,
+      "community": 0,
       "norm_label": "notfounderror"
     },
     {
@@ -1404,7 +1440,7 @@
       "source_file": "apps\\api\\src\\utils\\errors.ts",
       "source_location": "L17",
       "id": "utils_errors_notfounderror_constructor",
-      "community": 5,
+      "community": 0,
       "norm_label": ".constructor()"
     },
     {
@@ -1413,7 +1449,7 @@
       "source_file": "apps\\api\\src\\utils\\errors.ts",
       "source_location": "L22",
       "id": "utils_errors_unauthorizederror",
-      "community": 5,
+      "community": 0,
       "norm_label": "unauthorizederror"
     },
     {
@@ -1422,7 +1458,7 @@
       "source_file": "apps\\api\\src\\utils\\errors.ts",
       "source_location": "L23",
       "id": "utils_errors_unauthorizederror_constructor",
-      "community": 5,
+      "community": 0,
       "norm_label": ".constructor()"
     },
     {
@@ -1431,7 +1467,7 @@
       "source_file": "apps\\api\\src\\utils\\errors.ts",
       "source_location": "L28",
       "id": "utils_errors_forbiddenerror",
-      "community": 5,
+      "community": 0,
       "norm_label": "forbiddenerror"
     },
     {
@@ -1440,7 +1476,7 @@
       "source_file": "apps\\api\\src\\utils\\errors.ts",
       "source_location": "L29",
       "id": "utils_errors_forbiddenerror_constructor",
-      "community": 5,
+      "community": 0,
       "norm_label": ".constructor()"
     },
     {
@@ -1449,7 +1485,7 @@
       "source_file": "apps\\api\\src\\utils\\errors.ts",
       "source_location": "L34",
       "id": "utils_errors_validationerror",
-      "community": 5,
+      "community": 0,
       "norm_label": "validationerror"
     },
     {
@@ -1458,7 +1494,7 @@
       "source_file": "apps\\api\\src\\utils\\errors.ts",
       "source_location": "L35",
       "id": "utils_errors_validationerror_constructor",
-      "community": 5,
+      "community": 0,
       "norm_label": ".constructor()"
     },
     {
@@ -1467,7 +1503,7 @@
       "source_file": "apps\\api\\src\\utils\\errors.ts",
       "source_location": "L40",
       "id": "utils_errors_conflicterror",
-      "community": 5,
+      "community": 0,
       "norm_label": "conflicterror"
     },
     {
@@ -1476,7 +1512,7 @@
       "source_file": "apps\\api\\src\\utils\\errors.ts",
       "source_location": "L41",
       "id": "utils_errors_conflicterror_constructor",
-      "community": 5,
+      "community": 0,
       "norm_label": ".constructor()"
     },
     {
@@ -2250,7 +2286,7 @@
       "source_file": "apps\\mobile\\app\\settings\\index.tsx",
       "source_location": "L1",
       "id": "apps_mobile_app_settings_index_tsx",
-      "community": 3,
+      "community": 4,
       "norm_label": "index.tsx"
     },
     {
@@ -2259,7 +2295,7 @@
       "source_file": "apps\\mobile\\app\\settings\\index.tsx",
       "source_location": "L31",
       "id": "settings_index_handlepingbackend",
-      "community": 3,
+      "community": 4,
       "norm_label": "handlepingbackend()"
     },
     {
@@ -2268,7 +2304,7 @@
       "source_file": "apps\\mobile\\app\\settings\\index.tsx",
       "source_location": "L53",
       "id": "settings_index_handlelogout",
-      "community": 3,
+      "community": 4,
       "norm_label": "handlelogout()"
     },
     {
@@ -2385,7 +2421,7 @@
       "source_file": "apps\\mobile\\src\\api\\client.ts",
       "source_location": "L1",
       "id": "apps_mobile_src_api_client_ts",
-      "community": 3,
+      "community": 4,
       "norm_label": "client.ts"
     },
     {
@@ -2394,7 +2430,7 @@
       "source_file": "apps\\mobile\\src\\api\\client.ts",
       "source_location": "L7",
       "id": "api_client_subscribetokenrefresh",
-      "community": 3,
+      "community": 4,
       "norm_label": "subscribetokenrefresh()"
     },
     {
@@ -2403,7 +2439,7 @@
       "source_file": "apps\\mobile\\src\\api\\client.ts",
       "source_location": "L11",
       "id": "api_client_onrefreshed",
-      "community": 3,
+      "community": 4,
       "norm_label": "onrefreshed()"
     },
     {
@@ -2412,7 +2448,7 @@
       "source_file": "apps\\mobile\\src\\api\\client.ts",
       "source_location": "L16",
       "id": "api_client_apiclient",
-      "community": 3,
+      "community": 4,
       "norm_label": "apiclient()"
     },
     {
@@ -2421,7 +2457,7 @@
       "source_file": "apps\\mobile\\src\\api\\config.ts",
       "source_location": "L1",
       "id": "apps_mobile_src_api_config_ts",
-      "community": 3,
+      "community": 4,
       "norm_label": "config.ts"
     },
     {
@@ -2430,7 +2466,7 @@
       "source_file": "apps\\mobile\\src\\api\\config.ts",
       "source_location": "L3",
       "id": "api_config_getexpohosturi",
-      "community": 3,
+      "community": 4,
       "norm_label": "getexpohosturi()"
     },
     {
@@ -2439,7 +2475,7 @@
       "source_file": "apps\\mobile\\src\\api\\config.ts",
       "source_location": "L18",
       "id": "api_config_getplatformos",
-      "community": 3,
+      "community": 4,
       "norm_label": "getplatformos()"
     },
     {
@@ -2448,7 +2484,7 @@
       "source_file": "apps\\mobile\\src\\api\\config.ts",
       "source_location": "L29",
       "id": "api_config_getapimode",
-      "community": 3,
+      "community": 4,
       "norm_label": "getapimode()"
     },
     {
@@ -2457,7 +2493,7 @@
       "source_file": "apps\\mobile\\src\\api\\config.ts",
       "source_location": "L33",
       "id": "api_config_setapimode",
-      "community": 3,
+      "community": 4,
       "norm_label": "setapimode()"
     },
     {
@@ -2466,7 +2502,7 @@
       "source_file": "apps\\mobile\\src\\api\\config.ts",
       "source_location": "L37",
       "id": "api_config_subscribeapimode",
-      "community": 3,
+      "community": 4,
       "norm_label": "subscribeapimode()"
     },
     {
@@ -2475,7 +2511,7 @@
       "source_file": "apps\\mobile\\src\\api\\config.ts",
       "source_location": "L41",
       "id": "api_config_getapibaseurl",
-      "community": 3,
+      "community": 4,
       "norm_label": "getapibaseurl()"
     },
     {
@@ -2484,7 +2520,7 @@
       "source_file": "apps\\mobile\\src\\api\\config.ts",
       "source_location": "L67",
       "id": "api_config_checkbackendhealth",
-      "community": 3,
+      "community": 4,
       "norm_label": "checkbackendhealth()"
     },
     {
@@ -2556,7 +2592,7 @@
       "source_file": "apps\\mobile\\src\\api\\realtime.ts",
       "source_location": "L1",
       "id": "apps_mobile_src_api_realtime_ts",
-      "community": 10,
+      "community": 9,
       "norm_label": "realtime.ts"
     },
     {
@@ -2565,7 +2601,7 @@
       "source_file": "apps\\mobile\\src\\api\\realtime.ts",
       "source_location": "L12",
       "id": "api_realtime_mockrealtimeclient",
-      "community": 10,
+      "community": 9,
       "norm_label": "mockrealtimeclient"
     },
     {
@@ -2574,7 +2610,7 @@
       "source_file": "apps\\mobile\\src\\api\\realtime.ts",
       "source_location": "L17",
       "id": "api_realtime_mockrealtimeclient_connect",
-      "community": 10,
+      "community": 9,
       "norm_label": ".connect()"
     },
     {
@@ -2583,7 +2619,7 @@
       "source_file": "apps\\mobile\\src\\api\\realtime.ts",
       "source_location": "L28",
       "id": "api_realtime_mockrealtimeclient_disconnect",
-      "community": 10,
+      "community": 9,
       "norm_label": ".disconnect()"
     },
     {
@@ -2592,7 +2628,7 @@
       "source_file": "apps\\mobile\\src\\api\\realtime.ts",
       "source_location": "L37",
       "id": "api_realtime_mockrealtimeclient_on",
-      "community": 10,
+      "community": 9,
       "norm_label": ".on()"
     },
     {
@@ -2601,7 +2637,7 @@
       "source_file": "apps\\mobile\\src\\api\\realtime.ts",
       "source_location": "L47",
       "id": "api_realtime_mockrealtimeclient_emit",
-      "community": 10,
+      "community": 9,
       "norm_label": ".emit()"
     },
     {
@@ -2610,7 +2646,7 @@
       "source_file": "apps\\mobile\\src\\api\\realtime.ts",
       "source_location": "L51",
       "id": "api_realtime_mockrealtimeclient_joinroom",
-      "community": 10,
+      "community": 9,
       "norm_label": ".joinroom()"
     },
     {
@@ -2619,7 +2655,7 @@
       "source_file": "apps\\mobile\\src\\api\\realtime.ts",
       "source_location": "L55",
       "id": "api_realtime_mockrealtimeclient_leaveroom",
-      "community": 10,
+      "community": 9,
       "norm_label": ".leaveroom()"
     },
     {
@@ -2628,7 +2664,7 @@
       "source_file": "apps\\mobile\\src\\api\\realtime.ts",
       "source_location": "L59",
       "id": "api_realtime_mockrealtimeclient_trigger",
-      "community": 10,
+      "community": 9,
       "norm_label": ".trigger()"
     },
     {
@@ -2880,7 +2916,7 @@
       "source_file": "apps\\mobile\\src\\hooks\\useCan.ts",
       "source_location": "L1",
       "id": "apps_mobile_src_hooks_usecan_ts",
-      "community": 11,
+      "community": 10,
       "norm_label": "usecan.ts"
     },
     {
@@ -2889,7 +2925,7 @@
       "source_file": "apps\\mobile\\src\\hooks\\useCan.ts",
       "source_location": "L4",
       "id": "hooks_usecan_usecan",
-      "community": 11,
+      "community": 10,
       "norm_label": "usecan()"
     },
     {
@@ -3096,7 +3132,7 @@
       "source_file": "packages\\shared\\src\\permissions.test.ts",
       "source_location": "L1",
       "id": "packages_shared_src_permissions_test_ts",
-      "community": 11,
+      "community": 10,
       "norm_label": "permissions.test.ts"
     },
     {
@@ -3105,7 +3141,7 @@
       "source_file": "packages\\shared\\src\\permissions.ts",
       "source_location": "L1",
       "id": "packages_shared_src_permissions_ts",
-      "community": 11,
+      "community": 10,
       "norm_label": "permissions.ts"
     },
     {
@@ -3114,7 +3150,7 @@
       "source_file": "packages\\shared\\src\\permissions.ts",
       "source_location": "L78",
       "id": "src_permissions_can",
-      "community": 11,
+      "community": 10,
       "norm_label": "can()"
     },
     {
@@ -3123,7 +3159,7 @@
       "source_file": "packages\\shared\\src\\roles.ts",
       "source_location": "L1",
       "id": "packages_shared_src_roles_ts",
-      "community": 11,
+      "community": 10,
       "norm_label": "roles.ts"
     },
     {
@@ -3132,7 +3168,7 @@
       "source_file": "packages\\shared\\src\\schemas.test.ts",
       "source_location": "L1",
       "id": "packages_shared_src_schemas_test_ts",
-      "community": 11,
+      "community": 10,
       "norm_label": "schemas.test.ts"
     },
     {
@@ -3141,16 +3177,16 @@
       "source_file": "packages\\shared\\src\\schemas.ts",
       "source_location": "L1",
       "id": "packages_shared_src_schemas_ts",
-      "community": 11,
+      "community": 10,
       "norm_label": "schemas.ts"
     },
     {
       "label": "createPaginatedResponseSchema()",
       "file_type": "code",
       "source_file": "packages\\shared\\src\\schemas.ts",
-      "source_location": "L494",
+      "source_location": "L495",
       "id": "src_schemas_createpaginatedresponseschema",
-      "community": 11,
+      "community": 10,
       "norm_label": "createpaginatedresponseschema()"
     }
   ],
@@ -3507,7 +3543,7 @@
       "relation": "imports_from",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L25",
+      "source_location": "L26",
       "weight": 1.0,
       "_src": "apps_api_src_modules_auth_auth_service_ts",
       "_tgt": "apps_api_src_config_env_ts",
@@ -3554,6 +3590,18 @@
     {
       "relation": "imports_from",
       "confidence": "EXTRACTED",
+      "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
+      "source_location": "L27",
+      "weight": 1.0,
+      "_src": "apps_api_src_modules_auth_auth_service_ts",
+      "_tgt": "apps_api_src_config_logger_ts",
+      "source": "apps_api_src_config_logger_ts",
+      "target": "apps_api_src_modules_auth_auth_service_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\realtime\\socket.ts",
       "source_location": "L5",
       "weight": 1.0,
@@ -3591,7 +3639,7 @@
       "relation": "imports_from",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L24",
+      "source_location": "L25",
       "weight": 1.0,
       "_src": "apps_api_src_modules_auth_auth_service_ts",
       "_tgt": "apps_api_src_config_redis_ts",
@@ -4374,6 +4422,30 @@
       "source_location": "L107",
       "weight": 1.0,
       "_src": "auth_auth_controller_authcontroller",
+      "_tgt": "auth_auth_controller_authcontroller_forgotpassword",
+      "source": "auth_auth_controller_authcontroller",
+      "target": "auth_auth_controller_authcontroller_forgotpassword",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "apps\\api\\src\\modules\\auth\\auth.controller.ts",
+      "source_location": "L117",
+      "weight": 1.0,
+      "_src": "auth_auth_controller_authcontroller",
+      "_tgt": "auth_auth_controller_authcontroller_resetpassword",
+      "source": "auth_auth_controller_authcontroller",
+      "target": "auth_auth_controller_authcontroller_resetpassword",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "apps\\api\\src\\modules\\auth\\auth.controller.ts",
+      "source_location": "L126",
+      "weight": 1.0,
+      "_src": "auth_auth_controller_authcontroller",
       "_tgt": "auth_auth_controller_authcontroller_setup2fa",
       "source": "auth_auth_controller_authcontroller",
       "target": "auth_auth_controller_authcontroller_setup2fa",
@@ -4383,7 +4455,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.controller.ts",
-      "source_location": "L116",
+      "source_location": "L135",
       "weight": 1.0,
       "_src": "auth_auth_controller_authcontroller",
       "_tgt": "auth_auth_controller_authcontroller_verify2fa",
@@ -4395,7 +4467,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.controller.ts",
-      "source_location": "L126",
+      "source_location": "L145",
       "weight": 1.0,
       "_src": "auth_auth_controller_authcontroller",
       "_tgt": "auth_auth_controller_authcontroller_getsessions",
@@ -4407,7 +4479,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.controller.ts",
-      "source_location": "L142",
+      "source_location": "L161",
       "weight": 1.0,
       "_src": "auth_auth_controller_authcontroller",
       "_tgt": "auth_auth_controller_authcontroller_deleteaccount",
@@ -4419,7 +4491,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.controller.ts",
-      "source_location": "L151",
+      "source_location": "L170",
       "weight": 1.0,
       "_src": "auth_auth_controller_authcontroller_deleteaccount",
       "_tgt": "auth_auth_controller_authcontroller_logoutall",
@@ -4431,7 +4503,7 @@
       "relation": "imports_from",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L3",
+      "source_location": "L4",
       "weight": 1.0,
       "_src": "apps_api_src_modules_auth_auth_service_ts",
       "_tgt": "apps_api_src_modules_auth_auth_model_ts",
@@ -4515,7 +4587,7 @@
       "relation": "imports_from",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L17",
+      "source_location": "L18",
       "weight": 1.0,
       "_src": "apps_api_src_modules_auth_auth_service_ts",
       "_tgt": "apps_api_src_utils_errors_ts",
@@ -4527,7 +4599,7 @@
       "relation": "imports_from",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L27",
+      "source_location": "L29",
       "weight": 1.0,
       "_src": "apps_api_src_modules_auth_auth_service_ts",
       "_tgt": "apps_api_src_services_bloomfilter_service_ts",
@@ -4539,7 +4611,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L29",
+      "source_location": "L31",
       "weight": 1.0,
       "_src": "apps_api_src_modules_auth_auth_service_ts",
       "_tgt": "auth_auth_service_authservice",
@@ -4551,7 +4623,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L30",
+      "source_location": "L32",
       "weight": 1.0,
       "_src": "auth_auth_service_authservice",
       "_tgt": "auth_auth_service_authservice_adminregister",
@@ -4563,7 +4635,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L76",
+      "source_location": "L78",
       "weight": 1.0,
       "_src": "auth_auth_service_authservice",
       "_tgt": "auth_auth_service_authservice_register",
@@ -4575,7 +4647,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L119",
+      "source_location": "L121",
       "weight": 1.0,
       "_src": "auth_auth_service_authservice",
       "_tgt": "auth_auth_service_authservice_verifyotp",
@@ -4587,7 +4659,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L141",
+      "source_location": "L143",
       "weight": 1.0,
       "_src": "auth_auth_service_authservice",
       "_tgt": "auth_auth_service_authservice_login",
@@ -4599,7 +4671,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L180",
+      "source_location": "L182",
       "weight": 1.0,
       "_src": "auth_auth_service_authservice",
       "_tgt": "auth_auth_service_authservice_rotaterefreshtoken",
@@ -4611,7 +4683,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L247",
+      "source_location": "L249",
       "weight": 1.0,
       "_src": "auth_auth_service_authservice",
       "_tgt": "auth_auth_service_authservice_logout",
@@ -4623,7 +4695,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L254",
+      "source_location": "L256",
       "weight": 1.0,
       "_src": "auth_auth_service_authservice",
       "_tgt": "auth_auth_service_authservice_logoutall",
@@ -4635,7 +4707,31 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L261",
+      "source_location": "L263",
+      "weight": 1.0,
+      "_src": "auth_auth_service_authservice",
+      "_tgt": "auth_auth_service_authservice_forgotpassword",
+      "source": "auth_auth_service_authservice",
+      "target": "auth_auth_service_authservice_forgotpassword",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
+      "source_location": "L297",
+      "weight": 1.0,
+      "_src": "auth_auth_service_authservice",
+      "_tgt": "auth_auth_service_authservice_resetpassword",
+      "source": "auth_auth_service_authservice",
+      "target": "auth_auth_service_authservice_resetpassword",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
+      "source_location": "L362",
       "weight": 1.0,
       "_src": "auth_auth_service_authservice",
       "_tgt": "auth_auth_service_authservice_setup2fa",
@@ -4647,7 +4743,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L277",
+      "source_location": "L378",
       "weight": 1.0,
       "_src": "auth_auth_service_authservice",
       "_tgt": "auth_auth_service_authservice_verifyandenable2fa",
@@ -4659,7 +4755,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L308",
+      "source_location": "L409",
       "weight": 1.0,
       "_src": "auth_auth_service_authservice",
       "_tgt": "auth_auth_service_authservice_createsession",
@@ -4671,7 +4767,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L73",
+      "source_location": "L75",
       "weight": 1.0,
       "_src": "auth_auth_service_authservice_adminregister",
       "_tgt": "auth_auth_service_authservice_createsession",
@@ -4683,7 +4779,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L138",
+      "source_location": "L140",
       "weight": 1.0,
       "_src": "auth_auth_service_authservice_verifyotp",
       "_tgt": "auth_auth_service_authservice_createsession",
@@ -4695,7 +4791,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
-      "source_location": "L177",
+      "source_location": "L179",
       "weight": 1.0,
       "_src": "auth_auth_service_authservice_login",
       "_tgt": "auth_auth_service_authservice_createsession",
@@ -4738,6 +4834,18 @@
       "_tgt": "auth_otp_handleverify",
       "source": "auth_auth_service_authservice_login",
       "target": "auth_otp_handleverify"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps\\api\\src\\modules\\auth\\auth.service.ts",
+      "source_location": "L346",
+      "weight": 1.0,
+      "_src": "auth_auth_service_authservice_resetpassword",
+      "_tgt": "auth_auth_service_authservice_logoutall",
+      "source": "auth_auth_service_authservice_logoutall",
+      "target": "auth_auth_service_authservice_resetpassword",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
@@ -7431,7 +7539,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "packages\\shared\\src\\schemas.ts",
-      "source_location": "L494",
+      "source_location": "L495",
       "weight": 1.0,
       "_src": "packages_shared_src_schemas_ts",
       "_tgt": "src_schemas_createpaginatedresponseschema",

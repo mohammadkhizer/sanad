@@ -50,5 +50,24 @@ describe('Authentication & Token Security', () => {
     expect(secret).toBeDefined();
     expect(secret.length).toBeGreaterThanOrEqual(16);
   });
+
+  it('generates recovery code and reset token without leaking user existence', async () => {
+    const { authService } = await import('../modules/auth/auth.service.js');
+    const res = await authService.forgotPassword('nonexistent@sanad.app');
+    expect(res.success).toBe(true);
+    expect(res.message).toContain('If an account exists');
+    expect(res.token).toBeDefined();
+    expect(res.token.length).toBe(64);
+  });
+
+  it('rejects password reset with insufficient password length', async () => {
+    const { authService } = await import('../modules/auth/auth.service.js');
+    await expect(
+      authService.resetPassword({
+        token: 'abcdef1234567890abcdef1234567890',
+        newPassword: 'short',
+      })
+    ).rejects.toThrow('at least 10 characters');
+  });
 });
 

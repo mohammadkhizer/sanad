@@ -4,28 +4,73 @@ import { useRouter } from 'expo-router';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
 import { AppHeader } from '../../src/components/AppHeader';
+import { BrandLogo } from '../../src/components/BrandLogo';
 import { colors } from '../../src/theme/colors';
 import { api } from '../../src/api';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
+  const [step, setStep] = useState<'request' | 'reset'>('request');
   const [identifier, setIdentifier] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [recoveryCode, setRecoveryCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleResetRequest = async () => {
-    if (!identifier.trim()) return;
+    if (!identifier.trim()) {
+      setError('Please provide your registered email address or phone number');
+      return;
+    }
+    setError(null);
     setLoading(true);
     try {
       await api.auth.forgotPassword(identifier.trim());
-      setSubmitted(true);
+      setStep('reset');
       Alert.alert(
-        'Recovery Link Sent',
-        'If an account exists with this email or phone, a secure single-use recovery code has been dispatched.'
+        'Recovery Code Dispatched',
+        'If an account exists with this credential, a single-use verification code has been dispatched. Enter it below along with your new password.'
       );
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Reset failed';
-      Alert.alert('Error', msg);
+      const msg = e instanceof Error ? e.message : 'Password recovery request failed';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordUpdate = async () => {
+    if (!recoveryCode.trim()) {
+      setError('Please enter the 6-digit recovery code');
+      return;
+    }
+    if (!newPassword || newPassword.length < 10) {
+      setError('New password must be at least 10 characters long');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    setError(null);
+    setLoading(true);
+    try {
+      await api.auth.resetPassword(recoveryCode.trim(), newPassword, identifier.trim());
+      Alert.alert(
+        'Password Updated',
+        'Your password has been reset successfully. Please log in with your new credentials.',
+        [
+          {
+            text: 'Sign In',
+            onPress: () => router.replace('/(auth)/login'),
+          },
+        ]
+      );
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Password reset failed';
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -34,25 +79,49 @@ export default function ForgotPasswordScreen() {
   return (
     <View style={styles.screen}>
       <AppHeader
-        title="Reset Password"
-        subtitle="Account Recovery"
+        title="Account Recovery"
+        subtitle={step === 'request' ? 'Request Recovery Code' : 'Set New Password'}
         showBack
+        onBack={() => {
+          if (step === 'reset') {
+            setStep('request');
+          } else {
+            router.back();
+          }
+        }}
       />
 
       <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.masthead}>
+          <BrandLogo size="medium" />
+        </View>
+
         <View style={styles.card}>
-          <Text style={styles.title}>Account Recovery</Text>
+          <Text style={styles.title}>
+            {step === 'request' ? 'Reset Your Password' : 'Enter Verification Code'}
+          </Text>
           <Text style={styles.subtitle}>
-            Enter your registered email address or phone number to receive a secure password recovery code.
+            {step === 'request'
+              ? 'Enter your registered email address or phone number to receive a secure recovery code.'
+              : `Enter the recovery code sent for ${identifier.trim()} and create a new secure password.`}
           </Text>
 
-          {!submitted ? (
+          {Boolean(error) && (
+            <View style={styles.errorBox}>
+              <Text style={styles.errorBanner}>{error}</Text>
+            </View>
+          )}
+
+          {step === 'request' ? (
             <>
               <Input
                 label="Email or Phone Number"
                 placeholder="scholar@institution.edu"
                 value={identifier}
-                onChangeText={setIdentifier}
+                onChangeText={(val) => {
+                  setIdentifier(val);
+                  setError(null);
+                }}
                 autoCapitalize="none"
               />
 
@@ -65,21 +134,63 @@ export default function ForgotPasswordScreen() {
               />
             </>
           ) : (
-            <View style={styles.successBox}>
-              <Text style={styles.successText}>
-                Recovery instructions dispatched. Please check your inbox or SMS message.
-              </Text>
-              <Button
-                title="Return to Log In"
-                variant="outline"
-                onPress={() => router.replace('/(auth)/login')}
-                style={styles.backBtn}
+            <>
+              <Input
+                label="Recovery Code / Token"
+                placeholder="6-digit code or reset token"
+                value={recoveryCode}
+                onChangeText={(val) => {
+                  setRecoveryCode(val);
+                  setError(null);
+                }}
+                autoCapitalize="none"
               />
-            </View>
+
+              <Input
+                label="New Password"
+                placeholder="Min 10 characters"
+                value={newPassword}
+                onChangeText={(val) => {
+                  setNewPassword(val);
+                  setError(null);
+                }}
+                secureTextEntry
+              />
+
+              <Input
+                label="Confirm New Password"
+                placeholder="Re-enter new password"
+                value={confirmPassword}
+                onChangeText={(val) => {
+                  setConfirmPassword(val);
+                  setError(null);
+                }}
+                secureTextEntry
+              />
+
+              <Button
+                title="Update Password"
+                variant="primary"
+                onPress={handlePasswordUpdate}
+                loading={loading}
+                style={styles.submitBtn}
+              />
+
+              <Button
+                title="Resend Recovery Code"
+                variant="outline"
+                onPress={handleResetRequest}
+                disabled={loading}
+                style={styles.resendBtn}
+              />
+            </>
           )}
 
-          <TouchableOpacity style={styles.cancelLink} onPress={() => router.back()}>
-            <Text style={styles.cancelText}>Cancel and return</Text>
+          <TouchableOpacity
+            style={styles.cancelLink}
+            onPress={() => router.replace('/(auth)/login')}
+          >
+            <Text style={styles.cancelText}>Return to Sign In</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -96,6 +207,10 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: 'center',
     flexGrow: 1,
+  },
+  masthead: {
+    alignItems: 'center',
+    marginBottom: 20,
   },
   card: {
     backgroundColor: colors.light.surface,
@@ -115,32 +230,30 @@ const styles = StyleSheet.create({
     color: colors.light.textSecondary,
     lineHeight: 18,
   },
+  errorBox: {
+    backgroundColor: '#FFF2F0',
+    borderColor: '#FFCCC7',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 10,
+  },
+  errorBanner: {
+    color: '#CF1322',
+    fontSize: 12,
+    fontWeight: '600',
+  },
   submitBtn: {
     marginTop: 6,
   },
-  successBox: {
-    backgroundColor: 'rgba(15, 76, 69, 0.08)',
-    padding: 14,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.light.primary,
-    gap: 10,
-  },
-  successText: {
-    fontSize: 13,
-    color: colors.light.primary,
-    lineHeight: 19,
-    fontWeight: '600',
-  },
-  backBtn: {
-    marginTop: 4,
+  resendBtn: {
+    marginTop: 2,
   },
   cancelLink: {
     alignItems: 'center',
     paddingVertical: 8,
   },
   cancelText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
     color: colors.light.textMuted,
   },

@@ -10,6 +10,8 @@ import {
   loginSchema,
   refreshTokenSchema,
   totpVerifySchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from '@sanad/shared';
 
 const router = Router();
@@ -20,6 +22,8 @@ router.post('/admin-register', authRateLimiter, validate(adminRegisterSchema), a
 router.post('/verify-otp', authRateLimiter, validate(verifyOtpSchema), authController.verifyOtp);
 router.post('/login', authRateLimiter, validate(loginSchema), authController.login);
 router.post('/refresh', authRateLimiter, validate(refreshTokenSchema), authController.refresh);
+router.post('/forgot-password', authRateLimiter, validate(forgotPasswordSchema), authController.forgotPassword);
+router.post('/reset-password', authRateLimiter, validate(resetPasswordSchema), authController.resetPassword);
 router.post('/logout', authenticate, authController.logout);
 router.post('/logout-all', authenticate, authController.logoutAll);
 router.post('/2fa/setup', authenticate, authController.setup2FA);
