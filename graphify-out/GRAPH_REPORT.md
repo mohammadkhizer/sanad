@@ -1,7 +1,7 @@
 # Graph Report - sanad  (2026-11-12)
 
 ## Corpus Check
-- 122 files · ~64,033 words
+- 122 files · ~67,724 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -42,8 +42,8 @@
 ## Surprising Connections (you probably didn't know these)
 - `bootstrap()` --calls--> `connectDB()`  [INFERRED]
   apps\api\src\server.ts → apps\api\src\config\db.ts
-- `handleSelectRole()` --calls--> `setMockUser()`  [INFERRED]
-  apps\mobile\src\components\DevControlsBar.tsx → apps\mobile\src\api\mock\adapter.ts
+- `setMockUser()` --calls--> `handleSelectRole()`  [INFERRED]
+  apps\mobile\src\api\mock\adapter.ts → apps\mobile\src\components\DevControlsBar.tsx
 - `useCan()` --calls--> `can()`  [INFERRED]
   apps\mobile\src\hooks\useCan.ts → packages\shared\src\permissions.ts
 
