@@ -17,6 +17,13 @@ router.get(
   usersController.listUsers
 );
 
+router.patch(
+  '/users/:id/roles',
+  authenticate,
+  requirePermission('role:assign'),
+  usersController.updateUserRoles
+);
+
 // Scholar Application Moderation
 router.get(
   '/applications',

@@ -19,7 +19,7 @@ export const httpAdapter: ApiClientModules = {
   users: {
     getMe: async () => {
       const data = await apiClient<any>('/users/me');
-      return data.user || data;
+      return data.user ? { ...data.user, counts: data.counts } : data;
     },
     updateProfile: async (data) => {
       const res = await apiClient<any>('/users/me', { method: 'PATCH', body: JSON.stringify(data) });
@@ -27,7 +27,7 @@ export const httpAdapter: ApiClientModules = {
     },
     getUser: async (id) => {
       const data = await apiClient<any>(`/users/${id}`);
-      return data.user || data;
+      return data.user ? { ...data.user, counts: data.counts, isFollowing: data.isFollowing } : data;
     },
     createUser: async (input) => {
       const res = await apiClient<any>('/admin/users', { method: 'POST', body: JSON.stringify(input) });

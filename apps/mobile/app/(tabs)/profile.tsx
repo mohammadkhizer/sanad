@@ -35,6 +35,11 @@ export default function ProfileScreen() {
     queryFn: () => api.content.getFeed(),
   });
 
+  const { data: profileData } = useQuery<any>({
+    queryKey: ['myProfile'],
+    queryFn: () => api.users.getMe(),
+  });
+
   const handleLogout = async () => {
     Alert.alert('Log Out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
@@ -101,7 +106,7 @@ export default function ProfileScreen() {
               style={styles.statCol}
               onPress={() => router.push(`/profile/${user.id}/network`)}
             >
-              <Text style={styles.statNumber}>1.4k</Text>
+              <Text style={styles.statNumber}>{profileData?.counts?.followers ?? 0}</Text>
               <Text style={styles.statLabel}>Followers</Text>
             </TouchableOpacity>
             <View style={styles.statDivider} />
@@ -109,12 +114,14 @@ export default function ProfileScreen() {
               style={styles.statCol}
               onPress={() => router.push(`/profile/${user.id}/network`)}
             >
-              <Text style={styles.statNumber}>18</Text>
+              <Text style={styles.statNumber}>{profileData?.counts?.following ?? 0}</Text>
               <Text style={styles.statLabel}>Following</Text>
             </TouchableOpacity>
             <View style={styles.statDivider} />
             <View style={styles.statCol}>
-              <Text style={styles.statNumber}>24</Text>
+              <Text style={styles.statNumber}>
+                {profileData?.counts?.lessons ?? postsData?.items?.length ?? 0}
+              </Text>
               <Text style={styles.statLabel}>Lessons</Text>
             </View>
           </View>

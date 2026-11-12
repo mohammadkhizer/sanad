@@ -23,8 +23,9 @@ export default function ScholarApplicationStatusScreen() {
   });
 
   const appealMutation = useMutation({
-    mutationFn: async (text: string) => {
-      return api.verification.endorseApplication(application?._id || 'app_201');
+    mutationFn: async (_text: string) => {
+      if (!application?._id) throw new Error('No active application found');
+      return api.verification.endorseApplication(application._id);
     },
     onSuccess: () => {
       Alert.alert('Appeal Submitted', 'Your appeal has been added to the Senior Review Committee dossier.');

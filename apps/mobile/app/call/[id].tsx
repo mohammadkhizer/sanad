@@ -41,7 +41,9 @@ export default function CallScreen() {
   }, [callState]);
 
   const handleEndCall = async () => {
-    await api.calls.endCall(id || 'call_1');
+    if (id) {
+      await api.calls.endCall(id);
+    }
     setCallState('ended');
   };
 

@@ -15,15 +15,18 @@ export default function ScholarlyNetworkScreen() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'followers' | 'following'>('followers');
 
+  const targetId = id as string;
+
   const { data, isLoading } = useQuery<{ followers: UserEntity[]; following: UserEntity[] }>({
-    queryKey: ['network', id],
-    queryFn: () => api.users.getNetwork(id || 'usr_scholar_1'),
+    queryKey: ['network', targetId],
+    queryFn: () => api.users.getNetwork(targetId),
+    enabled: Boolean(targetId),
   });
 
   const followMutation = useMutation({
-    mutationFn: (targetId: string) => api.users.follow(targetId),
+    mutationFn: (uId: string) => api.users.follow(uId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['network', id] });
+      queryClient.invalidateQueries({ queryKey: ['network', targetId] });
     },
   });
 

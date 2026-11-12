@@ -21,6 +21,20 @@ export default function ScholarDashboardScreen() {
     queryFn: () => api.content.getFeed(),
   });
 
+  const { data: profileData } = useQuery<any>({
+    queryKey: ['myProfile'],
+    queryFn: () => api.users.getMe(),
+  });
+
+  const { data: inquiriesData } = useQuery<any[]>({
+    queryKey: ['scholarInquiries'],
+    queryFn: () => api.chat.getConversations(),
+  });
+
+  const totalViews = (postsData?.items || []).reduce((acc, p) => acc + (p.counts?.views || 0), 0);
+  const totalStudents = profileData?.counts?.followers ?? 0;
+  const totalInquiries = (inquiriesData || []).length;
+
   const deletePostMutation = useMutation({
     mutationFn: (id: string) => api.content.deletePost(id),
     onSuccess: () => {
@@ -63,17 +77,17 @@ export default function ScholarDashboardScreen() {
         {/* Metric Cards */}
         <View style={styles.metricsRow}>
           <Card style={styles.metricCard}>
-            <Text style={styles.metricVal}>18.4K</Text>
+            <Text style={styles.metricVal}>{totalViews > 1000 ? `${(totalViews / 1000).toFixed(1)}K` : totalViews}</Text>
             <Text style={styles.metricLabel}>Total Views</Text>
             <View style={styles.metricAccent} />
           </Card>
           <Card style={styles.metricCard}>
-            <Text style={styles.metricVal}>3.2K</Text>
+            <Text style={styles.metricVal}>{totalStudents > 1000 ? `${(totalStudents / 1000).toFixed(1)}K` : totalStudents}</Text>
             <Text style={styles.metricLabel}>Students</Text>
             <View style={styles.metricAccent} />
           </Card>
           <Card style={styles.metricCard}>
-            <Text style={styles.metricVal}>142</Text>
+            <Text style={styles.metricVal}>{totalInquiries}</Text>
             <Text style={styles.metricLabel}>Inquiries</Text>
             <View style={styles.metricAccent} />
           </Card>

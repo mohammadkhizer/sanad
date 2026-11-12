@@ -168,6 +168,8 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [x] Register and OTP verification (email/phone)
 - [x] Password hashing with argon2
 - [x] Login with generic error messages (no user enumeration)
+- [x] Admin registration screen with provisioning secret (`POST /api/v1/auth/admin-register`)
+- [x] Database-driven auth synchronization on app startup with instant token revocation
 - [x] Access token 15 min; refresh token rotating
 - [x] Refresh tokens stored hashed; reuse detection revokes session family
 - [x] Logout and logout-all
@@ -188,7 +190,9 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [x] Permission constants in `packages/shared`
 - [x] Role→permission map and `can()` helper
 - [x] `authenticate`, `requireRole`, `requirePermission`, `requireOwnership` middleware
-- [x] Sensitive actions re-check role from DB
+- [x] Sensitive actions re-check role from DB (instant revocation gate)
+- [x] Admin role management endpoint (`PATCH /api/v1/admin/users/:id/roles`)
+- [x] Hardcoded mock data purged from all screens; dynamic live database queries across profile, scholar, feed, and chat
 - [x] Instant scholar revocation works
 - [x] Audit log for role and moderation actions
 - [x] Tests cover every cell of the permission matrix

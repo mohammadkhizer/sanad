@@ -215,7 +215,11 @@ export default function PostDetailScreen() {
         <Card style={styles.authorCard}>
           <TouchableOpacity
             style={styles.authorRow}
-            onPress={() => router.push(`/scholar/${author?._id || 'usr_scholar_1'}`)}
+            onPress={() => {
+              if (author?._id) {
+                router.push(isPostAuthorScholar ? `/scholar/${author._id}` : `/profile/${author._id}`);
+              }
+            }}
             activeOpacity={0.8}
           >
             <Avatar name={authorName} url={author?.avatarUrl} size={48} />

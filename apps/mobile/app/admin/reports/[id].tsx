@@ -24,15 +24,17 @@ export default function ReportDetailActionScreen() {
 
   const { data: report, isLoading } = useQuery<ReportEntity>({
     queryKey: ['adminReport', id],
-    queryFn: () => api.moderation.getReport(id || 'rep_501'),
+    queryFn: () => (id ? api.moderation.getReport(id) : Promise.reject(new Error('Missing report ID'))),
+    enabled: Boolean(id),
   });
 
   const actionMutation = useMutation({
     mutationFn: async () => {
+      if (!id) throw new Error('Missing report ID');
       if (!reason || reason.trim().length < 5) {
         throw new Error('A detailed reason (min 5 characters) is required to take an administrative action.');
       }
-      return api.moderation.takeAction(id || 'rep_501', {
+      return api.moderation.takeAction(id, {
         action: selectedAction,
         reason: reason.trim(),
         durationDays: selectedAction === 'suspend' ? parseInt(durationDays, 10) || 7 : undefined,
@@ -75,7 +77,7 @@ export default function ReportDetailActionScreen() {
       <View style={styles.screen}>
       <AppHeader
         title="Moderation Action"
-        subtitle={`Incident ${id || 'rep_501'}`}
+        subtitle={`Incident ${id || 'Record'}`}
         showBack
       />
 

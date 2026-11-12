@@ -32,17 +32,20 @@ export default function ChatScreen() {
 
   const { data, isLoading } = useQuery<MessageEntity[]>({
     queryKey: ['messages', id],
-    queryFn: () => api.chat.getMessages(id || 'conv_301'),
+    queryFn: () => (id ? api.chat.getMessages(id) : Promise.resolve([])),
+    enabled: Boolean(id),
     refetchInterval: 5000,
   });
 
   const sendMutation = useMutation({
-    mutationFn: (body: string) =>
-      api.chat.sendMessage({
-        conversationId: id || 'conv_301',
+    mutationFn: (body: string) => {
+      if (!id) throw new Error('Missing conversation ID');
+      return api.chat.sendMessage({
+        conversationId: id,
         body,
         type: 'text',
-      }),
+      });
+    },
     onSuccess: () => {
       setText('');
       queryClient.invalidateQueries({ queryKey: ['messages', id] });
@@ -190,7 +193,7 @@ export default function ChatScreen() {
         <ReportModal
           visible={reportModalVisible}
           targetType="message"
-          targetId={id || 'conv_301'}
+          targetId={id || ''}
           onClose={() => setReportModalVisible(false)}
         />
       )}

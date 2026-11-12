@@ -1,7 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import { UserModel } from '../auth/auth.model.js';
 import { FollowModel, BlockModel } from './users.model.js';
-import { NotFoundError, ConflictError } from '../../utils/errors.js';
+import { PostModel } from '../content/content.model.js';
+import { AuditLogModel } from '../moderation/moderation.model.js';
+import { NotFoundError, ConflictError, ValidationError } from '../../utils/errors.js';
 import mongoose from 'mongoose';
 
 export class UsersController {
@@ -17,12 +19,14 @@ export class UsersController {
 
       const followerCount = await FollowModel.countDocuments({ followeeId: user._id });
       const followingCount = await FollowModel.countDocuments({ followerId: user._id });
+      const lessonsCount = await PostModel.countDocuments({ authorId: user._id, status: 'live' });
 
       res.status(200).json({
         user,
         counts: {
           followers: followerCount,
           following: followingCount,
+          lessons: lessonsCount,
         },
       });
     } catch (error) {
@@ -81,6 +85,7 @@ export class UsersController {
 
       const followerCount = await FollowModel.countDocuments({ followeeId: user._id });
       const followingCount = await FollowModel.countDocuments({ followerId: user._id });
+      const lessonsCount = await PostModel.countDocuments({ authorId: user._id, status: 'live' });
 
       let isFollowing = false;
       if (req.user) {
@@ -96,9 +101,43 @@ export class UsersController {
         counts: {
           followers: followerCount,
           following: followingCount,
+          lessons: lessonsCount,
         },
         isFollowing,
       });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getNetwork(req: Request, res: Response, next: NextFunction) {
+    try {
+      const targetId = req.params.id;
+      if (!mongoose.Types.ObjectId.isValid(targetId)) {
+        return res.status(200).json({ followers: [], following: [] });
+      }
+
+      const targetObjectId = new mongoose.Types.ObjectId(targetId);
+
+      const [followerDocs, followingDocs] = await Promise.all([
+        FollowModel.find({ followeeId: targetObjectId })
+          .populate('followerId', 'displayName username avatarUrl roles scholarProfile bio')
+          .limit(50)
+          .exec(),
+        FollowModel.find({ followerId: targetObjectId })
+          .populate('followeeId', 'displayName username avatarUrl roles scholarProfile bio')
+          .limit(50)
+          .exec(),
+      ]);
+
+      const followers = followerDocs
+        .map((f: any) => f.followerId)
+        .filter(Boolean);
+      const following = followingDocs
+        .map((f: any) => f.followeeId)
+        .filter(Boolean);
+
+      res.status(200).json({ followers, following });
     } catch (error) {
       next(error);
     }
@@ -211,6 +250,57 @@ export class UsersController {
         .exec();
 
       res.status(200).json({ users });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateUserRoles(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const { roles } = req.body;
+
+      if (!Array.isArray(roles) || roles.length === 0) {
+        throw new ValidationError('Roles must be a non-empty array of valid roles');
+      }
+
+      const user = await UserModel.findById(id);
+      if (!user) {
+        throw new NotFoundError('User not found');
+      }
+
+      user.roles = roles;
+      if (roles.includes('scholar') && !user.scholarProfile?.verified) {
+        user.scholarProfile = {
+          verified: true,
+          verifiedAt: new Date(),
+          institution: user.scholarProfile?.institution || 'Sanad Academic Council',
+          specialties: user.scholarProfile?.specialties || ['General Islamic Sciences'],
+        };
+      } else if (!roles.includes('scholar') && user.scholarProfile?.verified) {
+        user.scholarProfile.verified = false;
+      }
+
+      await user.save();
+
+      await AuditLogModel.create({
+        actorId: new mongoose.Types.ObjectId(req.user!.id),
+        action: 'role:update',
+        targetId: user._id,
+        targetType: 'user',
+        details: { newRoles: roles },
+      });
+
+      res.status(200).json({
+        success: true,
+        user: {
+          _id: user._id.toString(),
+          displayName: user.displayName,
+          email: user.email,
+          roles: user.roles,
+          scholarProfile: user.scholarProfile,
+        },
+      });
     } catch (error) {
       next(error);
     }

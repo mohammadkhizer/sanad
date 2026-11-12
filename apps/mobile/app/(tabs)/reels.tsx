@@ -123,7 +123,11 @@ export default function ReelsScreen() {
           <View style={styles.rightRail}>
             <TouchableOpacity
               style={styles.railItem}
-              onPress={() => router.push(`/scholar/${author?._id || 'usr_scholar_1'}`)}
+              onPress={() => {
+                if (author?._id) {
+                  router.push(`/scholar/${author._id}`);
+                }
+              }}
             >
               <Avatar name={authorName} url={author?.avatarUrl} size={48} />
               <View style={styles.railBadge}>
@@ -180,7 +184,11 @@ export default function ReelsScreen() {
           {/* Bottom Scholar Info Overlay */}
           <View style={styles.bottomInfo}>
             <TouchableOpacity
-              onPress={() => router.push(`/scholar/${author?._id || 'usr_scholar_1'}`)}
+              onPress={() => {
+                if (author?._id) {
+                  router.push(`/scholar/${author._id}`);
+                }
+              }}
             >
               <View style={styles.bottomAuthorRow}>
                 <Text style={styles.bottomAuthorName}>{authorName}</Text>

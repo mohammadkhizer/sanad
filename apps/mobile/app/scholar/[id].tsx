@@ -32,27 +32,31 @@ export default function ScholarProfileScreen() {
   const [activeTab, setActiveTab] = useState<'reels' | 'videos'>('reels');
   const [isFollowing, setIsFollowing] = useState(false);
 
-  const { data: user, isLoading } = useQuery<UserEntity>({
-    queryKey: ['scholarProfile', id],
-    queryFn: () => api.users.getUser(id || 'usr_scholar_1'),
+  const scholarId = id as string;
+
+  const { data: user, isLoading } = useQuery<any>({
+    queryKey: ['scholarProfile', scholarId],
+    queryFn: () => api.users.getUser(scholarId),
+    enabled: Boolean(scholarId),
   });
 
   const { data: postsData } = useQuery<{ items: PostEntity[] }>({
-    queryKey: ['scholarPosts', id],
+    queryKey: ['scholarPosts', scholarId],
     queryFn: () => api.content.getFeed(),
+    enabled: Boolean(scholarId),
   });
 
   const followMutation = useMutation({
     mutationFn: async () => {
       if (isFollowing) {
-        return api.users.unfollow(id || 'usr_scholar_1');
+        return api.users.unfollow(scholarId);
       } else {
-        return api.users.follow(id || 'usr_scholar_1');
+        return api.users.follow(scholarId);
       }
     },
     onSuccess: () => {
       setIsFollowing(!isFollowing);
-      queryClient.invalidateQueries({ queryKey: ['scholarProfile', id] });
+      queryClient.invalidateQueries({ queryKey: ['scholarProfile', scholarId] });
     },
   });
 
@@ -64,7 +68,7 @@ export default function ScholarProfileScreen() {
 
     try {
       await api.chat.sendChatRequest({
-        scholarId: id || 'usr_scholar_1',
+        scholarId,
         message: 'Respected teacher, I am seeking formal scholarly guidance regarding narrator criticism and legal methodology.',
       });
       Alert.alert(
@@ -84,7 +88,7 @@ export default function ScholarProfileScreen() {
       return;
     }
     try {
-      const session = await api.calls.initiateCall(id || 'usr_scholar_1');
+      const session = await api.calls.initiateCall(scholarId);
       router.push(`/call/${session._id}`);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Call initialization failed';
@@ -102,7 +106,7 @@ export default function ScholarProfileScreen() {
           text: 'Block',
           style: 'destructive',
           onPress: async () => {
-            await api.users.blockUser(id || 'usr_scholar_1');
+            await api.users.blockUser(scholarId);
             Alert.alert('User Blocked', 'This scholar profile has been blocked from your feed.');
             router.replace('/(tabs)/feed');
           },
@@ -163,7 +167,7 @@ export default function ScholarProfileScreen() {
           {/* Specialties Tags */}
           {user.scholarProfile?.specialties && (
             <View style={styles.specialtiesRow}>
-              {user.scholarProfile.specialties.map((spec, idx) => (
+              {user.scholarProfile.specialties.map((spec: string, idx: number) => (
                 <View key={idx} style={styles.specBadge}>
                   <Text style={styles.specText}>{spec}</Text>
                 </View>
@@ -177,7 +181,7 @@ export default function ScholarProfileScreen() {
               style={styles.metricItem}
               onPress={() => router.push(`/profile/${user._id}/network`)}
             >
-              <Text style={styles.metricVal}>4,820</Text>
+              <Text style={styles.metricVal}>{user.counts?.followers ?? 0}</Text>
               <Text style={styles.metricLabel}>Students</Text>
             </TouchableOpacity>
 
@@ -187,14 +191,14 @@ export default function ScholarProfileScreen() {
               style={styles.metricItem}
               onPress={() => router.push(`/profile/${user._id}/network`)}
             >
-              <Text style={styles.metricVal}>64</Text>
+              <Text style={styles.metricVal}>{user.counts?.following ?? 0}</Text>
               <Text style={styles.metricLabel}>Following</Text>
             </TouchableOpacity>
 
             <View style={styles.metricDivider} />
 
             <View style={styles.metricItem}>
-              <Text style={styles.metricVal}>52</Text>
+              <Text style={styles.metricVal}>{user.counts?.lessons ?? postsData?.items?.length ?? 0}</Text>
               <Text style={styles.metricLabel}>Lessons</Text>
             </View>
           </View>

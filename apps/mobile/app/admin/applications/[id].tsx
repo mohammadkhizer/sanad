@@ -22,7 +22,8 @@ export default function ApplicationReviewDetailScreen() {
 
   const { data: application, isLoading } = useQuery<ScholarApplicationEntity>({
     queryKey: ['adminApplication', id],
-    queryFn: () => api.verification.getApplication(id || 'app_201'),
+    queryFn: () => (id ? api.verification.getApplication(id) : Promise.reject(new Error('Missing application ID'))),
+    enabled: Boolean(id),
   });
 
   const decisionMutation = useMutation({
@@ -31,7 +32,8 @@ export default function ApplicationReviewDetailScreen() {
       if (decision === 'rejected' && (!reviewNote || reviewNote.trim().length === 0)) {
         throw new Error('A detailed reason note is mandatory when rejecting an application.');
       }
-      return api.verification.reviewApplication(id || 'app_201', {
+      if (!id) throw new Error('Missing application ID');
+      return api.verification.reviewApplication(id, {
         decision,
         reviewNote: reviewNote.trim() || undefined,
       });

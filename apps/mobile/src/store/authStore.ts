@@ -27,20 +27,12 @@ interface AuthState {
   initialize: () => Promise<void>;
 }
 
-export const DEFAULT_ADMIN_USER: AuthUser = {
-  id: 'usr_admin_1',
-  displayName: 'Sanad Platform Admin',
-  email: 'admin@sanad.internal',
-  roles: ['member', 'scholar', 'moderator', 'admin'],
-  twoFactorEnabled: true,
-};
-
 export const useAuthStore = create<AuthState>((set) => ({
-  user: DEFAULT_ADMIN_USER,
-  accessToken: 'mock_jwt_access_token_sanad_admin',
-  refreshToken: 'mock_jwt_refresh_token_sanad_admin',
-  isLoading: false,
-  isAuthenticated: true,
+  user: null,
+  accessToken: null,
+  refreshToken: null,
+  isLoading: true,
+  isAuthenticated: false,
 
   initialize: async () => {
     try {
@@ -50,76 +42,67 @@ export const useAuthStore = create<AuthState>((set) => ({
         SecureStore.getItemAsync(USER_DATA_KEY),
       ]);
 
+      const baseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+
       if (accessToken && refreshToken && rawUser) {
-        const user = JSON.parse(rawUser) as AuthUser;
-        set({
-          accessToken,
-          refreshToken,
-          user,
-          isAuthenticated: true,
-          isLoading: false,
-        });
-        return;
-      }
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 3000);
+          const res = await fetch(`${baseUrl}/users/me`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+            signal: controller.signal,
+          });
+          clearTimeout(timeout);
 
-      // If in HTTP mode, attempt auto-login with default seeded admin credentials
-      try {
-        const baseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 2500);
-        const res = await fetch(`${baseUrl}/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ identifier: 'admin@sanad.app', password: 'SanadSecure2026!' }),
-          signal: controller.signal,
-        });
-        clearTimeout(timeout);
-
-        if (res.ok) {
-          const data = await res.json();
-          if (data.accessToken && data.refreshToken && data.user) {
+          if (res.ok) {
+            const data = await res.json();
+            const dbUser = data.user || data;
             const liveUser: AuthUser = {
-              id: data.user.id || data.user._id,
-              displayName: data.user.displayName,
-              email: data.user.email,
-              phone: data.user.phone,
-              roles: data.user.roles,
-              twoFactorEnabled: data.user.twoFactorEnabled ?? data.user.twoFA?.enabled,
+              id: dbUser._id || dbUser.id,
+              displayName: dbUser.displayName,
+              email: dbUser.email,
+              phone: dbUser.phone,
+              roles: dbUser.roles || ['member'],
+              twoFactorEnabled: dbUser.twoFA?.enabled ?? false,
             };
-            await Promise.all([
-              SecureStore.setItemAsync(ACCESS_TOKEN_KEY, data.accessToken),
-              SecureStore.setItemAsync(REFRESH_TOKEN_KEY, data.refreshToken),
-              SecureStore.setItemAsync(USER_DATA_KEY, JSON.stringify(liveUser)),
-            ]);
+            await SecureStore.setItemAsync(USER_DATA_KEY, JSON.stringify(liveUser));
             set({
-              accessToken: data.accessToken,
-              refreshToken: data.refreshToken,
+              accessToken,
+              refreshToken,
               user: liveUser,
               isAuthenticated: true,
               isLoading: false,
             });
             return;
           }
+        } catch {
+          // If server is temporarily unreachable, maintain cached session
+          const user = JSON.parse(rawUser) as AuthUser;
+          set({
+            accessToken,
+            refreshToken,
+            user,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+          return;
         }
-      } catch {
-        // Fallback when server is not running or offline
       }
 
-      // Default to Platform Admin account
+      // No saved token found in storage
       set({
-        accessToken: 'mock_jwt_access_token_sanad_admin',
-        refreshToken: 'mock_jwt_refresh_token_sanad_admin',
-        user: DEFAULT_ADMIN_USER,
-        isAuthenticated: true,
+        accessToken: null,
+        refreshToken: null,
+        user: null,
+        isAuthenticated: false,
         isLoading: false,
       });
     } catch {
-      // Default to Platform Admin account on storage error
       set({
-        accessToken: 'mock_jwt_access_token_sanad_admin',
-        refreshToken: 'mock_jwt_refresh_token_sanad_admin',
-        user: DEFAULT_ADMIN_USER,
-        isAuthenticated: true,
+        accessToken: null,
+        refreshToken: null,
+        user: null,
+        isAuthenticated: false,
         isLoading: false,
       });
     }
@@ -162,4 +145,3 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
   },
 }));
-

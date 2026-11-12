@@ -10,6 +10,7 @@ router.get('/', optionalAuthenticate, usersController.listUsers);
 router.get('/me', authenticate, usersController.getMe);
 router.patch('/me', authenticate, validate(updateProfileSchema), usersController.updateMe);
 router.get('/:id', optionalAuthenticate, usersController.getUser);
+router.get('/:id/network', optionalAuthenticate, usersController.getNetwork);
 router.post('/:id/follow', authenticate, usersController.followUser);
 router.delete('/:id/follow', authenticate, usersController.unfollowUser);
 router.post('/:id/block', authenticate, usersController.blockUser);

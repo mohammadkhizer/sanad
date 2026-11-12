@@ -71,13 +71,11 @@ export default function FeedScreen() {
         <View style={styles.authorRow}>
           <TouchableOpacity
             style={styles.authorTouch}
-            onPress={() =>
-              router.push(
-                isScholar
-                  ? `/scholar/${author?._id || 'usr_scholar_1'}`
-                  : `/profile/${author?._id || 'usr_scholar_1'}`
-              )
-            }
+            onPress={() => {
+              if (author?._id) {
+                router.push(isScholar ? `/scholar/${author._id}` : `/profile/${author._id}`);
+              }
+            }}
           >
             <Avatar name={authorName} url={author?.avatarUrl} size={42} />
             <View style={styles.authorInfo}>
