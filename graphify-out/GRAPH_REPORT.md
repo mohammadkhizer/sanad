@@ -1,12 +1,12 @@
 # Graph Report - sanad  (2026-11-12)
 
 ## Corpus Check
-- 138 files · ~81,621 words
+- 137 files · ~80,997 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 352 nodes · 362 edges · 18 communities detected
-- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 14 edges (avg confidence: 0.8)
+- 348 nodes · 356 edges · 18 communities detected
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 11 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
@@ -60,12 +60,12 @@ Cohesion: 0.08
 Nodes (6): AppError, ConflictError, ForbiddenError, NotFoundError, UnauthorizedError, ValidationError
 
 ### Community 1 - "Community 1"
-Cohesion: 0.1
-Nodes (7): handleAdminRegister(), AuthService, handleAdminQuickLogin(), handleLogin(), handleVerify(), handleSelectRole(), setMockUser()
-
-### Community 2 - "Community 2"
 Cohesion: 0.15
 Nodes (4): connectDB(), disconnectDB(), seedDatabase(), bootstrap()
+
+### Community 2 - "Community 2"
+Cohesion: 0.14
+Nodes (5): handleAdminRegister(), AuthService, handleAdminQuickLogin(), handleLogin(), handleVerify()
 
 ### Community 3 - "Community 3"
 Cohesion: 0.17
@@ -160,13 +160,13 @@ Nodes (1): RootLayout()
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `AuthService` connect `Community 1` to `Community 2`?**
-  _High betweenness centrality (0.063) - this node is a cross-community bridge._
-- **Why does `AuthController` connect `Community 3` to `Community 2`?**
-  _High betweenness centrality (0.034) - this node is a cross-community bridge._
+- **Why does `AuthService` connect `Community 2` to `Community 1`?**
+  _High betweenness centrality (0.046) - this node is a cross-community bridge._
+- **Why does `AuthController` connect `Community 3` to `Community 1`?**
+  _High betweenness centrality (0.033) - this node is a cross-community bridge._
 - **Why does `ContentController` connect `Community 4` to `Community 0`?**
   _High betweenness centrality (0.031) - this node is a cross-community bridge._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.08 - nodes in this community are weakly interconnected._
-- **Should `Community 1` be split into smaller, more focused modules?**
-  _Cohesion score 0.1 - nodes in this community are weakly interconnected._
+- **Should `Community 2` be split into smaller, more focused modules?**
+  _Cohesion score 0.14 - nodes in this community are weakly interconnected._

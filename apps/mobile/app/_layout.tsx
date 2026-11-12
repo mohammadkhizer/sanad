@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '../src/store/authStore';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { DevControlsBar } from '../src/components/DevControlsBar';
 import { colors } from '../src/theme/colors';
 
 const queryClient = new QueryClient({
@@ -62,7 +61,6 @@ export default function RootLayout() {
           <Stack.Screen name="admin/roles" options={{ headerShown: false }} />
           <Stack.Screen name="admin/config" options={{ headerShown: false }} />
         </Stack>
-        {__DEV__ && <DevControlsBar />}
       </QueryClientProvider>
     </SafeAreaProvider>
   );
