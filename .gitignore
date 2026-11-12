@@ -16,6 +16,7 @@ yarn.lock
 # Build outputs
 dist/
 build/
+.next/
 .expo/
 .expo-shared/
 web-build/
