@@ -167,6 +167,10 @@ export default function LoginScreen() {
         <TouchableOpacity style={styles.guestLink} onPress={() => router.replace('/(tabs)/feed')}>
           <Text style={styles.guestText}>Continue as Guest (Read Only)</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity style={styles.adminRegisterLink} onPress={() => router.push('/(auth)/admin-register')}>
+          <Text style={styles.adminRegisterText}>Platform Governance: Register System Admin</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -271,5 +275,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: colors.light.textMuted,
+  },
+  adminRegisterLink: {
+    alignItems: 'center',
+    paddingVertical: 4,
+    marginTop: 4,
+  },
+  adminRegisterText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.light.primary,
+    letterSpacing: 0.3,
   },
 });

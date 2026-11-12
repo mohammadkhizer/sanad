@@ -51,81 +51,85 @@ export default function PostDetailScreen() {
 
   const isScholar = Boolean(user?.roles?.includes('scholar') || user?.roles?.includes('admin'));
 
+  const postId = id as string;
+
   const { data: post, isLoading } = useQuery<PostEntity>({
-    queryKey: ['post', id],
-    queryFn: () => api.content.getPost(id || 'post_reel_101'),
+    queryKey: ['post', postId],
+    queryFn: () => api.content.getPost(postId),
+    enabled: Boolean(postId),
   });
 
   const authorId = typeof post?.authorId === 'object' ? post.authorId._id : post?.authorId;
   const canManagePost = Boolean(user?.roles?.includes('admin') || (user?.id && user.id === authorId));
 
   const { data: comments } = useQuery<CommentEntity[]>({
-    queryKey: ['comments', id],
-    queryFn: () => api.content.getComments(id || 'post_reel_101'),
+    queryKey: ['comments', postId],
+    queryFn: () => api.content.getComments(postId),
+    enabled: Boolean(postId),
   });
 
   const likeMutation = useMutation({
-    mutationFn: () => api.content.likePost(id || 'post_reel_101'),
+    mutationFn: () => api.content.likePost(postId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['post', id] });
+      queryClient.invalidateQueries({ queryKey: ['post', postId] });
     },
   });
 
   const saveMutation = useMutation({
-    mutationFn: () => api.content.savePost(id || 'post_reel_101'),
+    mutationFn: () => api.content.savePost(postId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['post', id] });
+      queryClient.invalidateQueries({ queryKey: ['post', postId] });
     },
   });
 
   const commentMutation = useMutation({
     mutationFn: (text: string) =>
-      api.content.addComment(id || 'post_reel_101', { text }),
+      api.content.addComment(postId, { text }),
     onSuccess: () => {
       setCommentText('');
-      queryClient.invalidateQueries({ queryKey: ['comments', id] });
-      queryClient.invalidateQueries({ queryKey: ['post', id] });
+      queryClient.invalidateQueries({ queryKey: ['comments', postId] });
+      queryClient.invalidateQueries({ queryKey: ['post', postId] });
     },
   });
 
   const pinCommentMutation = useMutation({
     mutationFn: (commentId: string) =>
-      api.content.pinComment(id || 'post_reel_101', commentId),
+      api.content.pinComment(postId, commentId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['comments', id] });
+      queryClient.invalidateQueries({ queryKey: ['comments', postId] });
     },
   });
 
   const hideCommentMutation = useMutation({
     mutationFn: (commentId: string) =>
-      api.content.hideComment(id || 'post_reel_101', commentId),
+      api.content.hideComment(postId, commentId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['comments', id] });
+      queryClient.invalidateQueries({ queryKey: ['comments', postId] });
     },
   });
 
   const deleteCommentMutation = useMutation({
     mutationFn: (commentId: string) =>
-      api.content.deleteComment(id || 'post_reel_101', commentId),
+      api.content.deleteComment(postId, commentId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['comments', id] });
-      queryClient.invalidateQueries({ queryKey: ['post', id] });
+      queryClient.invalidateQueries({ queryKey: ['comments', postId] });
+      queryClient.invalidateQueries({ queryKey: ['post', postId] });
     },
   });
 
   const updatePostMutation = useMutation({
     mutationFn: (patch: { caption: string; tags: string[] }) =>
-      api.content.updatePost(id || 'post_reel_101', patch as any),
+      api.content.updatePost(postId, patch as any),
     onSuccess: () => {
       setIsEditingPost(false);
-      queryClient.invalidateQueries({ queryKey: ['post', id] });
+      queryClient.invalidateQueries({ queryKey: ['post', postId] });
       queryClient.invalidateQueries({ queryKey: ['feed'] });
       Alert.alert('Updated', 'Lesson updated successfully');
     },
   });
 
   const deletePostMutation = useMutation({
-    mutationFn: () => api.content.deletePost(id || 'post_reel_101'),
+    mutationFn: () => api.content.deletePost(postId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['feed'] });
       queryClient.invalidateQueries({ queryKey: ['reels'] });

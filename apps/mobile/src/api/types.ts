@@ -21,11 +21,13 @@ import {
   SendMessageInput,
   CreateReportInput,
   ModerationActionInput,
+  AdminRegisterInput,
   Role,
 } from '@sanad/shared';
 
 export interface AuthModule {
   register(input: RegisterInput): Promise<{ user: UserEntity; requiresOtp: boolean }>;
+  adminRegister(input: AdminRegisterInput): Promise<{ accessToken: string; refreshToken: string; user: UserEntity }>;
   verifyOtp(input: VerifyOtpInput): Promise<{ accessToken: string; refreshToken: string; user: UserEntity }>;
   login(input: LoginInput): Promise<{ accessToken: string; refreshToken: string; user: UserEntity; requires2FA?: boolean }>;
   refresh(refreshToken: string): Promise<{ accessToken: string }>;

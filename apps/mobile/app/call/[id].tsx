@@ -9,9 +9,10 @@ import { Icon } from '../../src/components/Icon';
 import { api } from '../../src/api';
 
 export default function CallScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, name } = useLocalSearchParams<{ id: string; name?: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const calleeDisplayName = name || 'Scholar Consultation';
 
   const [callState, setCallState] = useState<'ringing' | 'connected' | 'ended'>('ringing');
   const [isMuted, setIsMuted] = useState(false);
@@ -87,9 +88,9 @@ export default function CallScreen() {
       {/* Main Video / Ringing Stage */}
       {callState === 'ringing' ? (
         <View style={styles.ringingStage}>
-          <Avatar name="Dr. Omar Farooq" size={96} />
-          <Text style={styles.callerName}>Dr. Omar Farooq</Text>
-          <Text style={styles.callerSub}>Accredited Hadith Sciences Scholar</Text>
+          <Avatar name={calleeDisplayName} size={96} />
+          <Text style={styles.callerName}>{calleeDisplayName}</Text>
+          <Text style={styles.callerSub}>Accredited Scholar Consultation</Text>
           <View style={styles.connectingPill}>
             <Text style={styles.connectingText}>Establishing LiveKit WebRTC Session...</Text>
           </View>
@@ -97,8 +98,8 @@ export default function CallScreen() {
       ) : (
         <View style={styles.videoStage}>
           <View style={styles.stageOverlay}>
-            <Avatar name="Dr. Omar Farooq" size={80} />
-            <Text style={styles.connectedName}>Dr. Omar Farooq</Text>
+            <Avatar name={calleeDisplayName} size={80} />
+            <Text style={styles.connectedName}>{calleeDisplayName}</Text>
             <View style={styles.timerPill}>
               <View style={styles.timerDot} />
               <Text style={styles.callTimer}>{formatDuration(durationSecs)}</Text>

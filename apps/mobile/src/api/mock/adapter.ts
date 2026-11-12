@@ -84,6 +84,33 @@ const authMock: AuthModule = {
     };
   },
 
+  async adminRegister(input) {
+    await simulateLatency();
+    const newAdmin: UserEntity = {
+      _id: `usr_admin_${Date.now()}`,
+      displayName: input.displayName,
+      email: input.email,
+      phone: input.phone,
+      dateOfBirth: input.dateOfBirth,
+      roles: ['admin', 'moderator', 'scholar', 'member'],
+      scholarProfile: {
+        verified: true,
+        verifiedAt: new Date().toISOString(),
+        institution: input.institution || 'Sanad Academic Foundation',
+        specialties: ['Platform Governance', 'Isnad Verification'],
+        languages: ['English', 'Arabic'],
+      },
+      status: 'active',
+      createdAt: new Date().toISOString(),
+    };
+    currentUser = newAdmin;
+    return {
+      accessToken: 'jwt_admin_' + Date.now(),
+      refreshToken: 'refresh_admin_' + Date.now(),
+      user: userEntitySchema.parse(newAdmin),
+    };
+  },
+
   async verifyOtp(input) {
     await simulateLatency();
     currentUser = {

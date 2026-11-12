@@ -12,6 +12,7 @@ export default function AuthLayout() {
     >
       <Stack.Screen name="login" />
       <Stack.Screen name="register" />
+      <Stack.Screen name="admin-register" />
       <Stack.Screen name="otp" />
       <Stack.Screen name="two-factor" />
       <Stack.Screen name="2fa-setup" />

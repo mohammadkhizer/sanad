@@ -5,6 +5,7 @@ import { authenticate } from '../../middlewares/auth.js';
 import { authRateLimiter } from '../../middlewares/rateLimiter.js';
 import {
   registerSchema,
+  adminRegisterSchema,
   verifyOtpSchema,
   loginSchema,
   refreshTokenSchema,
@@ -15,6 +16,7 @@ const router = Router();
 
 router.get('/check-username', authRateLimiter, authController.checkUsername);
 router.post('/register', authRateLimiter, validate(registerSchema), authController.register);
+router.post('/admin-register', authRateLimiter, validate(adminRegisterSchema), authController.adminRegister);
 router.post('/verify-otp', authRateLimiter, validate(verifyOtpSchema), authController.verifyOtp);
 router.post('/login', authRateLimiter, validate(loginSchema), authController.login);
 router.post('/refresh', authRateLimiter, validate(refreshTokenSchema), authController.refresh);

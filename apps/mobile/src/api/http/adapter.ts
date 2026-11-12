@@ -5,6 +5,7 @@ import { PostEntity } from '@sanad/shared';
 export const httpAdapter: ApiClientModules = {
   auth: {
     register: (input) => apiClient('/auth/register', { method: 'POST', body: JSON.stringify(input) }),
+    adminRegister: (input) => apiClient('/auth/admin-register', { method: 'POST', body: JSON.stringify(input) }),
     verifyOtp: (input) => apiClient('/auth/verify-otp', { method: 'POST', body: JSON.stringify(input) }),
     login: (input) => apiClient('/auth/login', { method: 'POST', body: JSON.stringify(input) }),
     refresh: (refreshToken) => apiClient('/auth/refresh', { method: 'POST', body: JSON.stringify({ refreshToken }) }),

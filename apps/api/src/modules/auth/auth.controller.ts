@@ -27,6 +27,17 @@ export class AuthController {
     }
   }
 
+  async adminRegister(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userAgent = req.headers['user-agent'];
+      const ip = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress;
+      const result = await authService.adminRegister(req.body, userAgent, ip);
+      res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async register(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await authService.register(req.body);

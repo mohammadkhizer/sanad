@@ -22,10 +22,57 @@ import {
   ForbiddenError,
 } from '../../utils/errors.js';
 import { redis } from '../../config/redis.js';
-import { RegisterInput, LoginInput } from '@sanad/shared';
+import { env } from '../../config/env.js';
+import { RegisterInput, LoginInput, AdminRegisterInput } from '@sanad/shared';
 import { usernameService } from '../../services/bloomFilter.service.js';
 
 export class AuthService {
+  async adminRegister(input: AdminRegisterInput, userAgent?: string, ip?: string) {
+    if (input.adminSecret !== env.ADMIN_SIGNUP_SECRET) {
+      throw new ForbiddenError('Invalid administrator provisioning secret key', 'INVALID_ADMIN_SECRET');
+    }
+
+    if (input.username) {
+      const check = await usernameService.checkAvailability(input.username);
+      if (!check.available) {
+        throw new ConflictError(check.reason || 'Username is already taken', 'USERNAME_UNAVAILABLE');
+      }
+    }
+
+    const query = input.email ? { email: input.email.toLowerCase() } : { phone: input.phone };
+    if (UserModel.db.readyState === 1) {
+      const existing = await UserModel.findOne(query).exec();
+      if (existing) {
+        throw new ConflictError('An account with this email or phone already exists', 'ACCOUNT_EXISTS');
+      }
+    }
+
+    const passwordHash = await argon2.hash(input.password);
+    const user = await UserModel.create({
+      username: input.username?.toLowerCase() || `admin_${Date.now()}`,
+      email: input.email?.toLowerCase(),
+      phone: input.phone,
+      passwordHash,
+      displayName: input.displayName || 'System Administrator',
+      dateOfBirth: input.dateOfBirth ? new Date(input.dateOfBirth) : undefined,
+      roles: ['admin', 'moderator', 'scholar', 'member'],
+      status: 'active',
+      scholarProfile: {
+        verified: true,
+        verifiedAt: new Date(),
+        institution: input.institution || 'Sanad Academic & Governance Council',
+        specialties: ['Platform Governance', 'Isnad Verification'],
+        languages: ['English', 'Arabic'],
+      },
+    });
+
+    if (user.username) {
+      usernameService.registerUsername(user.username);
+    }
+
+    return this.createSession(user, userAgent, ip, false);
+  }
+
   async register(input: RegisterInput) {
     if (input.username) {
       const check = await usernameService.checkAvailability(input.username);

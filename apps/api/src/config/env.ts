@@ -20,6 +20,7 @@ const envSchema = z.object({
   R2_ACCESS_KEY_ID: z.string().optional(),
   R2_SECRET_ACCESS_KEY: z.string().optional(),
   R2_BUCKET_NAME: z.string().default('sanad-uploads'),
+  ADMIN_SIGNUP_SECRET: z.string().default('SanadAdminSetup2026!'),
 });
 
 const parsed = envSchema.safeParse(process.env);

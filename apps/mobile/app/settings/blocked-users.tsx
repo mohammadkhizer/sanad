@@ -1,23 +1,26 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { colors } from '../../src/theme/colors';
 import { Avatar } from '../../src/components/Avatar';
 import { AppHeader } from '../../src/components/AppHeader';
 import { api } from '../../src/api';
-
-interface BlockedItem {
-  id: string;
-  displayName: string;
-  reason: string;
-}
-
-const mockBlocked: BlockedItem[] = [
-  { id: 'usr_spammer_3', displayName: 'Unverified Promos', reason: 'Trolling and promotional spam' },
-  { id: 'usr_fake_user', displayName: 'Anonymous Critic', reason: 'Sectarian hostility' },
-];
+import { UserEntity } from '@sanad/shared';
 
 export default function BlockedUsersScreen() {
-  const [blockedList, setBlockedList] = useState<BlockedItem[]>(mockBlocked);
+  const queryClient = useQueryClient();
+
+  const { data: blockedList = [], isLoading } = useQuery<UserEntity[]>({
+    queryKey: ['blockedUsers'],
+    queryFn: () => api.users.getBlockedUsers(),
+  });
+
+  const unblockMutation = useMutation({
+    mutationFn: (userId: string) => api.users.unblockUser(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blockedUsers'] });
+    },
+  });
 
   const handleUnblock = (id: string, name: string) => {
     Alert.alert('Unblock User', `Do you want to restore access for ${name}?`, [
@@ -25,9 +28,13 @@ export default function BlockedUsersScreen() {
       {
         text: 'Unblock',
         onPress: async () => {
-          await api.users.unblockUser(id);
-          setBlockedList((prev) => prev.filter((u) => u.id !== id));
-          Alert.alert('Unblocked', `${name} has been unblocked.`);
+          try {
+            await unblockMutation.mutateAsync(id);
+            Alert.alert('Unblocked', `${name} has been unblocked.`);
+          } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : 'Failed to unblock';
+            Alert.alert('Error', msg);
+          }
         },
       },
     ]);
@@ -46,35 +53,41 @@ export default function BlockedUsersScreen() {
           Blocked accounts cannot view your profile, send consultation inquiries, or comment on your lessons.
         </Text>
 
-        <FlatList
-          data={blockedList}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-          renderItem={({ item }) => (
-            <View style={styles.row}>
-              <View style={styles.userInfo}>
-                <Avatar name={item.displayName} size={42} />
-                <View style={styles.nameDetails}>
-                  <Text style={styles.name}>{item.displayName}</Text>
-                  <Text style={styles.reasonText}>{item.reason}</Text>
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color={colors.light.primary} />
+          </View>
+        ) : (
+          <FlatList
+            data={blockedList}
+            keyExtractor={(item) => item._id}
+            contentContainerStyle={styles.list}
+            renderItem={({ item }) => (
+              <View style={styles.row}>
+                <View style={styles.userInfo}>
+                  <Avatar name={item.displayName} size={42} />
+                  <View style={styles.nameDetails}>
+                    <Text style={styles.name}>{item.displayName}</Text>
+                    <Text style={styles.reasonText}>{item.email || (item.phone ?? 'Restricted Account')}</Text>
+                  </View>
                 </View>
+                <TouchableOpacity
+                  style={styles.unblockBtn}
+                  onPress={() => handleUnblock(item._id, item.displayName)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.unblockBtnText}>Unblock</Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity
-                style={styles.unblockBtn}
-                onPress={() => handleUnblock(item.id, item.displayName)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.unblockBtnText}>Unblock</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyTitle}>No Blocked Accounts</Text>
-              <Text style={styles.emptyText}>You have not restricted any Sanad members.</Text>
-            </View>
-          }
-        />
+            )}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyTitle}>No Blocked Accounts</Text>
+                <Text style={styles.emptyText}>You have not restricted any Sanad members.</Text>
+              </View>
+            }
+          />
+        )}
       </View>
     </View>
   );
@@ -88,6 +101,11 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerNotice: {
     fontSize: 13,
@@ -123,35 +141,36 @@ const styles = StyleSheet.create({
     color: colors.light.text,
   },
   reasonText: {
-    fontSize: 11,
+    fontSize: 12,
     color: colors.light.textMuted,
     marginTop: 2,
   },
   unblockBtn: {
-    backgroundColor: colors.light.background,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 6,
+    borderRadius: 8,
+    backgroundColor: colors.light.surfaceElevated,
     borderWidth: 1,
     borderColor: colors.light.border,
   },
   unblockBtnText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: colors.light.primary,
+    fontWeight: '600',
+    color: colors.light.text,
   },
   emptyContainer: {
-    padding: 40,
     alignItems: 'center',
-    gap: 6,
+    paddingVertical: 48,
   },
   emptyTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: colors.light.primary,
+    color: colors.light.text,
+    marginBottom: 4,
   },
   emptyText: {
-    color: colors.light.textSecondary,
     fontSize: 13,
+    color: colors.light.textMuted,
+    textAlign: 'center',
   },
 });

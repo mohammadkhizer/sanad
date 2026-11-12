@@ -47,6 +47,43 @@ export type CheckUsernameQueryInput = z.infer<typeof checkUsernameQuerySchema>;
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 
+export const adminRegisterSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(/^[a-z0-9_]{3,30}$/, 'Username must be 3-30 lowercase alphanumeric characters or underscores')
+    .optional(),
+  email: z.string().email().optional(),
+  phone: z.string().regex(/^\+?[1-9]\d{6,14}$/, 'Invalid phone number format').optional(),
+  password: z
+    .string()
+    .min(10, 'Password must be at least 10 characters long')
+    .max(128, 'Password cannot exceed 128 characters'),
+  displayName: z.string().trim().min(2, 'Name must be at least 2 characters').max(50),
+  dateOfBirth: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date of birth must be in YYYY-MM-DD format')
+    .refine((dob) => {
+      const birthDate = new Date(dob);
+      if (isNaN(birthDate.getTime())) return false;
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age >= 13;
+    }, 'Must be at least 13 years old to register'),
+  adminSecret: z.string().min(1, 'Administrator provisioning secret key is required'),
+  institution: z.string().optional(),
+}).refine((data) => data.email || data.phone, {
+  message: 'Either email or phone must be provided',
+  path: ['email'],
+});
+
+export type AdminRegisterInput = z.infer<typeof adminRegisterSchema>;
+
 export const verifyOtpSchema = z.object({
   identifier: z.string().min(3),
   code: z.string().length(6, 'Verification code must be 6 digits'),
