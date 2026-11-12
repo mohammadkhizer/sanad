@@ -21,8 +21,8 @@ export default function AdminRegisterScreen() {
   const [phone, setPhone] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [password, setPassword] = useState('');
-  const [adminSecret, setAdminSecret] = useState('SanadAdminSetup2026!');
-  const [institution, setInstitution] = useState('Sanad Academic & Governance Council');
+  const [adminSecret, setAdminSecret] = useState('');
+  const [institution, setInstitution] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

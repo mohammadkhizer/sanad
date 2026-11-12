@@ -88,46 +88,58 @@ export default function ExploreScreen() {
           </TouchableOpacity>
         </View>
 
-        {scholars.map((scholar) => (
-          <Card key={scholar._id} style={styles.scholarCard}>
-            <TouchableOpacity
-              style={styles.scholarRow}
-              onPress={() => router.push(`/scholar/${scholar._id}`)}
-              activeOpacity={0.8}
-            >
-              <Avatar name={scholar.displayName} url={scholar.avatarUrl} size={50} />
-              <View style={styles.scholarDetails}>
-                <View style={styles.scholarNameRow}>
-                  <Text style={styles.scholarName}>{scholar.displayName}</Text>
-                  <VerifiedBadge size="small" />
-                </View>
-                <Text style={styles.scholarInst}>
-                  {scholar.scholarProfile?.institution || 'Sanad Academy'}
-                </Text>
-                <Text style={styles.scholarBio} numberOfLines={2}>
-                  {scholar.bio || 'Verified specialist in classical Islamic jurisprudence and chain transmission.'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            <View style={styles.scholarActions}>
-              <TouchableOpacity
-                style={styles.actionBtnOutline}
-                onPress={() => router.push(`/chat/${scholar._id}`)}
-              >
-                <Icon name="inbox" size={15} color={colors.light.primary} />
-                <Text style={styles.actionBtnOutlineText}>Consultation</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.actionBtnFill}
-                onPress={() => router.push(`/call/${scholar._id}`)}
-              >
-                <Icon name="call" size={15} color={colors.light.accentText} />
-                <Text style={styles.actionBtnFillText}>Video Call</Text>
-              </TouchableOpacity>
-            </View>
+        {scholars.length === 0 ? (
+          <Card style={styles.emptyCard}>
+            <Text style={styles.emptyText}>
+              Scholars registered in the database will appear here once accredited.
+            </Text>
           </Card>
-        ))}
+        ) : (
+          scholars.map((scholar) => (
+            <Card key={scholar._id} style={styles.scholarCard}>
+              <TouchableOpacity
+                style={styles.scholarRow}
+                onPress={() => router.push(`/scholar/${scholar._id}`)}
+                activeOpacity={0.8}
+              >
+                <Avatar name={scholar.displayName} url={scholar.avatarUrl} size={50} />
+                <View style={styles.scholarDetails}>
+                  <View style={styles.scholarNameRow}>
+                    <Text style={styles.scholarName}>{scholar.displayName}</Text>
+                    <VerifiedBadge size="small" />
+                  </View>
+                  {Boolean(scholar.scholarProfile?.institution) && (
+                    <Text style={styles.scholarInst}>
+                      {scholar.scholarProfile?.institution}
+                    </Text>
+                  )}
+                  {Boolean(scholar.bio) && (
+                    <Text style={styles.scholarBio} numberOfLines={2}>
+                      {scholar.bio}
+                    </Text>
+                  )}
+                </View>
+              </TouchableOpacity>
+
+              <View style={styles.scholarActions}>
+                <TouchableOpacity
+                  style={styles.actionBtnOutline}
+                  onPress={() => router.push(`/chat/${scholar._id}`)}
+                >
+                  <Icon name="inbox" size={15} color={colors.light.primary} />
+                  <Text style={styles.actionBtnOutlineText}>Consultation</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.actionBtnFill}
+                  onPress={() => router.push(`/call/${scholar._id}`)}
+                >
+                  <Icon name="call" size={15} color={colors.light.accentText} />
+                  <Text style={styles.actionBtnFillText}>Video Call</Text>
+                </TouchableOpacity>
+              </View>
+            </Card>
+          ))
+        )}
       </ScrollView>
     </View>
   );

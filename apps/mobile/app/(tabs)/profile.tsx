@@ -96,7 +96,7 @@ export default function ProfileScreen() {
               <Text style={styles.userRole}>
                 {isScholar ? 'Accredited Religious Scholar' : 'Registered Member'}
               </Text>
-              <Text style={styles.userEmail}>{user.email || 'scholar@sanad.app'}</Text>
+              <Text style={styles.userEmail}>{user.email || user.phone || ''}</Text>
             </View>
           </View>
 
@@ -260,23 +260,32 @@ export default function ProfileScreen() {
         </View>
 
         {/* Lessons Grid Preview */}
-        <View style={styles.gridContainer}>
-          {(postsData?.items || []).slice(0, 6).map((post) => (
-            <TouchableOpacity
-              key={post._id}
-              style={styles.gridItem}
-              onPress={() => router.push(`/post/${post._id}`)}
-              activeOpacity={0.8}
-            >
-              <View style={styles.gridPlaceholder}>
-                <Icon name="play" size={20} color={colors.light.accent} />
-              </View>
-              <Text style={styles.gridCaption} numberOfLines={2}>
-                {post.caption}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        {(postsData?.items || []).length === 0 ? (
+          <View style={styles.emptyLessonsContainer}>
+            <Text style={styles.emptyLessonsTitle}>No Lessons Published</Text>
+            <Text style={styles.emptyLessonsSub}>
+              Lessons published to the feed will appear in your curriculum portfolio.
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.gridContainer}>
+            {(postsData?.items || []).slice(0, 6).map((post) => (
+              <TouchableOpacity
+                key={post._id}
+                style={styles.gridItem}
+                onPress={() => router.push(`/post/${post._id}`)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.gridPlaceholder}>
+                  <Icon name="play" size={20} color={colors.light.accent} />
+                </View>
+                <Text style={styles.gridCaption} numberOfLines={2}>
+                  {post.caption}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -499,6 +508,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
+  },
+  emptyLessonsContainer: {
+    padding: 24,
+    borderRadius: 12,
+    backgroundColor: colors.light.surface,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  emptyLessonsTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.light.text,
+    marginBottom: 4,
+  },
+  emptyLessonsSub: {
+    fontSize: 12,
+    color: colors.light.textMuted,
+    textAlign: 'center',
+    lineHeight: 18,
   },
   gridItem: {
     width: '48%',

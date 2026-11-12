@@ -1,6 +1,19 @@
 import { create } from 'zustand';
-import * as SecureStore from 'expo-secure-store';
 import { Role } from '@sanad/shared';
+
+function getSecureStore() {
+  try {
+    return require('expo-secure-store');
+  } catch {
+    return {
+      getItemAsync: async (_key: string) => null,
+      setItemAsync: async (_key: string, _value: string) => {},
+      deleteItemAsync: async (_key: string) => {},
+    };
+  }
+}
+
+const SecureStore = getSecureStore();
 
 const ACCESS_TOKEN_KEY = 'sanad_access_token';
 const REFRESH_TOKEN_KEY = 'sanad_refresh_token';

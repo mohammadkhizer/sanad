@@ -14,27 +14,12 @@ export default function ScholarApplyScreen() {
   const router = useRouter();
 
   const [step, setStep] = useState<number>(1);
-  const [institution, setInstitution] = useState('Al-Azhar University, Cairo');
-  const [statement, setStatement] = useState(
-    'I have completed my doctoral studies in Hadith methodology and am certified in the six canonical books with direct chains of transmission.'
-  );
-  const [specialties, setSpecialties] = useState('Hadith Sciences, Usul al-Fiqh, Islamic Jurisprudence');
-  const [languages, setLanguages] = useState('Arabic, English, Urdu');
-  const [credentials, setCredentials] = useState<CredentialItem[]>([
-    {
-      type: 'degree',
-      institution: 'Al-Azhar University',
-      year: 2021,
-      fileKey: 'credentials/alazhar_doctoral_degree.pdf',
-    },
-    {
-      type: 'ijazah',
-      institution: 'Dar al-Hadith al-Ashrafiyyah',
-      year: 2022,
-      fileKey: 'credentials/ijazah_bukhari_transmission.pdf',
-    },
-  ]);
-  const [endorsementEmail, setEndorsementEmail] = useState('omar.farooq@al-azhar.edu');
+  const [institution, setInstitution] = useState('');
+  const [statement, setStatement] = useState('');
+  const [specialties, setSpecialties] = useState('');
+  const [languages, setLanguages] = useState('');
+  const [credentials, setCredentials] = useState<CredentialItem[]>([]);
+  const [endorsementEmail, setEndorsementEmail] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleAddCredential = () => {

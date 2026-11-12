@@ -62,7 +62,7 @@ export default function FeedScreen() {
 
   const renderPost = ({ item }: { item: PostEntity }) => {
     const author = typeof item.authorId === 'object' ? item.authorId : null;
-    const authorName = author?.displayName || 'Scholar Teacher';
+    const authorName = author?.displayName || 'User';
     const isScholar = Boolean(author?.scholarProfile?.verified);
     const institution = author?.scholarProfile?.institution;
 

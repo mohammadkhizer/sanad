@@ -9,12 +9,8 @@ import { Icon, IconName } from '../../src/components/Icon';
 import { BrandLogo } from '../../src/components/BrandLogo';
 import { useAuthStore } from '../../src/store/authStore';
 import {
-  getApiMode,
-  setApiMode,
-  subscribeApiMode,
   checkBackendHealth,
   getApiBaseUrl,
-  AdapterMode,
 } from '../../src/api/config';
 
 export default function SettingsScreen() {
@@ -23,7 +19,6 @@ export default function SettingsScreen() {
   const isStaff = user?.roles.includes('moderator') || user?.roles.includes('admin');
   const isAdmin = user?.roles.includes('admin');
 
-  const [currentMode, setCurrentMode] = useState<AdapterMode>(getApiMode());
   const [isPinging, setIsPinging] = useState(false);
   const [pingResult, setPingResult] = useState<{
     tested: boolean;
@@ -32,24 +27,6 @@ export default function SettingsScreen() {
     latencyMs?: number;
     error?: string;
   }>({ tested: false });
-
-  useEffect(() => {
-    const unsubscribe = subscribeApiMode((newMode) => {
-      setCurrentMode(newMode);
-    });
-    return unsubscribe;
-  }, []);
-
-  const handleToggleMode = () => {
-    const nextMode: AdapterMode = currentMode === 'mock' ? 'http' : 'mock';
-    setApiMode(nextMode);
-    setCurrentMode(nextMode);
-    setPingResult({ tested: false });
-    Alert.alert(
-      'Mode Updated',
-      `Sanad API runtime is now using: ${nextMode === 'http' ? 'Live HTTP API (' + getApiBaseUrl() + ')' : 'In-Memory Mock Fixtures'}.`
-    );
-  };
 
   const handlePingBackend = async () => {
     setIsPinging(true);
@@ -113,42 +90,20 @@ export default function SettingsScreen() {
       />
 
       <ScrollView contentContainerStyle={styles.content}>
-        {/* Dynamic Runtime & Database Connection Card */}
+        {/* Live Backend & Database Connection Card */}
         <Card style={styles.card}>
           <Text style={styles.cardHeader}>Data Source & Environment</Text>
           <View style={styles.modeRow}>
             <View style={styles.modeTextCol}>
-              <Text style={styles.menuTitle}>Active API Mode</Text>
-              <Text style={styles.menuSubtitle}>
-                {currentMode === 'http'
-                  ? `Live Backend: ${getApiBaseUrl()}`
-                  : 'In-Memory Mock Adapter with full CRUD state'}
-              </Text>
+              <Text style={styles.menuTitle}>Live Backend API</Text>
+              <Text style={styles.menuSubtitle}>{getApiBaseUrl()}</Text>
             </View>
-            <View
-              style={[
-                styles.modeBadge,
-                currentMode === 'http' ? styles.modeBadgeHttp : styles.modeBadgeMock,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.modeBadgeText,
-                  currentMode === 'http' ? styles.modeBadgeTextHttp : styles.modeBadgeTextMock,
-                ]}
-              >
-                {currentMode === 'http' ? 'LIVE HTTP' : 'MOCK'}
-              </Text>
+            <View style={[styles.modeBadge, styles.modeBadgeHttp]}>
+              <Text style={[styles.modeBadgeText, styles.modeBadgeTextHttp]}>LIVE DB</Text>
             </View>
           </View>
 
           <View style={styles.modeActionsRow}>
-            <Button
-              title={currentMode === 'mock' ? 'Switch to Live API' : 'Switch to Mock Data'}
-              variant="outline"
-              onPress={handleToggleMode}
-              style={styles.modeBtn}
-            />
             <Button
               title={isPinging ? 'Pinging...' : 'Test Connection'}
               variant="primary"

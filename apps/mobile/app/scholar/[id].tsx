@@ -153,16 +153,18 @@ export default function ScholarProfileScreen() {
               {Boolean(user.scholarProfile?.institution) && (
                 <Text style={styles.institution}>{user.scholarProfile?.institution}</Text>
               )}
-              <Text style={styles.verifiedDate}>
-                Verified since {new Date(user.scholarProfile?.verifiedAt || '2025-01-15').getFullYear()}
-              </Text>
+              {Boolean(user.scholarProfile?.verifiedAt) && (
+                <Text style={styles.verifiedDate}>
+                  Verified {new Date(user.scholarProfile!.verifiedAt!).getFullYear()}
+                </Text>
+              )}
             </View>
           </View>
 
           {/* Bio */}
-          <Text style={styles.bioText}>
-            {user.bio || 'Accredited scholar with verified chains of transmission in Islamic jurisprudence and Hadith sciences.'}
-          </Text>
+          {Boolean(user.bio) && (
+            <Text style={styles.bioText}>{user.bio}</Text>
+          )}
 
           {/* Specialties Tags */}
           {user.scholarProfile?.specialties && (

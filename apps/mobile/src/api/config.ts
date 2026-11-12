@@ -1,4 +1,4 @@
-export type AdapterMode = 'mock' | 'http';
+export type AdapterMode = 'http';
 
 function getExpoHostUri(): string | null {
   try {
@@ -24,59 +24,18 @@ function getPlatformOS(): string {
   }
 }
 
-let currentGlobalMode: AdapterMode =
-  (process.env.EXPO_PUBLIC_API_MODE as AdapterMode) || 'http';
-
-type ModeListener = (mode: AdapterMode) => void;
-const modeListeners: Set<ModeListener> = new Set();
-
-export interface ModuleConfig {
-  auth: AdapterMode;
-  users: AdapterMode;
-  content: AdapterMode;
-  verification: AdapterMode;
-  chat: AdapterMode;
-  live: AdapterMode;
-  calls: AdapterMode;
-  moderation: AdapterMode;
-  notifications: AdapterMode;
-}
-
-export const apiConfig: ModuleConfig = {
-  auth: currentGlobalMode,
-  users: currentGlobalMode,
-  content: currentGlobalMode,
-  verification: currentGlobalMode,
-  chat: currentGlobalMode,
-  live: currentGlobalMode,
-  calls: currentGlobalMode,
-  moderation: currentGlobalMode,
-  notifications: currentGlobalMode,
-};
+export const currentGlobalMode: AdapterMode = 'http';
 
 export function getApiMode(): AdapterMode {
-  return currentGlobalMode;
+  return 'http';
 }
 
-export function setApiMode(mode: AdapterMode): void {
-  currentGlobalMode = mode;
-  (Object.keys(apiConfig) as Array<keyof ModuleConfig>).forEach((key) => {
-    apiConfig[key] = mode;
-  });
-  modeListeners.forEach((listener) => {
-    try {
-      listener(mode);
-    } catch {
-      // Ignore listener error
-    }
-  });
+export function setApiMode(_mode: string): void {
+  // Pure live backend mode only - mock mode disabled
 }
 
-export function subscribeApiMode(listener: ModeListener): () => void {
-  modeListeners.add(listener);
-  return () => {
-    modeListeners.delete(listener);
-  };
+export function subscribeApiMode(_listener: (mode: AdapterMode) => void): () => void {
+  return () => {};
 }
 
 export function getApiBaseUrl(): string {
@@ -147,7 +106,7 @@ export async function checkBackendHealth(): Promise<{
 }
 
 export const devSettings = {
-  latencyMs: 300,
+  latencyMs: 0,
   forceError: false,
   emptyData: false,
 };
