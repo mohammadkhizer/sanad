@@ -15,6 +15,29 @@ export class ModerationController {
         reason: req.body.reason,
       });
 
+      // Automated moderation rule: 3 reports in 1 hour auto-hides the target content
+      if (req.body.targetType === 'post') {
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+        const reportCount = await ReportModel.countDocuments({
+          targetType: 'post',
+          targetId: req.body.targetId,
+          createdAt: { $gte: oneHourAgo },
+        }).exec();
+
+        if (reportCount >= 3) {
+          await PostModel.findByIdAndUpdate(req.body.targetId, {
+            status: 'removed',
+          }).exec();
+
+          await AuditLogModel.create({
+            action: 'post:auto_hide',
+            targetType: 'post',
+            targetId: req.body.targetId,
+            reason: 'Automated policy rule triggered: 3 reports received within 1 hour',
+          });
+        }
+      }
+
       res.status(201).json({
         message: 'Report received and queued for review',
         report,
@@ -104,6 +127,7 @@ export class ModerationController {
       // Admin can disable any user of any role
       const nextStatus = requestedStatus || (user.status === 'active' ? 'disabled' : 'active');
       user.status = nextStatus;
+      user.tokenVersion = (user.tokenVersion || 1) + 1;
       await user.save();
 
       // Revoke all active sessions immediately if disabled/suspended

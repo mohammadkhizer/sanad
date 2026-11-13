@@ -29,6 +29,9 @@ export interface IUser extends Document {
   resetPasswordToken?: string;
   resetPasswordCode?: string;
   resetPasswordExpires?: Date;
+  tokenVersion: number;
+  failedLoginAttempts: number;
+  lockedUntil?: Date;
   status: 'active' | 'suspended' | 'disabled' | 'deleted';
   createdAt: Date;
   updatedAt: Date;
@@ -68,6 +71,9 @@ const userSchema = new Schema<IUser>(
     resetPasswordToken: { type: String, sparse: true },
     resetPasswordCode: { type: String, sparse: true },
     resetPasswordExpires: { type: Date },
+    tokenVersion: { type: Number, default: 1 },
+    failedLoginAttempts: { type: Number, default: 0 },
+    lockedUntil: { type: Date },
     status: {
       type: String,
       enum: ['active', 'suspended', 'disabled', 'deleted'],

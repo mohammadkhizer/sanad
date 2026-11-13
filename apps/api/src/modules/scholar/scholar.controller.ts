@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ScholarApplicationModel } from './scholar.model.js';
-import { UserModel } from '../auth/auth.model.js';
+import { UserModel, SessionModel } from '../auth/auth.model.js';
 import { NotFoundError, ConflictError, ForbiddenError, ValidationError } from '../../utils/errors.js';
 import mongoose from 'mongoose';
 import crypto from 'node:crypto';
@@ -171,11 +171,13 @@ export class ScholarController {
       if (user.scholarProfile) {
         user.scholarProfile.verified = false;
       }
+      user.tokenVersion = (user.tokenVersion || 1) + 1;
       await user.save();
+      await SessionModel.updateMany({ userId: user._id }, { revokedAt: new Date() }).exec();
 
       res.status(200).json({
         success: true,
-        message: 'Scholar verification revoked immediately',
+        message: 'Scholar verification revoked immediately and active sessions invalidated',
       });
     } catch (error) {
       next(error);

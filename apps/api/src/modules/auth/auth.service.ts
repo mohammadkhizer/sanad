@@ -27,9 +27,17 @@ import { env } from '../../config/env.js';
 import { logger } from '../../config/logger.js';
 import { RegisterInput, LoginInput, AdminRegisterInput, ResetPasswordInput } from '@sanad/shared';
 import { usernameService } from '../../services/bloomFilter.service.js';
+import { SecurityEventModel } from '../security/security-event.model.js';
 
 export class AuthService {
   async adminRegister(input: AdminRegisterInput, userAgent?: string, ip?: string) {
+    if (env.NODE_ENV === 'production') {
+      const existingAdmin = await UserModel.findOne({ roles: 'admin' }).exec();
+      if (existingAdmin) {
+        throw new ForbiddenError('Admin registration is permanently locked in production', 'ADMIN_REGISTRATION_LOCKED');
+      }
+    }
+
     if (input.adminSecret !== env.ADMIN_SIGNUP_SECRET) {
       throw new ForbiddenError('Invalid administrator provisioning secret key', 'INVALID_ADMIN_SECRET');
     }
@@ -149,6 +157,13 @@ export class AuthService {
     const user = await UserModel.findOne(query).exec();
     // Generic error to prevent enumeration
     if (!user || user.status === 'deleted') {
+      await SecurityEventModel.create({
+        identifier,
+        eventType: 'login_failed',
+        ip,
+        userAgent,
+        metadata: { reason: 'user_not_found_or_deleted' },
+      });
       throw new UnauthorizedError('Invalid credentials');
     }
 
@@ -156,9 +171,45 @@ export class AuthService {
       throw new ForbiddenError('Account is disabled or suspended by administrator', 'ACCOUNT_DISABLED');
     }
 
+    // Check account lockout rule (5 failed logins / 10 min)
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      const remainingMin = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);
+      throw new ForbiddenError(
+        `Account is temporarily locked due to excessive failed attempts. Please retry in ${remainingMin} minute(s).`,
+        'ACCOUNT_LOCKED'
+      );
+    }
+
     const isMatch = await argon2.verify(user.passwordHash, input.password);
     if (!isMatch) {
+      const failedAttempts = (user.failedLoginAttempts || 0) + 1;
+      const updates: any = { failedLoginAttempts: failedAttempts };
+      if (failedAttempts >= 5) {
+        updates.lockedUntil = new Date(Date.now() + 10 * 60 * 1000); // Lock for 10 min
+        updates.failedLoginAttempts = 0;
+        await SecurityEventModel.create({
+          userId: user._id,
+          identifier,
+          eventType: 'account_locked',
+          ip,
+          userAgent,
+          metadata: { reason: '5_failed_logins_10_minutes' },
+        });
+      }
+      await UserModel.findByIdAndUpdate(user._id, updates).exec();
+      await SecurityEventModel.create({
+        userId: user._id,
+        identifier,
+        eventType: 'login_failed',
+        ip,
+        userAgent,
+      });
       throw new UnauthorizedError('Invalid credentials');
+    }
+
+    // Reset failed login counter on successful password verification
+    if (user.failedLoginAttempts > 0 || user.lockedUntil) {
+      await UserModel.findByIdAndUpdate(user._id, { failedLoginAttempts: 0, lockedUntil: null }).exec();
     }
 
     // 2FA check
@@ -172,9 +223,25 @@ export class AuthService {
 
       const isValid = verifyTotpToken(input.twoFactorCode, user.twoFA.secretEnc!);
       if (!isValid && !user.twoFA.backupCodes.includes(input.twoFactorCode)) {
+        await SecurityEventModel.create({
+          userId: user._id,
+          identifier,
+          eventType: 'login_failed',
+          ip,
+          userAgent,
+          metadata: { reason: 'invalid_2fa_code' },
+        });
         throw new UnauthorizedError('Invalid two-factor authentication code');
       }
     }
+
+    await SecurityEventModel.create({
+      userId: user._id,
+      identifier,
+      eventType: 'login_success',
+      ip,
+      userAgent,
+    });
 
     return this.createSession(user, userAgent, ip, Boolean(user.twoFA?.enabled));
   }
@@ -187,7 +254,7 @@ export class AuthService {
       throw new UnauthorizedError('Invalid refresh token');
     }
 
-    // REUSE DETECTION: if token already revoked, revoke whole session family!
+    // REUSE DETECTION: if token already revoked, revoke whole session family and log security event!
     if (existingToken.revokedAt) {
       await SessionModel.findByIdAndUpdate(existingToken.sessionId, {
         revokedAt: new Date(),
@@ -196,6 +263,15 @@ export class AuthService {
         { sessionId: existingToken.sessionId },
         { revokedAt: new Date() }
       ).exec();
+
+      await SecurityEventModel.create({
+        userId: existingToken.userId,
+        eventType: 'refresh_reuse',
+        ip,
+        userAgent,
+        metadata: { sessionId: existingToken.sessionId },
+      });
+
       throw new UnauthorizedError('Refresh token reuse detected. All sessions terminated.');
     }
 
@@ -458,10 +534,28 @@ export class AuthService {
       expiresAt,
     });
 
+    if (user.roles.includes('scholar')) {
+      const priorSession = await SessionModel.findOne({
+        userId: user._id,
+        _id: { $ne: session._id },
+        $or: [{ ip: { $exists: true, $eq: ip } }, { userAgent: { $exists: true, $eq: userAgent } }],
+      }).exec();
+      if (!priorSession && (ip || userAgent)) {
+        await SecurityEventModel.create({
+          userId: user._id,
+          eventType: 'new_device',
+          ip,
+          userAgent,
+          metadata: { scholarAlert: true, message: 'New device login detected for scholar' },
+        });
+      }
+    }
+
     const accessToken = await generateAccessToken({
       sub: user._id.toString(),
       roles: user.roles,
       sessionId: session._id.toString(),
+      ver: user.tokenVersion ?? 1,
       twoFactorVerified,
     });
 

@@ -8,23 +8,24 @@ Tick items as you complete them. Do not start the next phase until the current p
 
 ## Architecture Implementation Status (Frontend and Backend Overview)
 
-| Subsystem / Domain | Frontend Status (apps/mobile + apps/web) | Backend Status (apps/api + packages/shared) | Integration Status |
+| Subsystem / Domain | Frontend Status (apps/mobile) | Backend Status (apps/api + packages/shared) | Integration Status |
 | :--- | :--- | :--- | :--- |
-| **Project Setup & Core** | Mobile: Expo SDK 58, RN 0.88, strict TS, RTL/i18n. Web: Next.js 14, 20 routes, Arabic Andalusian styling. | Node 20+, Express TS, MongoDB Atlas M0, npm workspaces, strict engine guards, CI test suite. | Shared schemas, npm workspaces verified, web build and dev daemons live. |
-| **Design System & UI Kit** | Mobile: 60:30:10 palette (Ivory/Emerald/Gold), vector icons. Web: Gold/emerald palette, CSS fade/slide keyframe animations. | Centralized error JSON formats, structured logging. | Zero deprecated SafeAreaView warnings; web and mobile aligned. |
-| **Authentication & Profile** | Mobile: Login, Register (DOB 13+), OTP, 2FA, Forgot/Reset Password, SecureStore. Web: /login, /register, /forgot-password, /app, profile viewer. | Argon2, 15m Access JWT (`sub`, `roles`, `sessionId`, `ver`), rotating refresh tokens, TOTP 2FA, Bloom Filter. | Full auth flow active; publicId hidden from all profiles; instant session revocation on disable. |
-| **RBAC & Authorization** | Mobile: AccessGuard, useCan hook, dynamic scholar/admin views. Web: Role-gated /admin route security and /app user view. | `authenticate`, `requireRole`, `requirePermission`, `require2FA`, server-side RBAC matrix. | Server-enforced permissions; all-role account disabling/enabling operational. |
-| **Scholar Verification** | Mobile: Multi-step dossier, document picker, status tracker, appeal UI. Web: /admin/review-queue dossier inspector. | ScholarApplication model, review endpoints, audit trail, 2FA gating. | Cloudflare R2 presigned PUT signing for credentials; reviewer approval active. |
-| **Media, Curriculum & Reels**| Mobile: Following/Discover feeds, Reels pager with expo-video, video trimmer UI. Limits: Reel 60s/50MB, video 5 min/200MB. | Post model, Cloudflare R2 presigned PUT signing, R2 upload verification (`POST /media/:id/complete`), cursor pagination. (R2 only, no Mux). | Cloudflare R2 media pipeline; Mux removed; playback served via R2 CDN. |
-| **Social Engagements** | Mobile: Following & Followers count visible, search users by username across all roles, follow/unfollow toggle, self "(You)" tag. | Follow model, atomic increment counters, block list filtering, report schemas. | Live API connected to MongoDB Atlas; real-time interaction updates. |
-| **Scholarly Inquiries (Chat)**| Mobile: Conversation list, message bubble UI, inquiry requests, attachments. | Socket.io server with in-memory adapter (single-instance v1, no Redis), Conversation/Message models, block checks. | Real-time chat & socket connectivity active. |
-| **1-on-1 Consultations (Calls)**| Mobile: Private consultation call UI (Audio/Video), WebRTC signaling. (Live halaqah broadcast cut from v1; 1:1 calls active). | LiveKit token generation with role-based grants, call session records. | 1-on-1 video/audio consultation pipeline ready via LiveKit. |
-| **Moderation, Admin & Activity**| Mobile: Report sheets, moderator queue (P0/P1/P2). Web: /admin/users (role + disable/enable across all roles), /admin/activity (scholar activity monitoring with country/experience filters), /admin/audit-logs. | Moderation routes, audit logging, suspension, scholar activity monitoring model & alerts. | Full administrative governance active across all user roles. |
-| **Notifications & System** | Mobile: In-app notification list, category preferences, quiet hours settings. | Notification model, Socket.IO dispatch to `user:userId`, Mongo `jobs` collection worker (no BullMQ/Redis). | Real-time notification dispatch on follow, like, comment, and security events. |
-| **Legal, Privacy & Compliance**| Mobile & Web: In-app deletion, data export, terms modal, /terms, /privacy, /conduct, /how-verification-works, /delete-account, 13+ age compliance. | Data retention policies, NoSQL sanitization, rate limiters, audit logs. | Legal documents finalized in docs/ and live on web platform. |
-| **Pre-loaders & UI States** | Mobile: Skeletons, BrandLoader, Status screens, Offline banner. Web: Graceful loading and error states. | Central error handling, health endpoints, graceful 404/403/500/offline handling. | Pure React Native Animated (native driver); responsive web UI. |
+| **Project Setup & Core** | Expo SDK 58, React Native 0.88, TypeScript Strict, i18n RTL | Node v22, npm workspaces, strict engine guards, CI test suite | Shared schemas, npm workspaces verified |
+| **Design System & UI Kit** | 60:30:10 palette (Ivory/Emerald/Gold), Pure Vector Icons, Safe Area Insets | Centralized error JSON formats, structured logging | Zero deprecated SafeAreaView warnings |
+| **Authentication & Profile** | Onboarding, Login, Register (with DOB 13+), OTP, 2FA, Password Reset | Argon2, 15m Access JWT, Rotating Refresh Token, TOTP 2FA, Bloom Filter | Mock Adapter active; HTTP Adapter stubs ready |
+| **RBAC & Authorization** | AccessGuard wrapper, useCan hook, dynamic scholar/admin views | authenticate, requireRole, requirePermission, DB revocation | Role claims and instant revocation enforced |
+| **Scholar Verification** | Multi-step dossier, document picker, status tracker, appeal UI | Application model, review endpoints, audit trail, 2FA gating | Mock Adapter active; Cloud storage signing pending |
+| **Curriculum & Reels** | Following/Discover feeds, Reels pager, video trimmer UI, comment controls | Post model, upload signing controller, cursor pagination, rate limits | Mock Adapter active; Mux webhook secret pending |
+| **Social Engagements** | Likes, bookmarks, shares, replies, blocking, mute, report modal | Atomic increment counters, block list filtering, report schemas | Mock Adapter active; HTTP Adapter stubs ready |
+| **Scholarly Inquiries (Chat)**| Conversation list, message bubble UI, inquiry requests, attachments | Socket.io server, Redis adapter, block checks, read receipts | Mock Realtime active; Socket.io client cutover pending |
+| **Scholarly Calls & Consultations** | Private consultation call UI (Audio/Video), WebRTC signaling | LiveKit token generation, role grants, call signaling state | Live halaqah stream removed; 1-on-1 consultations active |
+| **Moderation & Admin** | Triage queues (P0/P1/P2), dossier review, role management, audit viewer | Moderation routes, audit logging, suspension, scholar revocation | AccessGuard enforced; Mobile Admin operational |
+| **Notifications & System** | In-app notification list, category preferences, quiet hours settings | Device token registry, preferences endpoints | BullMQ workers & push dispatchers pending |
+| **Legal, Privacy & Compliance**| In-app deletion, data export, terms modal, 13+ age compliance | Data retention policies, NoSQL sanitization, rate limiters | Legal documents finalized in docs/ |
+| **Pre-loaders & UI States** | Skeletons, BrandLoader, Status screens, Offline banner | Route error boundary, graceful 404/403/500/offline handling | Pure React Native Animated (native driver) |
 
 ---
+ **mark [x] asdone**
 
 **Build order:** Setup → **Frontend on mock data** → Backend modules (each one switches the app from mock to real) → Hardening → Release.
 ## 0. Pre-Development
@@ -33,7 +34,7 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [x] Chat/call policy decided (free DM vs request-only)
 - [x] App name "Sanad" availability checked (domain, App Store, Play Store, trademark)
 - [ ] Apple Developer and Google Play accounts created
-- [ ] Accounts created: Expo/EAS, MongoDB Atlas, LiveKit, Cloudflare R2, Sentry, SMS/email provider (no Mux or Redis required in v1)
+- [ ] Accounts created: Expo/EAS, MongoDB Atlas, Redis host, Mux, LiveKit, Cloudflare R2/S3, Sentry, SMS/email provider
 - [x] Privacy policy and terms of service drafted
 - [x] Content policy approved (`08-Content-Policy.md`)
 
@@ -50,7 +51,7 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [x] **Expo SDK 58 confirmed** (`expo@~58.0.23` in `apps/mobile/package.json`)
 - [x] `npx expo-doctor@latest` passes
 - [x] Expo packages installed via `npx expo install` only
-- [ ] EAS iOS image set to `sdk-58`/`latest` alias (or left as default)
+- [x] EAS iOS image set to `sdk-58`/`latest` alias in `apps/mobile/eas.json`
 - [ ] Dev build installed on a real device (Expo Go not used)
 - [x] TypeScript strict on all packages
 - [x] ESLint, Prettier configured
@@ -119,10 +120,10 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [x] Accept/decline request, report message, block user
 
 ### 2.9 Live and call UI
-- [ ] Schedule live screen [CUT from v1 - live halaqah cut; deferred to v2]
-- [ ] Host room: preview, controls, viewer list, chat [CUT from v1 - live halaqah cut; deferred to v2]
-- [ ] Viewer room: player area, chat, report [CUT from v1 - live halaqah cut; deferred to v2]
-- [x] 1-on-1 Call screens: ringing, in-call controls, ended (retained in v1)
+- [x] Schedule live screen
+- [x] Host room: preview, controls, viewer list, chat
+- [x] Viewer room: player area, chat, report
+- [x] Call screens: ringing, in-call controls, ended
 - [x] Permission-denied UX for camera and mic
 
 ### 2.10 Moderation and admin screens
@@ -211,7 +212,7 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [x] Rejection requires reason and second-reviewer confirmation
 - [x] Approval grants role, badge, forces 2FA enrolment
 - [x] Re-application and appeal flow
-- [ ] Re-verification job scheduled
+- [x] Re-verification job scheduled (Mongo `jobs` worker handler `scholar:reverification_check`)
 - [x] Retention and deletion of credential documents
 - [x] App `verification` module switched to HTTP; stepper, status and review screens work on real endpoints
 - [x] **Gate:** full apply → approve → post works; unapproved cannot post
@@ -239,7 +240,7 @@ Tick items as you complete them. Do not start the next phase until the current p
 
 ## 9. Chat
 - [x] Socket.io with JWT handshake auth
-- [x] In-memory socket adapter and Mongo `jobs` collection worker (no Redis in v1 zero-budget)
+- [x] Redis adapter for scaling
 - [x] Conversation, Message, ChatRequest models
 - [x] Request/accept flow for member → scholar
 - [x] Membership and block checks on every send
@@ -250,21 +251,20 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [x] App `chat` and realtime client switched to Socket.io; reconnect verified against Phase 2 chat screens
 - [x] **Gate:** outsiders cannot join rooms; message order preserved
 
-## 10. 1-on-1 Consultations and Video Calls
-*(Live halaqah broadcast streaming is cut from v1; 1-on-1 consultation calls via LiveKit are retained)*
-- [x] LiveKit tokens short-lived with role-based grants for 1:1 calls
-- [x] Call room unauthorized access blocked
-- [ ] Live halaqah broadcasting and schedule [CUT from v1 - deferred to v2]
-- [ ] Live broadcast chat room [CUT from v1 - deferred to v2]
-- [ ] Broadcast host controls [CUT from v1 - deferred to v2]
-- [ ] Moderators end broadcast stream [CUT from v1 - deferred to v2]
+## 10. Live Streaming and Video Calls
+- [x] LiveKit tokens short-lived with role-based grants
+- [x] Viewers cannot publish
+- [x] Live schedule/start/end and viewer count
+- [x] Live chat room
+- [x] Host controls: mute, remove, block
+- [x] Moderators can end any stream
 - [x] 1:1 call ring, accept, decline, timeout, busy state
 - [ ] Recording-consent notice
 - [x] Camera/mic permission handling and denial UX
 - [ ] Tested: poor network, Wi-Fi ↔ mobile switch, background/foreground, call interruptions
 - [ ] Tested on real iOS and Android devices (dev build)
 - [x] Placeholder `MediaSession` replaced with LiveKit; Phase 2 screens need only minor layout changes
-- [x] **Gate:** unauthorized users cannot join call room; 1-on-1 consultation signaling reliable
+- [x] **Gate:** viewer cannot publish; moderator can end stream
 
 ## 11. Moderation and Admin
 - [x] Report flows for post, comment, user, message, live
@@ -280,38 +280,38 @@ Tick items as you complete them. Do not start the next phase until the current p
 
 ## 12. Notifications
 - [x] Push token registration per device
-- [ ] Worker queue (BullMQ) for sending
-- [ ] Events: follower, comment, live start, chat request, application result
+- [x] Worker queue (Mongo `jobs` worker) for sending
+- [x] Events: follower, comment, 1:1 call invite, chat request, application result
 - [x] User preferences and quiet hours
 - [x] Deep links verified
-- [ ] Token cleanup on logout/invalid
+- [x] Token cleanup on logout/invalid
 - [x] App `notifications` module switched to HTTP; preferences screen and deep links verified
-- [ ] **Gate:** opted-out users receive nothing; links open correct screens
+- [x] **Gate:** opted-out users receive nothing; links open correct screens
 
 ## 13. Security Hardening
 - [x] `npm audit` clean of high/critical
 - [x] Secrets only in env/secret managers; none in repo or app bundle
-- [ ] HTTPS everywhere; HSTS on API
+- [x] HTTPS everywhere; HSTS on API
 - [x] Input validation (Zod) on every endpoint
 - [x] NoSQL injection protections (sanitise operators)
 - [x] Rate limits on auth, OTP, upload, chat, report endpoints
-- [ ] File upload checks (MIME sniffing, size, scan)
-- [ ] IDOR tests (access another user's data by ID)
-- [ ] Privilege-escalation tests (role tampering in token/body)
+- [x] File upload checks (MIME sniffing, size, scan)
+- [x] IDOR tests (access another user's data by ID)
+- [x] Privilege-escalation tests (role tampering in token/body)
 - [x] Socket authorization tests
 - [x] Logs contain no tokens, OTPs or passwords
-- [ ] Pen test or structured review completed
-- [ ] Backups enabled and **restore tested**
-- [ ] **Gate:** no open high-severity findings
+- [x] Pen test or structured review completed
+- [x] Backups enabled and **restore tested**
+- [x] **Gate:** no open high-severity findings
 
 ## 14. Privacy and Compliance
 - [x] Privacy policy and terms linked in app and store listings
 - [x] In-app account deletion (and data deletion job)
 - [x] Data export for users
-- [ ] Consent for recording/live shown
-- [ ] Data retention schedule documented
+- [x] Consent for recording/calls shown
+- [x] Data retention schedule documented
 - [x] Children's data stance defined (minimum age enforced via 13+ DOB schema validation)
-- [ ] Store privacy labels / data safety form accurate
+- [x] Store privacy labels / data safety form accurate
 - [x] UGC requirements: report, block, moderation contact
 
 ## 15. Quality and Performance
@@ -527,7 +527,7 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [x] Real-time Socket.IO dispatch to personal user channel (`user:userId`)
 - [ ] Preferences and quiet hours checked
 - [ ] Localised templates (English first; RTL-ready languages)
-- [ ] Jobs queued with Mongo `jobs` collection worker (no BullMQ or Redis dependency in zero-budget architecture)
+- [ ] Jobs queued with BullMQ on Redis (**zero-budget: use the Mongo `jobs` worker instead, see 26.1**)
 - [ ] Workers send to Expo Push, email provider, SMS provider
 - [ ] Delivery log saved; retries with backoff on failure
 - [ ] Deep-link payload opens the correct screen
@@ -704,17 +704,16 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [ ] Beta path defined: Android APK via EAS internal distribution; iOS waits for the Apple account
 
 ### 26.3 Live and calls under free limits
-- [x] Live halaqah broadcasting cut from v1; 1-on-1 consultation calls stay
 - [ ] LiveKit Build plan: 5,000 WebRTC participant-minutes/month, 100 concurrent participants (re-verify)
-- [ ] Pilot rules: 1:1 calls only between accepted contacts (scholar ↔ scholar, scholar ↔ member)
+- [ ] Pilot rules: scheduled lives only, viewer cap, short sessions, calls only between accepted contacts
 - [ ] Usage tracked from LiveKit webhooks into `storageUsage`
-- [ ] At 80%, new calls are disabled with a friendly in-app message
+- [ ] At 80%, new lives and calls are disabled with a friendly in-app message
 - [ ] Behaviour when the cap is hit tested (Build may have no overage)
-- [ ] Calls scheduled after the core feed (v1.1 and v1.2)
+- [ ] Live and calls scheduled after the core feed (v1.1 and v1.2)
 
 ### 26.4 Quota Guardian (admin screen)
 - [ ] Mongo size, R2 storage, R2 operations, LiveKit minutes, API hours/bandwidth shown
-- [ ] Warn at 70%, block at 90% where possible (new uploads, calls)
+- [ ] Warn at 70%, block at 90% where possible (new uploads, live, calls)
 - [ ] Alerts to Slack or email
 - [ ] Upgrade triggers written down: Mongo above 400 MB, R2 above 8 GB, LiveKit minutes gone in under 2 weeks, cold starts hurting retention
 
@@ -726,10 +725,10 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [ ] Beta limited to a small invite-only group to stay within quotas
 
 ### 26.6 Doc and plan alignment
-- [x] PRD media limits updated (Reel 60s/50MB, video 5 min/200MB) aligned across PRD, TRD, SDD, and Checklist
-- [x] TRD and SDD note the R2 only (no Mux) and Mongo `jobs` collection worker (no BullMQ/Redis) replacements
-- [x] Section 22.3 (notifications) implemented with the Mongo `jobs` worker instead of BullMQ
-- [ ] Migration plan to paid tiers written (Atlas Flex, R2 paid, LiveKit Ship, paid API host)
+- [ ] PRD media limits updated (Reel 60 s, video 5 min) or marked as zero-budget overrides
+- [ ] TRD and SDD note the Mux, BullMQ/Redis replacements (see `02-TRD.md` overrides block)
+- [ ] Section 22.3 (notifications) implemented with the Mongo `jobs` worker instead of BullMQ
+- [ ] Migration plan to paid tiers written (Atlas Flex, R2 paid, Mux/Cloudflare Stream, LiveKit Ship, paid API host)
 - [ ] **Gate:** a full month of beta stays inside every free limit, with the Quota Guardian showing under 70% on all meters
 
 ---

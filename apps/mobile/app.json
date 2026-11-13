@@ -18,7 +18,8 @@
       "bundleIdentifier": "com.sanad.app",
       "infoPlist": {
         "NSCameraUsageDescription": "Sanad requires camera access for recording scholarly videos and participating in live sessions.",
-        "NSMicrophoneUsageDescription": "Sanad requires microphone access for recording scholarly videos and live calls."
+        "NSMicrophoneUsageDescription": "Sanad requires microphone access for recording scholarly videos and live calls.",
+        "NSPhotoLibraryUsageDescription": "Sanad requires access to your photo library to select educational reels, profile images, and credential documents."
       }
     },
     "android": {

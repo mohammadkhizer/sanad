@@ -14,14 +14,14 @@
 | Forms/validation | React Hook Form + Zod |
 | Secure storage | `expo-secure-store` |
 | Media | `expo-camera`, `expo-video`, `expo-image-picker` |
-| Live/Calls | LiveKit (`@livekit/react-native` + `@livekit/react-native-webrtc`) for 1-on-1 consultations (live halaqah broadcast cut from v1) |
+| Live/Calls | LiveKit (`@livekit/react-native` + `@livekit/react-native-webrtc`) |
 | Push | `expo-notifications` |
 | Backend | Node.js 20 LTS, Express, TypeScript |
 | DB | MongoDB (Atlas) + Mongoose |
-| Cache/queues | In-memory cache + MongoDB `jobs` collection worker (zero-budget, no Redis/BullMQ in v1) |
-| Chat | Socket.io (in-memory adapter for single-instance v1) |
-| Video pipeline | Cloudflare R2 (presigned direct upload, MP4 progressive streaming) (R2 only, no Mux) |
-| Object storage | Cloudflare R2 only (media, credential docs, images, backups) |
+| Cache/queues | Redis (rate limit, sockets adapter, BullMQ) |
+| Chat | Socket.io |
+| Video pipeline | Mux (upload, transcode, HLS) |
+| Object storage | Cloudflare R2 or S3 (credential docs, images) |
 | Auth libs | `jose` (JWT), `argon2`, `otplib` (TOTP) |
 | Observability | Sentry, Pino logs |
 | CI/CD | GitHub Actions + EAS |
@@ -57,14 +57,14 @@ sanad/
 (Plain npm workspaces only; no pnpm/Turborepo-with-pnpm.)
 
 ## 5. Environment Variables
-**API:** `MONGODB_URI`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`, `LIVEKIT_URL`, `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_MEDIA`, `R2_BUCKET_PRIVATE`, `R2_PUBLIC_DOMAIN`, `SMS_PROVIDER_*`, `SENTRY_DSN`
+**API:** `MONGODB_URI`, `REDIS_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `MUX_TOKEN_ID/SECRET`, `LIVEKIT_API_KEY/SECRET/URL`, `R2_*`, `SMS_PROVIDER_*`, `SENTRY_DSN`
 **Mobile (`EXPO_PUBLIC_*` only for non-secrets):** `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_LIVEKIT_URL`
 - Never ship secrets in the app bundle.
 
 ## 6. Constraints
 - All authorization enforced server-side
 - TLS 1.2+; certificate pinning considered for v2
-- Video max: Reel 60s / 50MB; Long video 5 min / 200MB (Cloudflare R2 zero-budget pipeline)
+- Video max: Reel 90s / 100MB; Long video 60min / 2GB
 - Image uploads virus-scanned before reviewers see them
 - Store compliance: UGC moderation, report/block, in-app deletion, privacy labels
 

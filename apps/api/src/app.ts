@@ -14,7 +14,24 @@ import { apiRouter } from './routes/index.js';
 const app = express();
 
 // Security and transport headers
-app.use(helmet());
+app.use(
+  helmet({
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+  })
+);
+
+// Enforce HTTPS in production via reverse-proxy header
+app.use((req: Request, res: Response, next) => {
+  if (env.NODE_ENV === 'production' && req.headers['x-forwarded-proto'] !== 'https') {
+    return res.redirect(301, `https://${req.headers.host}${req.url}`);
+  }
+  next();
+});
+
 app.use(
   cors({
     origin: env.CORS_ORIGIN === '*' ? true : env.CORS_ORIGIN.split(','),

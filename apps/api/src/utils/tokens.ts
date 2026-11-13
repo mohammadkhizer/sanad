@@ -10,6 +10,7 @@ export interface AccessTokenPayload {
   sub: string;
   roles: Role[];
   sessionId: string;
+  ver?: number;
   twoFactorVerified?: boolean;
 }
 
@@ -17,6 +18,7 @@ export async function generateAccessToken(payload: AccessTokenPayload): Promise<
   return new SignJWT({
     roles: payload.roles,
     sessionId: payload.sessionId,
+    ver: payload.ver ?? 1,
     twoFactorVerified: payload.twoFactorVerified ?? false,
   })
     .setProtectedHeader({ alg: 'HS256' })
@@ -32,6 +34,7 @@ export async function verifyAccessToken(token: string): Promise<AccessTokenPaylo
     sub: payload.sub as string,
     roles: payload.roles as Role[],
     sessionId: payload.sessionId as string,
+    ver: payload.ver !== undefined ? Number(payload.ver) : 1,
     twoFactorVerified: Boolean(payload.twoFactorVerified),
   };
 }

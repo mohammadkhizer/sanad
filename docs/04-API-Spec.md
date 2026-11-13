@@ -41,23 +41,22 @@ Error shape: `{ "code": "FORBIDDEN", "message": "...", "details": {} }`
 |---|---|---|
 | GET | /feed?cursor= | guest+ |
 | GET | /posts/:id | guest+ |
-| POST | /media/upload-url | scholar |
-| POST | /media/:id/complete | scholar |
+| POST | /posts/upload-url | scholar |
 | POST | /posts | scholar |
 | PATCH/DELETE | /posts/:id | owner scholar, admin |
 | POST/DELETE | /posts/:id/like | member+ |
 | GET/POST | /posts/:id/comments | guest+ / member+ |
 | POST | /posts/:id/save | member+ |
 
-## Live (Halaqah Broadcast) [CUT from v1 - deferred to v2]
+## Live
 | Method | Endpoint | Role |
 |---|---|---|
-| POST | /live | [CUT v1] scholar |
-| POST | /live/:id/end | [CUT v1] host |
-| GET | /live | [CUT v1] guest+ |
-| POST | /live/:id/token | [CUT v1] member+ (viewer) |
+| POST | /live | scholar |
+| POST | /live/:id/end | host |
+| GET | /live | guest+ |
+| POST | /live/:id/token | member+ (viewer) |
 
-## Messaging and 1-on-1 Consultations
+## Messaging and Calls
 | Method | Endpoint | Role |
 |---|---|---|
 | POST | /chat/requests | member |
@@ -67,7 +66,7 @@ Error shape: `{ "code": "FORBIDDEN", "message": "...", "details": {} }`
 | POST | /calls | scholar (or accepted request) |
 | POST | /calls/:id/respond | callee |
 
-**Socket events:** `message:new`, `message:read`, `typing`, `presence`, `call:ring`, `notification:new`
+**Socket events:** `message:new`, `message:read`, `typing`, `presence`, `live:chat`, `call:ring`
 
 ## Moderation
 | Method | Endpoint | Role |

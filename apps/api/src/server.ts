@@ -6,6 +6,7 @@ import { logger } from './config/logger.js';
 import { connectDB, disconnectDB } from './config/db.js';
 import { setupSocketIO } from './realtime/socket.js';
 import { usernameService } from './services/bloomFilter.service.js';
+import { jobsService } from './modules/jobs/jobs.service.js';
 
 const server = http.createServer(app);
 
@@ -22,6 +23,7 @@ async function bootstrap() {
   try {
     const dbOk = await connectDB();
     await usernameService.initialize();
+    jobsService.startWorker();
     server.listen(env.PORT, () => {
       logger.info(
         `Sanad API server running on port ${env.PORT} in ${env.NODE_ENV} mode [DB: ${dbOk ? 'connected' : 'offline-fallback'}]`
@@ -35,6 +37,7 @@ async function bootstrap() {
 
 async function shutdown(signal: string) {
   logger.info(`${signal} received, closing server...`);
+  jobsService.stopWorker();
   server.close(async () => {
     logger.info('HTTP server closed');
     await disconnectDB();

@@ -8,6 +8,7 @@ import { messagingRouter } from '../modules/messaging/messaging.routes.js';
 import { moderationRouter } from '../modules/moderation/moderation.routes.js';
 import { adminRouter } from '../modules/admin/admin.routes.js';
 import { notificationsRouter } from '../modules/notifications/notifications.routes.js';
+import { mediaRouter } from '../modules/media/media.routes.js';
 
 const router = Router();
 
@@ -15,6 +16,7 @@ router.use('/auth', authRouter);
 router.use('/users', usersRouter);
 router.use('/scholar', scholarRouter);
 router.use('/notifications', notificationsRouter);
+router.use('/media', mediaRouter);
 router.use('/', contentRouter);
 router.use('/', liveRouter);
 router.use('/', messagingRouter);

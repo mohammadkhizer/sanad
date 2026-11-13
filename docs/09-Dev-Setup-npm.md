@@ -4,7 +4,7 @@
 - Node.js 20 LTS, **npm 10+**
 - Git, Android Studio and/or Xcode
 - `eas-cli` (`npm i -g eas-cli`), Expo account
-- MongoDB (Atlas or local), Cloudflare R2 account (zero-budget, no Redis/BullMQ required in v1)
+- MongoDB (local or Atlas), Redis (local or hosted)
 
 ## 2. Rules
 - Use `npm install` / `npm ci` / `npx expo install`. **Never use pnpm.**
@@ -29,7 +29,7 @@ cd ../..
 # API
 mkdir -p apps/api && cd apps/api
 npm init -y
-npm install express mongoose zod jose argon2 otplib socket.io pino helmet cors express-rate-limit
+npm install express mongoose zod jose argon2 otplib socket.io ioredis bullmq pino helmet cors express-rate-limit
 npm install -D typescript tsx @types/node @types/express eslint prettier vitest supertest
 ```
 

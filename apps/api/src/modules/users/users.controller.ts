@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'node:crypto';
-import { UserModel } from '../auth/auth.model.js';
+import { UserModel, SessionModel } from '../auth/auth.model.js';
 import { FollowModel, BlockModel } from './users.model.js';
 import { PostModel } from '../content/content.model.js';
 import { AuditLogModel } from '../moderation/moderation.model.js';
@@ -393,7 +393,9 @@ export class UsersController {
         user.scholarProfile.verified = false;
       }
 
+      user.tokenVersion = (user.tokenVersion || 1) + 1;
       await user.save();
+      await SessionModel.updateMany({ userId: user._id }, { revokedAt: new Date() }).exec();
 
       await AuditLogModel.create({
         actorId: new mongoose.Types.ObjectId(req.user!.id),
