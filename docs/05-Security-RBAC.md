@@ -11,8 +11,8 @@
 
 ## 2. Authorization Model
 - **RBAC** for role-level access plus **ownership/ABAC checks** for resources
-- Role stored in DB; JWT carries `sub`, `roles`, `ver` (permission version)
-- Sensitive actions re-check DB state (suspension, revoked scholar)
+- Role stored in DB; Access JWT carries standardized claims: `sub` (userId), `roles` (role array), `sessionId` (active session id), and `ver` (permission/token version for instant 60s revocation)
+- Sensitive actions re-check DB state (suspension, revoked scholar, session validity)
 - Server enforces everything; app only hides UI
 
 ## 3. Roles
@@ -32,11 +32,12 @@
 | content:create (video/reel) | NO | NO | YES | NO | YES |
 | content:edit_own / delete_own | NO | NO | YES | NO | YES |
 | content:remove_any | NO | NO | NO | YES | YES |
-| live:host | NO | NO | YES | NO | YES |
-| live:watch_chat | NO | YES | YES | YES | YES |
+| live:host (halaqah) | NO | NO | CUT v1 | NO | CUT v1 |
+| live:watch_chat | NO | CUT v1 | CUT v1 | CUT v1 | CUT v1 |
 | chat:request | NO | YES | YES | YES | YES |
 | chat:accept_initiate | NO | NO | YES | YES | YES |
-| call:initiate | NO | NO | YES | NO | YES |
+| call:initiate (1-on-1) | NO | NO | YES | NO | YES |
+| call:accept (1-on-1) | NO | YES | YES | YES | YES |
 | application:submit | NO | YES | NO | NO | NO |
 | application:review | NO | NO | NO | YES | YES |
 | application:approve | NO | NO | NO | NO | YES |

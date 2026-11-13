@@ -12,14 +12,15 @@ A trusted social space where **only verified religious scholars publish**, and t
 ## 3. Goals and Non-Goals
 **Goals**
 - Verified-only publishing with visible credential badges
-- Short video (Reels), long video, live streaming
-- Direct chat and video calls (scholar ↔ scholar, scholar ↔ approved member)
-- Strong moderation and trust signals
+- Short video (Reels: max 60s, 50MB), long video (max 5 min, 200MB)
+- 1-on-1 consultations (scholar <-> scholar, scholar <-> approved member)
+- Direct chat and scholarly inquiry requests
+- Strong moderation, scholar activity monitoring, and trust signals
 
 **Non-Goals (v1)**
 - Open public posting by non-scholars
+- Live halaqah broadcasting (cut from v1; 1-on-1 consultations retained)
 - Monetisation, ads, marketplace
-- Web app (mobile only in v1)
 
 ## 4. Personas
 | Persona | Description | Needs |
@@ -37,20 +38,20 @@ A trusted social space where **only verified religious scholars publish**, and t
 | FR-03 | Scholar application with credential upload | P0 |
 | FR-04 | Moderator review, optional peer endorsement, approve/reject | P0 |
 | FR-05 | Verified badge on scholar profiles | P0 |
-| FR-06 | Scholars post Reels, videos, text posts | P0 |
-| FR-07 | Scholars go live; members watch and chat | P1 |
+| FR-06 | Scholars post Reels (max 60s, 50MB), videos (max 5 min, 200MB), text posts | P0 |
+| FR-07 | Live halaqah broadcasting [CUT from v1 - deferred to v2] | CUT |
 | FR-08 | 1:1 chat (scholar-initiated or approved request) | P0 |
-| FR-09 | 1:1 video call (scholar ↔ scholar/approved member) | P1 |
+| FR-09 | 1:1 video call / consultation (scholar ↔ scholar/approved member) | P1 |
 | FR-10 | Members like, comment, follow, save, share | P0 |
 | FR-11 | Report content/user; block user | P0 |
 | FR-12 | Moderator dashboard: reports, takedowns, suspensions | P0 |
-| FR-13 | Push notifications | P1 |
+| FR-13 | Push notifications via Mongo jobs queue | P1 |
 | FR-14 | In-app account deletion | P0 (store requirement) |
 | FR-15 | Instant revocation of scholar status | P0 |
 | FR-16 | Audit log of role and moderation actions | P0 |
 
 ## 6. Non-Functional Requirements
-- **Performance:** feed first paint < 2s on mid-range Android; video start < 3s
+- **Performance:** feed first paint < 2s on mid-range Android; video start < 3s (Reel 60s/50MB, video 5 min/200MB limits enforced)
 - **Availability:** 99.5% backend uptime target
 - **Security:** OWASP MASVS L1; encrypted transport; secure token storage
 - **Scalability:** designed for 100k MAU without re-architecture

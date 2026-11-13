@@ -7,7 +7,7 @@ Step-by-step guide to building Sanad from zero to store release. Follow phases i
 ## 0. Ground Rules (read first)
 1. **npm only.** Never use pnpm (or yarn). Commit `package-lock.json`. Use `npm ci` in CI.
 2. **Server decides.** Every permission is enforced on the backend. The app only hides UI.
-3. **Expo dev builds, not Expo Go.** Live streaming and video calls need native modules.
+3. **Expo dev builds, not Expo Go.** 1-on-1 video calls need native WebRTC modules (live halaqah broadcasting cut from v1).
 4. **Shared schemas.** Define Zod schemas once in `packages/shared`, reuse in API and app.
 5. **One phase, one branch, one PR.** Merge only when acceptance criteria pass.
 6. **Never commit secrets.** Use `.env` locally, EAS secrets and hosting secrets in cloud.
@@ -45,7 +45,7 @@ Step-by-step guide to building Sanad from zero to store release. Follow phases i
 **Steps**
 1. Folder layout: `src/modules/<feature>/{routes,controller,service,model,schema}.ts`.
 2. Config loader validating env with Zod; app fails fast on missing vars.
-3. Mongoose connection with retry; Redis connection.
+3. Mongoose connection with retry; in-memory cache and Mongo `jobs` collection.
 4. Middleware: helmet, cors (allow-list), JSON body limit, request ID, Pino logger.
 5. Central error handler returning `{ error: { code, message } }`.
 6. Global rate limiter plus stricter limiter for auth routes.
@@ -63,7 +63,7 @@ Step-by-step guide to building Sanad from zero to store release. Follow phases i
 **Steps**
 1. `User` model: email/phone, passwordHash (argon2), roles[], status, twoFactor fields.
 2. Endpoints: register, verify OTP, login, refresh, logout, logout-all, forgot/reset password.
-3. Access token: 15 min JWT (`sub`, `roles`, `sessionId`). Refresh token: opaque, hashed in DB, rotated on every use, reuse detection revokes the whole session family.
+3. Access token: 15 min JWT (`sub`, `roles`, `sessionId`, `ver`). Refresh token: opaque, hashed in DB, rotated on every use, reuse detection revokes the whole session family.
 4. `Session` model: device info, IP, lastUsed, revokedAt.
 5. TOTP 2FA setup (QR secret, verify, backup codes). Enforce for scholar role.
 6. OTP delivery via SMS/email provider; rate-limit and expire OTPs (5 min, max 5 attempts).
@@ -137,16 +137,16 @@ Step-by-step guide to building Sanad from zero to store release. Follow phases i
 **Goal:** scholars publish; everyone watches smoothly.
 
 **Steps**
-1. `Post` model: author, type (reel/video/text), muxAssetId, playbackId, caption, tags, visibility, status.
-2. Upload flow: app requests Mux direct-upload URL → uploads → Mux webhook marks ready → post published.
-3. Enforce limits (Reel 90s/100MB, video 60min/2GB) client- and server-side.
+1. `Post` model: author, type (reel/video/text), mediaKey, playbackUrl, duration, thumbnailKey, caption, tags, visibility, status.
+2. Upload flow: app requests presigned Cloudflare R2 upload URL → direct upload to R2 → `POST /media/:id/complete` verifies R2 object existence/size/type → post published (R2 only, no Mux).
+3. Enforce limits (Reel 60s/50MB, video 5 min/200MB) client- and server-side.
 4. Feed endpoints with cursor pagination: following, discover, per-scholar.
 5. Reels player: vertical pager, `expo-video`, preload next item, mute/captions toggle.
 6. Moderation hook: new content flagged `pending` if author is under probation.
 7. Thumbnails, captions/subtitles (optional auto-captions later).
 
 **Claude prompt**
-> Mux direct upload + webhook handler in Express (verify signature), Post model, and POST /posts flow. Then Expo screen to pick, record and upload a Reel with progress. Code only, two answers.
+> Cloudflare R2 presigned PUT upload + completion handler in Express (verify file size/type), Post model, and POST /posts flow. Then Expo screen to pick, record and upload a Reel with progress. Code only, two answers.
 
 **Acceptance:** Reel uploaded on a mid-range Android plays in under 3 seconds; non-scholar upload attempt returns 403.
 
@@ -170,7 +170,7 @@ Step-by-step guide to building Sanad from zero to store release. Follow phases i
 **Goal:** safe real-time messaging.
 
 **Steps**
-1. Socket.io with JWT handshake auth; Redis adapter for scaling.
+1. Socket.io with JWT handshake auth; in-memory adapter for single-instance v1.
 2. Models: Conversation, Message, ChatRequest.
 3. Rules: scholar ↔ scholar free; member → scholar via request that the scholar accepts.
 4. Features: delivery/read state, typing, image attachments, report message.
@@ -178,28 +178,26 @@ Step-by-step guide to building Sanad from zero to store release. Follow phases i
 6. Server checks block status and membership on every send.
 
 **Claude prompt**
-> Socket.io server with JWT auth middleware, Redis adapter, and handlers for sendMessage/typing/read. Enforce conversation membership and block checks. TypeScript, code only.
+> Socket.io server with JWT auth middleware and handlers for sendMessage/typing/read. Enforce conversation membership and block checks. TypeScript, code only.
 
 **Acceptance:** non-participants cannot join a room; messages arrive in order and survive reconnect.
 
 ---
 
-## Phase 10: Live Streaming and Video Calls
-**Goal:** reliable live and 1:1 calls via LiveKit.
+## Phase 10: 1-on-1 Video Consultations (LiveKit)
+**Goal:** reliable 1:1 calls via LiveKit (live halaqah broadcasting cut from v1).
 
 **Steps**
-1. API issues short-lived LiveKit tokens with grants by role (host: publish; viewer: subscribe only).
-2. Live: schedule, start, end; viewer count; live chat via Socket.io room.
-3. Host controls: mute, remove, block viewer; moderators can end stream.
-4. 1:1 calls: callee must accept; ring timeout; busy state.
-5. Recording-consent banner before recording.
-6. Permissions UX for camera/mic; handle interruptions and network drops.
-7. Test on real devices, poor networks, and background/foreground transitions.
+1. API issues short-lived LiveKit tokens with grants for caller and callee.
+2. 1:1 calls: callee must accept; ring timeout; busy state.
+3. Recording-consent banner before recording.
+4. Permissions UX for camera/mic; handle interruptions and network drops.
+5. Test on real devices, poor networks, and background/foreground transitions.
 
 **Claude prompt**
-> LiveKit token endpoint in Express with role-based grants (host vs viewer), plus Expo screen using @livekit/react-native to publish and view. Dev build instructions included, npm only.
+> LiveKit 1:1 token endpoint in Express with role-based grants, plus Expo screen using @livekit/react-native to publish and subscribe. Dev build instructions included, npm only.
 
-**Acceptance:** viewer cannot publish; moderator can end a stream; call survives Wi-Fi → mobile data switch.
+**Acceptance:** unauthorized participant cannot join call room; call survives Wi-Fi → mobile data switch.
 
 ---
 
@@ -207,11 +205,11 @@ Step-by-step guide to building Sanad from zero to store release. Follow phases i
 **Goal:** keep the platform trustworthy.
 
 **Steps**
-1. `Report` model and in-app report flows (post, comment, user, message, live).
+1. `Report` model and in-app report flows (post, comment, user, message, call).
 2. Moderator dashboard (web or in-app admin screens): queue, filters, actions.
 3. Actions: remove content, warn, suspend, revoke scholar, ban; each logs reason.
 4. Appeals flow with different reviewer.
-5. Admin: assign roles, view audit log, system config, verification criteria.
+5. Admin: assign roles, view audit log, system config, verification criteria, scholar activity monitoring.
 6. Basic analytics: reports per day, application backlog, active scholars.
 
 **Acceptance:** report triaged by SLA (see `08-Content-Policy.md`); every action appears in the audit log.
@@ -221,7 +219,7 @@ Step-by-step guide to building Sanad from zero to store release. Follow phases i
 ## Phase 12: Notifications
 **Steps**
 1. Register Expo push tokens per device; store in `Device` collection.
-2. BullMQ worker sends notifications (new follower, comment, live starting, application result, chat request).
+2. Mongo `jobs` collection worker sends notifications (new follower, comment, consultation call invite, application result, chat request) (no BullMQ/Redis).
 3. User notification preferences; quiet hours.
 4. Deep links to the right screen.
 
