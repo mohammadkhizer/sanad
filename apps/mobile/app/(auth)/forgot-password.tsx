@@ -26,11 +26,16 @@ export default function ForgotPasswordScreen() {
     setError(null);
     setLoading(true);
     try {
-      await api.auth.forgotPassword(identifier.trim());
+      const res = await api.auth.forgotPassword(identifier.trim());
+      if (res.code) {
+        setRecoveryCode(res.code);
+      }
       setStep('reset');
       Alert.alert(
         'Recovery Code Dispatched',
-        'If an account exists with this credential, a single-use verification code has been dispatched. Enter it below along with your new password.'
+        res.code
+          ? `A recovery code has been generated: ${res.code}. Enter it below along with your new password.`
+          : 'If an account exists with this credential, a single-use verification code has been dispatched. Enter it below along with your new password.'
       );
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Password recovery request failed';
@@ -135,6 +140,14 @@ export default function ForgotPasswordScreen() {
             </>
           ) : (
             <>
+              {Boolean(recoveryCode) && (
+                <View style={styles.codeHintBox}>
+                  <Text style={styles.codeHintText}>
+                    Active Recovery Code: <Text style={styles.codeHighlight}>{recoveryCode}</Text>
+                  </Text>
+                </View>
+              )}
+
               <Input
                 label="Recovery Code / Token"
                 placeholder="6-digit code or reset token"
@@ -241,6 +254,24 @@ const styles = StyleSheet.create({
     color: '#CF1322',
     fontSize: 12,
     fontWeight: '600',
+  },
+  codeHintBox: {
+    backgroundColor: '#E6F4EA',
+    borderColor: '#CEEAD6',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 10,
+    alignItems: 'center',
+  },
+  codeHintText: {
+    color: '#137333',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  codeHighlight: {
+    fontWeight: '800',
+    letterSpacing: 2,
+    color: '#0D652D',
   },
   submitBtn: {
     marginTop: 6,

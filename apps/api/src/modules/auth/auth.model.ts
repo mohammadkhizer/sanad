@@ -23,6 +23,9 @@ export interface IUser extends Document {
     secretEnc?: string;
     backupCodes: string[];
   };
+  resetPasswordToken?: string;
+  resetPasswordCode?: string;
+  resetPasswordExpires?: Date;
   status: 'active' | 'suspended' | 'deleted';
   createdAt: Date;
   updatedAt: Date;
@@ -55,6 +58,9 @@ const userSchema = new Schema<IUser>(
       secretEnc: { type: String },
       backupCodes: { type: [String], default: [] },
     },
+    resetPasswordToken: { type: String, sparse: true },
+    resetPasswordCode: { type: String, sparse: true },
+    resetPasswordExpires: { type: Date },
     status: {
       type: String,
       enum: ['active', 'suspended', 'deleted'],

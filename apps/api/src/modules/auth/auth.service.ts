@@ -277,6 +277,11 @@ export class AuthService {
       const ttl = 900; // 15 minutes
       const userIdStr = user._id.toString();
 
+      user.resetPasswordToken = token;
+      user.resetPasswordCode = code;
+      user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000);
+      await user.save();
+
       await Promise.all([
         redis.set(`pwd_reset_token:${token}`, userIdStr, 'EX', ttl),
         redis.set(`pwd_reset_code:${userIdStr}`, code, 'EX', ttl),
@@ -317,13 +322,33 @@ export class AuthService {
       }
     }
 
-    // Direct check if identifier was provided with dev code
-    if (!userIdStr && identifier && token === '123456') {
-      const cleanId = identifier.trim().toLowerCase();
-      const query = cleanId.includes('@') ? { email: cleanId } : { phone: identifier.trim() };
-      const fallbackUser = await UserModel.findOne(query).exec();
-      if (fallbackUser) {
-        userIdStr = fallbackUser._id.toString();
+    // Direct check if identifier was provided with dev code or MongoDB match
+    if (!userIdStr && UserModel.db.readyState === 1) {
+      const now = new Date();
+      let matched = await UserModel.findOne({
+        resetPasswordToken: token,
+        resetPasswordExpires: { $gt: now },
+      }).exec();
+
+      if (!matched && identifier) {
+        const cleanId = identifier.trim().toLowerCase();
+        matched = await UserModel.findOne({
+          $or: [{ email: cleanId }, { phone: identifier.trim() }],
+          resetPasswordCode: token,
+          resetPasswordExpires: { $gt: now },
+        }).exec();
+      }
+
+      if (!matched && identifier && token === '123456') {
+        const cleanId = identifier.trim().toLowerCase();
+        matched = await UserModel.findOne({
+          $or: [{ email: cleanId }, { phone: identifier.trim() }],
+          status: { $ne: 'deleted' },
+        }).exec();
+      }
+
+      if (matched) {
+        userIdStr = matched._id.toString();
       }
     }
 
@@ -340,6 +365,9 @@ export class AuthService {
 
       const passwordHash = await argon2.hash(newPassword);
       user.passwordHash = passwordHash;
+      user.resetPasswordToken = undefined;
+      user.resetPasswordCode = undefined;
+      user.resetPasswordExpires = undefined;
       await user.save();
 
       // Revoke all existing sessions and refresh tokens on password change
