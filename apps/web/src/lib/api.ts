@@ -128,6 +128,25 @@ export const webApi = {
       apiFetch<{ followers: any[]; following: any[] }>(`/users/${id}/network`),
   },
 
+  chat: {
+    getConversations: (filter?: string) => {
+      const qs = filter ? `?filter=${filter}` : '';
+      return apiFetch<{ conversations: any[] }>(`/conversations${qs}`);
+    },
+    getMessages: (conversationOrUserId: string) =>
+      apiFetch<{ messages: any[]; conversationId?: string; recipient?: any }>(
+        `/conversations/${conversationOrUserId}/messages`
+      ),
+    sendMessage: (conversationOrUserId: string, body: string, type: 'text' | 'image' = 'text') =>
+      apiFetch<{ message: any; conversationId?: string }>(
+        `/conversations/${conversationOrUserId}/messages`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ body, type }),
+        }
+      ),
+  },
+
   admin: {
     getUsers: (query?: string) => {
       const qs = query ? `?q=${encodeURIComponent(query)}` : '';

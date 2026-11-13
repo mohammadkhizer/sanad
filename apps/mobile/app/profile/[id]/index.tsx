@@ -68,29 +68,18 @@ export default function UserProfileScreen() {
     },
   });
 
-  const handleMessage = async () => {
+  const handleMessage = () => {
     if (!currentUser) {
       router.push('/(auth)/login');
       return;
     }
-    if (isScholar) {
-      try {
-        await api.chat.sendChatRequest({
-          scholarId: user._id,
-          message: 'As-salamu alaykum, I am reaching out through your scholarly profile.',
-        });
-        Alert.alert(
-          'Inquiry Submitted',
-          'Your inquiry has been delivered to the scholar consultation queue.',
-          [{ text: 'View Inbox', onPress: () => router.push('/(tabs)/inbox') }]
-        );
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : 'Failed to send message';
-        Alert.alert('Error', msg);
-      }
-    } else {
-      router.push(`/chat/${user._id}`);
-    }
+    router.push({
+      pathname: `/chat/${user._id}`,
+      params: {
+        recipientName: user.displayName,
+        recipientId: user._id,
+      },
+    });
   };
 
   const handleBlockUser = () => {

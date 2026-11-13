@@ -22,33 +22,63 @@ import { ReportModal } from '../../src/components/ReportModal';
 import { MessageEntity } from '@sanad/shared';
 
 export default function ChatScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, recipientName } = useLocalSearchParams<{ id: string; recipientName?: string }>();
   const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
 
   const [text, setText] = useState('');
   const [reportModalVisible, setReportModalVisible] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
+  const rawId = id as string;
 
   const { data, isLoading } = useQuery<MessageEntity[]>({
-    queryKey: ['messages', id],
-    queryFn: () => (id ? api.chat.getMessages(id) : Promise.resolve([])),
-    enabled: Boolean(id),
-    refetchInterval: 5000,
+    queryKey: ['messages', rawId],
+    queryFn: () => (rawId ? api.chat.getMessages(rawId) : Promise.resolve([])),
+    enabled: Boolean(rawId),
+    refetchInterval: 3500,
   });
+
+  const { data: recipientUser } = useQuery({
+    queryKey: ['chatRecipient', rawId],
+    queryFn: async () => {
+      if (!rawId || recipientName) return null;
+      try {
+        const res = (await api.users.getUser(rawId)) as any;
+        return res?.user || res;
+      } catch {
+        return null;
+      }
+    },
+    enabled: Boolean(rawId && !recipientName),
+  });
+
+  const messages = data || [];
+
+  const otherMessage = messages.find((m: any) => {
+    const sId = typeof m.senderId === 'object' ? m.senderId?._id : m.senderId;
+    return sId && sId !== user?.id;
+  });
+  const fallbackSenderName = typeof otherMessage?.senderId === 'object' ? otherMessage.senderId.displayName : null;
+
+  const resolvedName = recipientName || recipientUser?.displayName || fallbackSenderName || 'Consultation';
+  const resolvedSubtitle = recipientUser?.username ? `@${recipientUser.username}` : 'Direct scholarly consultation';
 
   const sendMutation = useMutation({
     mutationFn: (body: string) => {
-      if (!id) throw new Error('Missing conversation ID');
+      if (!rawId) throw new Error('Missing conversation or recipient identifier');
       return api.chat.sendMessage({
-        conversationId: id,
+        conversationId: rawId,
         body,
         type: 'text',
       });
     },
     onSuccess: () => {
       setText('');
-      queryClient.invalidateQueries({ queryKey: ['messages', id] });
+      queryClient.invalidateQueries({ queryKey: ['messages', rawId] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Failed to send message';
+      Alert.alert('Message Failed', msg);
     },
   });
 
@@ -58,11 +88,12 @@ export default function ChatScreen() {
   };
 
   const handleAttachImage = () => {
-    Alert.alert('Attach Document or Citation', 'Select classical manuscript folio scan or citation image to attach to the consultation.');
+    Alert.alert(
+      'Attach Document or Citation',
+      'Select classical manuscript folio scan or citation image to attach to the consultation.'
+    );
     sendMutation.mutate('Attachment: Classical Manuscript Folio Scan (Verified Citation)');
   };
-
-  const messages = data || [];
 
   return (
     <KeyboardAvoidingView
@@ -71,8 +102,8 @@ export default function ChatScreen() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
       <AppHeader
-        title="Scholarly Consultation"
-        subtitle="Confidential and Encrypted"
+        title={resolvedName}
+        subtitle={resolvedSubtitle}
         showBack
         rightIcon="shield"
         onRightPress={() => setReportModalVisible(true)}
@@ -99,7 +130,7 @@ export default function ChatScreen() {
             const sender = typeof item.senderId === 'object' ? item.senderId : null;
             const senderId = sender?._id || item.senderId;
             const isMine = senderId === user?.id;
-            const senderName = sender?.displayName || 'Scholar';
+            const senderName = sender?.displayName || resolvedName;
             const isRead = item.readBy && item.readBy.length > 1;
 
             return (
@@ -149,12 +180,16 @@ export default function ChatScreen() {
               </View>
             );
           }}
-          ListFooterComponent={
-            isTyping ? (
-              <View style={styles.typingBox}>
-                <Text style={styles.typingText}>Scholar is reviewing sources...</Text>
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <View style={styles.emptyIconCircle}>
+                <Icon name="comment" size={26} color={colors.light.primary} />
               </View>
-            ) : undefined
+              <Text style={styles.emptyTitle}>Direct Consultation</Text>
+              <Text style={styles.emptySubtitle}>
+                No messages yet. Send an inquiry or question to {resolvedName} below to start this dialogue.
+              </Text>
+            </View>
           }
         />
       )}
@@ -172,7 +207,7 @@ export default function ChatScreen() {
 
         <TextInput
           style={styles.input}
-          placeholder="Type scholarly inquiry or response..."
+          placeholder={`Message ${resolvedName}...`}
           placeholderTextColor={colors.light.textMuted}
           value={text}
           onChangeText={setText}
@@ -193,7 +228,7 @@ export default function ChatScreen() {
         <ReportModal
           visible={reportModalVisible}
           targetType="message"
-          targetId={id || ''}
+          targetId={rawId || ''}
           onClose={() => setReportModalVisible(false)}
         />
       )}
@@ -231,6 +266,35 @@ const styles = StyleSheet.create({
   messageList: {
     padding: 16,
     gap: 12,
+    flexGrow: 1,
+  },
+  emptyContainer: {
+    padding: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 60,
+  },
+  emptyIconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(15, 76, 69, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.light.primary,
+    marginBottom: 6,
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    color: colors.light.textMuted,
+    textAlign: 'center',
+    lineHeight: 18,
+    maxWidth: 280,
   },
   messageBubble: {
     maxWidth: '82%',
@@ -285,14 +349,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: -4,
-  },
-  typingBox: {
-    padding: 8,
-  },
-  typingText: {
-    fontSize: 11,
-    color: colors.light.textMuted,
-    fontStyle: 'italic',
   },
   inputContainer: {
     flexDirection: 'row',

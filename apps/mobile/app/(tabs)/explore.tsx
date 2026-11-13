@@ -293,7 +293,15 @@ export default function ExploreScreen() {
 
                   <TouchableOpacity
                     style={styles.actionBtnFill}
-                    onPress={() => router.push(`/chat/${item._id}`)}
+                    onPress={() =>
+                      router.push({
+                        pathname: `/chat/${item._id}`,
+                        params: {
+                          recipientName: item.displayName,
+                          recipientId: item._id,
+                        },
+                      })
+                    }
                     activeOpacity={0.7}
                   >
                     <Icon name="send" size={14} color={colors.light.accentText} />

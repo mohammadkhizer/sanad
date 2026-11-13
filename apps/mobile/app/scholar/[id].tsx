@@ -60,26 +60,19 @@ export default function ScholarProfileScreen() {
     },
   });
 
-  const handleRequestChat = async () => {
+  const handleRequestChat = () => {
     if (!isAuthenticated) {
       router.push('/(auth)/login');
       return;
     }
 
-    try {
-      await api.chat.sendChatRequest({
-        scholarId,
-        message: 'Respected teacher, I am seeking formal scholarly guidance regarding narrator criticism and legal methodology.',
-      });
-      Alert.alert(
-        'Inquiry Delivered',
-        'Your consultation inquiry has been submitted to the scholar queue.',
-        [{ text: 'View Inbox', onPress: () => router.push('/(tabs)/inbox') }]
-      );
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Request failed';
-      Alert.alert('Notice', msg);
-    }
+    router.push({
+      pathname: `/chat/${scholarId}`,
+      params: {
+        recipientName: user?.displayName || 'Scholar',
+        recipientId: scholarId,
+      },
+    });
   };
 
   const handleStartCall = async () => {

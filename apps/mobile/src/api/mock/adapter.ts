@@ -523,7 +523,7 @@ const chatMock: ChatModule = {
   async getMessages(conversationId) {
     await simulateLatency();
     if (devSettings.emptyData) return [];
-    const list = messagesState[conversationId] || mockMessages.conv_301;
+    const list = messagesState[conversationId] || [];
     return list.map((m) => messageEntitySchema.parse(m));
   },
 

@@ -283,7 +283,15 @@ export default function InboxScreen() {
                 <TouchableOpacity
                   style={styles.itemTouch}
                   activeOpacity={0.8}
-                  onPress={() => router.push(`/chat/${other?._id || item._id}`)}
+                  onPress={() =>
+                    router.push({
+                      pathname: `/chat/${item._id}`,
+                      params: {
+                        recipientName: other?.displayName,
+                        recipientId: other?._id,
+                      },
+                    })
+                  }
                 >
                   <Avatar name={other?.displayName || 'User'} url={other?.avatarUrl} size={46} />
                   <View style={styles.info}>
@@ -297,7 +305,7 @@ export default function InboxScreen() {
                     </View>
 
                     <Text style={styles.lastMsg} numberOfLines={1}>
-                      {item.lastMessage?.body || 'Consultation initiated.'}
+                      {(item as any).lastMessageText || item.lastMessage?.body || 'Consultation initiated.'}
                     </Text>
                   </View>
 

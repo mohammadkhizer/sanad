@@ -46,9 +46,17 @@ export function setupSocketIO(io: Server): void {
     socket.on('conversation:join', async ({ conversationId }: { conversationId: string }) => {
       try {
         if (!mongoose.Types.ObjectId.isValid(conversationId)) return;
-        const conv = await ConversationModel.findById(conversationId).exec();
+        let conv = await ConversationModel.findById(conversationId).exec();
+        if (!conv) {
+          conv = await ConversationModel.findOne({
+            participants: { $all: [new mongoose.Types.ObjectId(userId), new mongoose.Types.ObjectId(conversationId)] },
+          }).exec();
+        }
         if (conv && conv.participants.some((p: any) => p.toString() === userId)) {
-          socket.join(`conversation:${conversationId}`);
+          socket.join(`conversation:${conv._id.toString()}`);
+          if (conversationId !== conv._id.toString()) {
+            socket.join(`conversation:${conversationId}`);
+          }
         }
       } catch (err) {
         logger.warn({ err }, 'Failed to join conversation room');
@@ -59,8 +67,32 @@ export function setupSocketIO(io: Server): void {
     socket.on('message:send', async (data: { conversationId: string; body: string }) => {
       try {
         if (!data.conversationId || !data.body?.trim()) return;
+        if (!mongoose.Types.ObjectId.isValid(data.conversationId)) return;
 
-        const conv = await ConversationModel.findById(data.conversationId).exec();
+        let conv = await ConversationModel.findById(data.conversationId).exec();
+        if (!conv) {
+          conv = await ConversationModel.findOne({
+            participants: { $all: [new mongoose.Types.ObjectId(userId), new mongoose.Types.ObjectId(data.conversationId)] },
+          }).exec();
+          if (!conv) {
+            const targetId = new mongoose.Types.ObjectId(data.conversationId);
+            const blocked = await BlockModel.findOne({
+              $or: [
+                { blockerId: userId, blockedId: targetId },
+                { blockerId: targetId, blockedId: userId },
+              ],
+            });
+            if (blocked) {
+              return socket.emit('error', { message: 'User blocked' });
+            }
+            conv = await ConversationModel.create({
+              participants: [new mongoose.Types.ObjectId(userId), targetId],
+              lastMessageAt: new Date(),
+              lastMessageText: data.body.trim(),
+            });
+          }
+        }
+
         if (!conv || !conv.participants.some((p: any) => p.toString() === userId)) {
           return socket.emit('error', { message: 'Not authorized in conversation' });
         }
@@ -90,7 +122,10 @@ export function setupSocketIO(io: Server): void {
         conv.lastMessageText = data.body.trim();
         await conv.save();
 
-        io.to(`conversation:${data.conversationId}`).emit('message:new', msg);
+        io.to(`conversation:${conv._id.toString()}`).emit('message:new', msg);
+        if (data.conversationId !== conv._id.toString()) {
+          io.to(`conversation:${data.conversationId}`).emit('message:new', msg);
+        }
       } catch (err) {
         logger.error({ err }, 'Error in message:send socket event');
       }
