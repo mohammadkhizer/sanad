@@ -152,8 +152,8 @@ export class AuthService {
       throw new UnauthorizedError('Invalid credentials');
     }
 
-    if (user.status === 'suspended') {
-      throw new ForbiddenError('Account is suspended', 'ACCOUNT_SUSPENDED');
+    if (user.status === 'suspended' || user.status === 'disabled') {
+      throw new ForbiddenError('Account is disabled or suspended by administrator', 'ACCOUNT_DISABLED');
     }
 
     const isMatch = await argon2.verify(user.passwordHash, input.password);

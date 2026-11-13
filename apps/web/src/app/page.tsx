@@ -8,12 +8,15 @@ export default function HomePage() {
       <Header />
       <main>
         {/* HERO SECTION */}
-        <section className="hero">
+        <section className="hero fade-in">
           <div className="container">
+            <div className="arabic-subtitle">
+              سند • شبكة حفظ العلوم الشرعية بالأسانيد المتصلة
+            </div>
             <div className="hero-pill">
               Authentic Scholarship Only - Zero Unverified Content
             </div>
-            <h1 className="hero-title">
+            <h1 className="hero-title slide-up">
               Preserving Sacred Knowledge <br />
               Through Verified Chains of Transmission
             </h1>

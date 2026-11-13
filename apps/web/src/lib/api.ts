@@ -140,6 +140,19 @@ export const webApi = {
         body: JSON.stringify({ roles }),
       }),
 
+    toggleUserStatus: (
+      userId: string,
+      status?: 'active' | 'disabled' | 'suspended',
+      reason?: string
+    ) =>
+      apiFetch<{ success: boolean; status: string; message: string; user?: any }>(
+        `/admin/users/${userId}/disable`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ status, reason }),
+        }
+      ),
+
     getReviewQueue: () =>
       apiFetch<{ items: any[]; applications?: any[] }>('/admin/review-queue'),
 

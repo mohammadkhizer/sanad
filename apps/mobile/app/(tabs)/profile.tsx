@@ -90,11 +90,6 @@ export default function ProfileScreen() {
                   @{profileData?.user?.username || user.username}
                 </Text>
               )}
-              {Boolean(profileData?.user?.publicId) && (
-                <Text style={styles.publicIdText}>
-                  Public ID: {profileData.user.publicId}
-                </Text>
-              )}
               <Text style={styles.userRole}>
                 {isScholar ? 'Accredited Religious Scholar' : 'Registered Member'}
               </Text>

@@ -29,7 +29,7 @@ export interface IUser extends Document {
   resetPasswordToken?: string;
   resetPasswordCode?: string;
   resetPasswordExpires?: Date;
-  status: 'active' | 'suspended' | 'deleted';
+  status: 'active' | 'suspended' | 'disabled' | 'deleted';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -70,7 +70,7 @@ const userSchema = new Schema<IUser>(
     resetPasswordExpires: { type: Date },
     status: {
       type: String,
-      enum: ['active', 'suspended', 'deleted'],
+      enum: ['active', 'suspended', 'disabled', 'deleted'],
       default: 'active',
     },
   },

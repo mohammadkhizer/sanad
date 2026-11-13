@@ -224,11 +224,6 @@ export default function WebProfilePage() {
                         @{profile.username}
                       </span>
                     )}
-                    {profile.publicId && (
-                      <span style={{ color: 'var(--color-muted)', fontFamily: 'monospace' }}>
-                        Public ID: {profile.publicId}
-                      </span>
-                    )}
                   </div>
 
                   {Boolean(profile.scholarProfile?.institution) && (

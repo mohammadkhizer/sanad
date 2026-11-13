@@ -37,8 +37,8 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
       // Re-check user status and latest roles from DB (instant revocation gate)
       const user = await UserModel.findById(payload.sub).select('roles status').exec();
       if (user) {
-        if (user.status === 'suspended') {
-          return next(new ForbiddenError('Account is suspended', 'ACCOUNT_SUSPENDED'));
+        if (user.status === 'suspended' || user.status === 'disabled') {
+          return next(new ForbiddenError('Account has been disabled or suspended by administrator', 'ACCOUNT_DISABLED'));
         }
         if (user.status === 'deleted') {
           return next(new UnauthorizedError('Account has been deleted'));

@@ -12,3 +12,4 @@ router.get('/preferences', authenticate, notificationsController.getPreferences)
 router.put('/preferences', authenticate, notificationsController.updatePreferences);
 
 export const notificationsRouter = router;
+

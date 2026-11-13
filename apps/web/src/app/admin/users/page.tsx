@@ -68,6 +68,30 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleToggleDisable = async (targetUser: any) => {
+    const isCurrentlyDisabled = targetUser.status === 'disabled' || targetUser.status === 'suspended';
+    const actionLabel = isCurrentlyDisabled ? 'Enable' : 'Disable';
+    if (!confirm(`Are you sure you want to ${actionLabel.toLowerCase()} account for ${targetUser.displayName} (@${targetUser.username || 'user'})?`)) {
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setMessage(null);
+      const res = await webApi.admin.toggleUserStatus(targetUser._id || targetUser.id);
+      setMessage({
+        text: `Account for ${targetUser.displayName} has been set to ${res.status}.`,
+        type: 'success',
+      });
+      fetchUsers(search);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Action failed';
+      setMessage({ text: msg, type: 'error' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <AdminLayout
       title="User & Identity Governance"
@@ -226,29 +250,60 @@ export default function AdminUsersPage() {
                     </td>
 
                     <td style={{ padding: '12px 16px' }}>
-                      <span
-                        style={{
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          color: '#0D652D',
-                          backgroundColor: '#E6F4EA',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        {u.status || 'Active'}
-                      </span>
+                      {u.status === 'disabled' || u.status === 'suspended' ? (
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            color: '#9B1C1C',
+                            backgroundColor: '#FDE8E8',
+                            border: '1px solid #F8B4B4',
+                            padding: '3px 8px',
+                            borderRadius: '4px',
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          Disabled
+                        </span>
+                      ) : (
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            color: '#0D652D',
+                            backgroundColor: '#E6F4EA',
+                            padding: '3px 8px',
+                            borderRadius: '4px',
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          Active
+                        </span>
+                      )}
                     </td>
 
                     <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                      <button
-                        onClick={() => handleEditRoles(u)}
-                        className="btn btn-outline"
-                        style={{ fontSize: '12px', padding: '6px 12px' }}
-                      >
-                        Edit Roles
-                      </button>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                        <button
+                          onClick={() => handleToggleDisable(u)}
+                          className={u.status === 'disabled' || u.status === 'suspended' ? 'btn btn-primary' : 'btn btn-outline'}
+                          style={{
+                            fontSize: '12px',
+                            padding: '6px 12px',
+                            color: u.status === 'disabled' || u.status === 'suspended' ? undefined : '#C81E1E',
+                            borderColor: u.status === 'disabled' || u.status === 'suspended' ? undefined : '#F98080',
+                          }}
+                        >
+                          {u.status === 'disabled' || u.status === 'suspended' ? 'Enable' : 'Disable'}
+                        </button>
+                        <button
+                          onClick={() => handleEditRoles(u)}
+                          className="btn btn-outline"
+                          style={{ fontSize: '12px', padding: '6px 12px' }}
+                        >
+                          Edit Roles
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

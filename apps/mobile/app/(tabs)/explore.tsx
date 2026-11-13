@@ -16,6 +16,7 @@ import { Avatar } from '../../src/components/Avatar';
 import { VerifiedBadge } from '../../src/components/VerifiedBadge';
 import { AppHeader } from '../../src/components/AppHeader';
 import { Icon } from '../../src/components/Icon';
+import { useAuthStore } from '../../src/store/authStore';
 import { useRouter } from 'expo-router';
 import { UserEntity } from '@sanad/shared';
 
@@ -31,6 +32,7 @@ const POPULAR_TOPICS = [
 export default function ExploreScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const currentUser = useAuthStore((state) => state.user);
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'scholars'>('all');
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
@@ -189,13 +191,16 @@ export default function ExploreScreen() {
             const isScholar = Boolean(
               item.scholarProfile?.verified || item.roles?.includes('scholar')
             );
+            const isSelf = Boolean(
+              currentUser && (currentUser.id === item._id || currentUser.username === item.username)
+            );
             const badge = getRoleBadgeInfo(item.roles);
 
             return (
               <Card key={item._id} style={styles.userCard}>
                 <TouchableOpacity
                   style={styles.userRow}
-                  onPress={() => router.push(`/profile/${item._id}`)}
+                  onPress={() => (isSelf ? router.push('/(tabs)/profile') : router.push(`/profile/${item._id}`))}
                   activeOpacity={0.8}
                 >
                   <Avatar name={item.displayName} url={item.avatarUrl} size={50} />
@@ -203,6 +208,11 @@ export default function ExploreScreen() {
                   <View style={styles.userDetails}>
                     <View style={styles.nameHeaderRow}>
                       <Text style={styles.displayName}>{item.displayName}</Text>
+                      {isSelf && (
+                        <View style={styles.selfBadge}>
+                          <Text style={styles.selfBadgeText}>You</Text>
+                        </View>
+                      )}
                       {isScholar && <VerifiedBadge size="small" />}
                       <View style={[styles.badgeBase, badge.style]}>
                         <Text style={[styles.badgeBaseText, badge.textStyle]}>
@@ -213,10 +223,6 @@ export default function ExploreScreen() {
 
                     {Boolean(item.username) && (
                       <Text style={styles.usernameHandle}>@{item.username}</Text>
-                    )}
-
-                    {Boolean(item.publicId) && (
-                      <Text style={styles.publicIdHandle}>ID: {item.publicId}</Text>
                     )}
 
                     {Boolean(item.scholarProfile?.institution) && (
@@ -235,34 +241,46 @@ export default function ExploreScreen() {
 
                 {/* Profile Quick Actions */}
                 <View style={styles.cardActionsRow}>
-                  <TouchableOpacity
-                    style={[
-                      styles.followBtn,
-                      item.isFollowing && styles.followBtnOutline,
-                      !item.isFollowing && item.isFollowedBy && styles.followBackBtn,
-                    ]}
-                    onPress={() =>
-                      followMutation.mutate({
-                        id: item._id,
-                        isFollowing: item.isFollowing,
-                      })
-                    }
-                    activeOpacity={0.7}
-                  >
-                    <Text
-                      style={[
-                        styles.followBtnText,
-                        item.isFollowing && styles.followBtnOutlineText,
-                        !item.isFollowing && item.isFollowedBy && styles.followBackBtnText,
-                      ]}
+                  {isSelf ? (
+                    <TouchableOpacity
+                      style={[styles.followBtn, styles.followBtnOutline]}
+                      onPress={() => router.push('/(tabs)/profile')}
+                      activeOpacity={0.7}
                     >
-                      {item.isFollowing
-                        ? 'Following'
-                        : item.isFollowedBy
-                          ? 'Follow Back'
-                          : 'Follow'}
-                    </Text>
-                  </TouchableOpacity>
+                      <Text style={[styles.followBtnText, styles.followBtnOutlineText]}>
+                        View Profile
+                      </Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      style={[
+                        styles.followBtn,
+                        item.isFollowing && styles.followBtnOutline,
+                        !item.isFollowing && item.isFollowedBy && styles.followBackBtn,
+                      ]}
+                      onPress={() =>
+                        followMutation.mutate({
+                          id: item._id,
+                          isFollowing: item.isFollowing,
+                        })
+                      }
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={[
+                          styles.followBtnText,
+                          item.isFollowing && styles.followBtnOutlineText,
+                          !item.isFollowing && item.isFollowedBy && styles.followBackBtnText,
+                        ]}
+                      >
+                        {item.isFollowing
+                          ? 'Following'
+                          : item.isFollowedBy
+                            ? 'Follow Back'
+                            : 'Follow'}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
 
                   <TouchableOpacity
                     style={styles.actionBtnOutline}
@@ -463,6 +481,20 @@ const styles = StyleSheet.create({
   badgeBaseText: {
     fontSize: 10,
     fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  selfBadge: {
+    backgroundColor: '#FAF5EC',
+    borderWidth: 1,
+    borderColor: '#E6D29A',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  selfBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#8C6C0A',
     textTransform: 'uppercase',
   },
   badgeAdmin: {

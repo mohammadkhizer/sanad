@@ -38,3 +38,4 @@ scholarActivitySchema.index({ isUnauthorized: 1, createdAt: -1 });
 export const ScholarActivityModel =
   mongoose.models.ScholarActivity ||
   mongoose.model<IScholarActivity>('ScholarActivity', scholarActivitySchema);
+

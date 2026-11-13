@@ -166,10 +166,6 @@ export default function UserProfileScreen() {
                 <Text style={styles.userHandle}>@{user.username}</Text>
               )}
 
-              {Boolean(user.publicId) && (
-                <Text style={styles.publicIdText}>Public ID: {user.publicId}</Text>
-              )}
-
               <View style={styles.roleBadgeRow}>
                 <View
                   style={[

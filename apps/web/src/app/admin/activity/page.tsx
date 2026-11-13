@@ -854,3 +854,4 @@ export default function ScholarActivityMonitoringPage() {
     </AdminLayout>
   );
 }
+

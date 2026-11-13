@@ -71,6 +71,20 @@ router.post(
   moderationController.suspendUser
 );
 
+router.post(
+  '/users/:id/disable',
+  authenticate,
+  requirePermission('user:suspend'),
+  moderationController.suspendUser
+);
+
+router.post(
+  '/users/:id/enable',
+  authenticate,
+  requirePermission('user:suspend'),
+  moderationController.suspendUser
+);
+
 // Scholar Activity Monitoring & Unauthorized Security Audit
 router.get(
   '/scholars/activity-overview',

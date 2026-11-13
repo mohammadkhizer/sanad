@@ -35,3 +35,4 @@ notificationSchema.index({ recipientId: 1, createdAt: -1 });
 
 export const NotificationModel =
   mongoose.models.Notification || mongoose.model<INotification>('Notification', notificationSchema);
+

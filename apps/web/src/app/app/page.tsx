@@ -27,7 +27,7 @@ export default function AppPortalPage() {
 
             <p className="hero-subtitle" style={{ marginBottom: '32px' }}>
               {isAuthenticated && user
-                ? `Logged in as @${user.username || 'user'} (Public ID: ${user.publicId || user.id}). Explore verified discourse, connect with scholars, and participate in academic circles.`
+                ? `Logged in as @${user.username || 'user'}. Explore verified discourse, connect with scholars, and participate in academic circles.`
                 : 'Explore verified scholar discourses, attend interactive halaqat circles, and connect with peers.'}
             </p>
 
@@ -53,7 +53,7 @@ export default function AppPortalPage() {
                     Active Persona: {user.displayName}
                   </div>
                   <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
-                    Roles: {user.roles.join(', ')} | Public ID: {user.publicId || user.id}
+                    Roles: {user.roles.join(', ')}
                   </div>
                 </div>
 

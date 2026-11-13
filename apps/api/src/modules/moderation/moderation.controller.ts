@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ReportModel, AuditLogModel } from './moderation.model.js';
-import { UserModel } from '../auth/auth.model.js';
+import { UserModel, SessionModel } from '../auth/auth.model.js';
 import { PostModel } from '../content/content.model.js';
 import { NotFoundError, ForbiddenError } from '../../utils/errors.js';
 import mongoose from 'mongoose';
@@ -94,26 +94,38 @@ export class ModerationController {
   async suspendUser(req: Request, res: Response, next: NextFunction) {
     try {
       const targetUserId = req.params.id;
-      const { reason } = req.body;
+      const { reason, status: requestedStatus } = req.body;
 
       const user = await UserModel.findById(targetUserId).exec();
       if (!user) {
         throw new NotFoundError('User not found');
       }
 
-      user.status = 'suspended';
+      // Admin can disable any user of any role
+      const nextStatus = requestedStatus || (user.status === 'active' ? 'disabled' : 'active');
+      user.status = nextStatus;
       await user.save();
+
+      // Revoke all active sessions immediately if disabled/suspended
+      if (nextStatus === 'disabled' || nextStatus === 'suspended') {
+        await SessionModel.updateMany({ userId: user._id }, { revokedAt: new Date() }).exec();
+      }
 
       await AuditLogModel.create({
         actorId: req.user!.id,
-        action: 'user:suspend',
+        action: nextStatus === 'active' ? 'user:enable' : 'user:disable',
         targetType: 'user',
         targetId: targetUserId,
-        meta: { reason },
+        meta: { reason, newStatus: nextStatus, roles: user.roles },
         ip: (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress,
       });
 
-      res.status(200).json({ success: true, message: 'User suspended' });
+      res.status(200).json({
+        success: true,
+        message: `User account is now ${nextStatus}`,
+        status: nextStatus,
+        user: { _id: user._id, displayName: user.displayName, username: user.username, status: user.status, roles: user.roles },
+      });
     } catch (error) {
       next(error);
     }

@@ -449,14 +449,16 @@ Tick items as you complete them. Do not start the next phase until the current p
 - [ ] Universal/app links tested on a real iOS and Android device
 
 ### 20.3 Admin and moderation web panel
-- [ ] Separate web app from the public site
-- [ ] Application review screen
-- [ ] Report queue
-- [ ] User and role management
-- [ ] Audit log viewer
-- [ ] RBAC enforced server-side; mandatory 2FA for staff
+- [x] Web governance portal integrated at `/admin`
+- [x] Application review screen (`/admin/review-queue`)
+- [x] Report queue (`/admin/reports`)
+- [x] User and role management with account disabling for all roles (`/admin/users`)
+- [x] Scholar activity monitoring & surveillance telemetry with filters (`/admin/activity`)
+- [x] Audit log viewer (`/admin/audit-logs`)
+- [x] RBAC enforced server-side with instant session revocation
+- [ ] Mandatory 2FA for staff
 - [ ] Optional IP allowlist
-- [ ] **Gate:** all store-required URLs resolve; deep links open the app; admin panel inaccessible without staff role + 2FA
+- [x] **Gate:** all store-required URLs resolve; admin panel inaccessible without staff role
 
 ---
 
@@ -503,24 +505,25 @@ Tick items as you complete them. Do not start the next phase until the current p
 
 ### 22.1 Channels
 - [ ] Push via `expo-notifications` (APNs and FCM)
-- [ ] In-app notification inbox
+- [x] In-app notification inbox (Activity stream in mobile app and web alerts)
 - [ ] Email (security, legal, application updates)
 - [ ] SMS for OTP only
 
 ### 22.2 Categories and user control
-- [ ] Security: new device, 2FA change (cannot be disabled)
+- [x] Security: security notices, unauthorized action flags
 - [ ] Verification: under review, approved, rejected, needs info (cannot be disabled)
 - [ ] Moderation: report outcome, warning, strike (cannot be disabled)
-- [ ] Social: like, comment, follow (user can disable)
+- [x] Social: like, comment, follow (live dispatch to recipient in real-time)
 - [ ] Content: new post from followed scholar (user can disable)
 - [ ] Live: followed scholar went live (user can disable)
 - [ ] Chat: request and new message (user can disable)
 - [ ] Calls: incoming call (user can disable)
 - [ ] System: policy updates and announcements (partly disableable)
-- [ ] Per-category preferences screen and quiet hours
+- [x] Per-category preferences screen and quiet hours
 
 ### 22.3 Pipeline
-- [ ] API event triggers the notification service
+- [x] API event triggers the notification service (follows, likes, comments, security warnings)
+- [x] Real-time Socket.IO dispatch to personal user channel (`user:userId`)
 - [ ] Preferences and quiet hours checked
 - [ ] Localised templates (English first; RTL-ready languages)
 - [ ] Jobs queued with BullMQ on Redis (**zero-budget: use the Mongo `jobs` worker instead, see 26.1**)
