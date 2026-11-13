@@ -77,7 +77,9 @@ export const redis: RedisClientLike = {
   },
 
   async get(key: string): Promise<string | null> {
-    if (!underlyingClient) return memoryFallback.get(key);
+    if (!underlyingClient || env.NODE_ENV === 'test' || underlyingClient.status !== 'ready') {
+      return memoryFallback.get(key);
+    }
     try {
       return await underlyingClient.get(key);
     } catch {
@@ -86,7 +88,9 @@ export const redis: RedisClientLike = {
   },
 
   async set(key: string, value: string, ...args: (string | number)[]): Promise<'OK'> {
-    if (!underlyingClient) return memoryFallback.set(key, value, ...args);
+    if (!underlyingClient || env.NODE_ENV === 'test' || underlyingClient.status !== 'ready') {
+      return memoryFallback.set(key, value, ...args);
+    }
     try {
       await (underlyingClient as any).set(key, value, ...args);
       return 'OK';
@@ -96,7 +100,9 @@ export const redis: RedisClientLike = {
   },
 
   async del(key: string): Promise<number> {
-    if (!underlyingClient) return memoryFallback.del(key);
+    if (!underlyingClient || env.NODE_ENV === 'test' || underlyingClient.status !== 'ready') {
+      return memoryFallback.del(key);
+    }
     try {
       return await underlyingClient.del(key);
     } catch {
@@ -105,7 +111,9 @@ export const redis: RedisClientLike = {
   },
 
   async incr(key: string): Promise<number> {
-    if (!underlyingClient) return memoryFallback.incr(key);
+    if (!underlyingClient || env.NODE_ENV === 'test' || underlyingClient.status !== 'ready') {
+      return memoryFallback.incr(key);
+    }
     try {
       return await underlyingClient.incr(key);
     } catch {
@@ -114,7 +122,9 @@ export const redis: RedisClientLike = {
   },
 
   async expire(key: string, seconds: number): Promise<number> {
-    if (!underlyingClient) return memoryFallback.expire(key, seconds);
+    if (!underlyingClient || env.NODE_ENV === 'test' || underlyingClient.status !== 'ready') {
+      return memoryFallback.expire(key, seconds);
+    }
     try {
       return await underlyingClient.expire(key, seconds);
     } catch {

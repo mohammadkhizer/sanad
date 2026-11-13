@@ -29,7 +29,7 @@ export const AccessGuard: React.FC<AccessGuardProps> = ({
 }) => {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
-  const roles = user?.roles || ['guest'];
+  const roles = user?.roles || [];
 
   let authorized = true;
 

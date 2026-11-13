@@ -93,9 +93,9 @@ export default function OnboardingScreen() {
 
         <TouchableOpacity
           style={styles.skipBtn}
-          onPress={() => router.replace('/(tabs)/feed')}
+          onPress={() => router.replace('/(auth)/login')}
         >
-          <Text style={styles.skipText}>Explore as Guest</Text>
+          <Text style={styles.skipText}>Already have an account? Sign In</Text>
         </TouchableOpacity>
       </View>
     </View>

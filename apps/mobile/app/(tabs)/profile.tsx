@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useAuthStore } from '../../src/store/authStore';
 import { colors } from '../../src/theme/colors';
@@ -57,18 +58,9 @@ export default function ProfileScreen() {
   if (!isAuthenticated || !user) {
     return (
       <View style={styles.container}>
-        <AppHeader title="Profile" subtitle="Guest Mode" />
+        <AppHeader title="Profile" />
         <View style={styles.center}>
-          <Icon name="profile" size={48} color={colors.light.primary} />
-          <Text style={styles.guestTitle}>Guest Mode</Text>
-          <Text style={styles.guestSub}>
-            Sign in to follow scholars, participate in advisory consultations, and submit verification credentials.
-          </Text>
-          <Button
-            title="Sign In / Register"
-            onPress={() => router.push('/(auth)/login')}
-            style={styles.guestBtn}
-          />
+          <ActivityIndicator size="large" color={colors.light.primary} />
         </View>
       </View>
     );
