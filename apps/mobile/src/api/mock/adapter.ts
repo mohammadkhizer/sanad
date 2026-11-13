@@ -830,6 +830,26 @@ const moderationMock: ModerationModule = {
 };
 
 const notificationsMock: NotificationsModule = {
+  async getNotifications() {
+    await simulateLatency();
+    return [];
+  },
+
+  async getUnreadCount() {
+    await simulateLatency();
+    return { unreadCount: 0 };
+  },
+
+  async markAsRead(id: string) {
+    await simulateLatency();
+    return { success: true };
+  },
+
+  async markAllAsRead() {
+    await simulateLatency();
+    return { success: true };
+  },
+
   async getPreferences() {
     await simulateLatency();
     return {

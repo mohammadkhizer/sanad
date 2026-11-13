@@ -170,6 +170,32 @@ export const webApi = {
 
     getAuditLogs: (limit: number = 50) =>
       apiFetch<{ logs: any[]; auditLogs?: any[] }>(`/admin/audit-logs?limit=${limit}`),
+
+    getScholarMonitoring: (params?: { country?: string; experience?: string; username?: string }) => {
+      const q = new URLSearchParams();
+      if (params?.country) q.append('country', params.country);
+      if (params?.experience) q.append('experience', params.experience);
+      if (params?.username) q.append('username', params.username);
+      const qs = q.toString() ? `?${q.toString()}` : '';
+      return apiFetch<{ scholars: any[]; meta: any }>(`/admin/scholars/activity-overview${qs}`);
+    },
+
+    getScholarActivityTimeline: (scholarId: string) =>
+      apiFetch<{ scholar: any; activities: any[] }>(`/admin/scholars/${scholarId}/activity-logs`),
+
+    sendScholarSecurityAlert: (
+      scholarId: string,
+      data: { flagTitle?: string; message: string; severity?: string }
+    ) =>
+      apiFetch<{ success: boolean; activity: any }>(`/admin/scholars/${scholarId}/security-alert`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    dismissActivityAlert: (activityId: string) =>
+      apiFetch<{ success: boolean }>(`/admin/scholars/activity/${activityId}/dismiss`, {
+        method: 'PATCH',
+      }),
   },
 };
 

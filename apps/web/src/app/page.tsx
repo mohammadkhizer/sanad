@@ -114,8 +114,7 @@ export default function HomePage() {
               <div className="section-tag">Core Platform Capabilities</div>
               <h2 className="section-title">Designed for Traditional Islamic Sciences</h2>
               <p className="section-desc">
-                Engineered with high performance and architectural elegance using the 60:30:10
-                Ivory, Emerald, and Gold palette.
+                Engineered for sacred scholarship, authentic chains of transmission, and structured academic study.
               </p>
             </div>
 
@@ -133,8 +132,8 @@ export default function HomePage() {
                 <div className="feature-icon-badge">Interactive</div>
                 <h3 className="feature-title">Live Halaqat & Masterclasses</h3>
                 <p className="feature-desc">
-                  Interactive real-time audio and video sessions hosted by scholars. Built on WebRTC
-                  infrastructure for crystal-clear recitations and live Q&A.
+                  Interactive real-time audio and video sessions hosted by scholars. High-fidelity
+                  streaming infrastructure for crystal-clear recitations and live Q&A.
                 </p>
               </div>
 
@@ -201,8 +200,8 @@ export default function HomePage() {
                 </div>
                 <h3 className="dev-info-title">Mohammed Khizer Shaikh</h3>
                 <p className="dev-subtitle">
-                  Lead Software Architect responsible for Sanad monorepo architecture, Expo SDK 58 client runtime,
-                  Node.js backend micro-services, and cryptographic verification pipelines.
+                  Lead Software Architect responsible for Sanad verified platform engineering,
+                  security architecture, and scholarly verification systems.
                 </p>
               </div>
               <div className="dev-actions">

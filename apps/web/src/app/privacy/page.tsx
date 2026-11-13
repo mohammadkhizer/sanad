@@ -53,7 +53,7 @@ export default function PrivacyPage() {
               <ul className="legal-list">
                 <li><strong>LiveKit Cloud:</strong> Real-time audio and video streaming for live halaqat sessions.</li>
                 <li><strong>Mux Video:</strong> Video transcoding and streaming delivery for scholar reels.</li>
-                <li><strong>MongoDB Atlas:</strong> Hardened document database storage.</li>
+                <li><strong>Enterprise Cloud Storage:</strong> Hardened, encrypted data storage and backup infrastructure.</li>
               </ul>
             </div>
 

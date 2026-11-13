@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { PostModel, CommentModel, LikeModel, SaveModel } from './content.model.js';
+import { UserModel } from '../auth/auth.model.js';
+import { createAndSendNotification } from '../../services/notification.service.js';
 import { NotFoundError, ForbiddenError } from '../../utils/errors.js';
 import { BlockModel } from '../users/users.model.js';
 import mongoose from 'mongoose';
@@ -186,7 +188,34 @@ export class ContentController {
       const existing = await LikeModel.findOne({ postId, userId });
       if (!existing) {
         await LikeModel.create({ postId, userId });
-        await PostModel.findByIdAndUpdate(postId, { $inc: { 'counts.likes': 1 } });
+        const post = await PostModel.findByIdAndUpdate(
+          postId,
+          { $inc: { 'counts.likes': 1 } },
+          { new: true }
+        ).select('authorId caption title');
+
+        if (post && post.authorId && post.authorId.toString() !== req.user!.id) {
+          const actor = (await UserModel.findById(req.user!.id)
+            .select('displayName username avatarUrl')
+            .lean()) as any;
+
+          createAndSendNotification({
+            recipientId: post.authorId,
+            actorId: req.user!.id,
+            type: 'like',
+            title: 'New Like',
+            body: `${actor?.displayName || 'A user'} liked your publication.`,
+            entityId: postId.toString(),
+            entityType: 'post',
+            metadata: {
+              postId: postId.toString(),
+              snippet: post.caption?.slice(0, 50) || post.title || '',
+              actorDisplayName: actor?.displayName,
+              actorUsername: actor?.username,
+              actorAvatar: actor?.avatarUrl,
+            },
+          }).catch(() => {});
+        }
       }
 
       res.status(200).json({ success: true, message: 'Post liked' });
@@ -240,7 +269,34 @@ export class ContentController {
         parentId: req.body.parentId ? new mongoose.Types.ObjectId(req.body.parentId) : undefined,
       });
 
-      await PostModel.findByIdAndUpdate(postId, { $inc: { 'counts.comments': 1 } });
+      const post = await PostModel.findByIdAndUpdate(
+        postId,
+        { $inc: { 'counts.comments': 1 } },
+        { new: true }
+      ).select('authorId caption title');
+
+      if (post && post.authorId && post.authorId.toString() !== req.user!.id) {
+        const actor = (await UserModel.findById(req.user!.id)
+          .select('displayName username avatarUrl')
+          .lean()) as any;
+
+        createAndSendNotification({
+          recipientId: post.authorId,
+          actorId: req.user!.id,
+          type: 'comment',
+          title: 'New Comment',
+          body: `${actor?.displayName || 'A user'} commented: "${req.body.text.slice(0, 60)}"`,
+          entityId: postId.toString(),
+          entityType: 'post',
+          metadata: {
+            postId: postId.toString(),
+            commentText: req.body.text,
+            actorDisplayName: actor?.displayName,
+            actorUsername: actor?.username,
+            actorAvatar: actor?.avatarUrl,
+          },
+        }).catch(() => {});
+      }
 
       const populated = await CommentModel.findById(comment._id).populate(
         'userId',

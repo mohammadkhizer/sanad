@@ -12,9 +12,6 @@ export default function Footer() {
             <p style={{ fontSize: '14px', color: '#A3B2AF', lineHeight: 1.6, maxWidth: '320px', marginBottom: '16px' }}>
               The authentic verified-scholars-only platform for classical Islamic sciences, isnad methodology, masterclasses, and halaqah circles.
             </p>
-            <p style={{ fontSize: '13px', color: '#7A8E8A' }}>
-              Designed with 60% Ivory, 30% Emerald, and 10% Gold.
-            </p>
           </div>
 
           <div>
@@ -60,7 +57,6 @@ export default function Footer() {
                   Developer LinkedIn
                 </a>
               </li>
-              <li><span style={{ fontSize: '13px', color: '#7A8E8A' }}>Architecture: Expo SDK 58 + Node.js 22 + Next.js</span></li>
             </ul>
           </div>
         </div>

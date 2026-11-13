@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { scholarController } from '../scholar/scholar.controller.js';
 import { moderationController } from '../moderation/moderation.controller.js';
 import { usersController } from '../users/users.controller.js';
+import { scholarActivityController } from './scholar-activity.controller.js';
 import { authenticate } from '../../middlewares/auth.js';
 import { requirePermission } from '../../middlewares/rbac.js';
 import { validate } from '../../middlewares/validate.js';
@@ -68,6 +69,35 @@ router.post(
   authenticate,
   requirePermission('user:suspend'),
   moderationController.suspendUser
+);
+
+// Scholar Activity Monitoring & Unauthorized Security Audit
+router.get(
+  '/scholars/activity-overview',
+  authenticate,
+  requirePermission('application:review'),
+  scholarActivityController.listScholarMonitoring
+);
+
+router.get(
+  '/scholars/:id/activity-logs',
+  authenticate,
+  requirePermission('application:review'),
+  scholarActivityController.getScholarActivityTimeline
+);
+
+router.post(
+  '/scholars/:id/security-alert',
+  authenticate,
+  requirePermission('application:review'),
+  scholarActivityController.sendSecurityAlert
+);
+
+router.patch(
+  '/scholars/activity/:activityId/dismiss',
+  authenticate,
+  requirePermission('application:review'),
+  scholarActivityController.dismissActivityAlert
 );
 
 // Audit Logs

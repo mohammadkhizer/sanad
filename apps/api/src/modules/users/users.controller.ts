@@ -4,6 +4,7 @@ import { UserModel } from '../auth/auth.model.js';
 import { FollowModel, BlockModel } from './users.model.js';
 import { PostModel } from '../content/content.model.js';
 import { AuditLogModel } from '../moderation/moderation.model.js';
+import { createAndSendNotification } from '../../services/notification.service.js';
 import { NotFoundError, ConflictError, ValidationError } from '../../utils/errors.js';
 import mongoose from 'mongoose';
 
@@ -204,6 +205,26 @@ export class UsersController {
         { followerId: followerObjectId, followeeId: targetObjectId },
         { upsert: true, new: true }
       );
+
+      // Trigger real-time follower notification
+      const actor = (await UserModel.findById(req.user!.id)
+        .select('displayName username avatarUrl')
+        .lean()) as any;
+
+      createAndSendNotification({
+        recipientId: targetObjectId,
+        actorId: req.user!.id,
+        type: 'follow',
+        title: 'New Follower',
+        body: `${actor?.displayName || 'A user'} started following your profile.`,
+        entityId: req.user!.id,
+        entityType: 'user',
+        metadata: {
+          followerUsername: actor?.username,
+          followerDisplayName: actor?.displayName,
+          followerAvatar: actor?.avatarUrl,
+        },
+      }).catch(() => {});
 
       res.status(200).json({ success: true, message: 'Followed successfully' });
     } catch (error) {

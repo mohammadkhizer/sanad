@@ -116,7 +116,32 @@ export interface ModerationModule {
   revokeScholar(userId: string, reason: string): Promise<{ success: boolean }>;
 }
 
+export interface NotificationEntity {
+  _id: string;
+  recipientId: string;
+  actorId?: {
+    _id: string;
+    displayName: string;
+    username?: string;
+    avatarUrl?: string;
+    roles?: Role[];
+    scholarProfile?: { verified: boolean };
+  };
+  type: 'follow' | 'like' | 'comment' | 'security_warning' | 'system';
+  title: string;
+  body: string;
+  entityId?: string;
+  entityType?: 'user' | 'post' | 'comment' | 'security';
+  read: boolean;
+  metadata?: Record<string, any>;
+  createdAt: string;
+}
+
 export interface NotificationsModule {
+  getNotifications(limit?: number): Promise<NotificationEntity[]>;
+  getUnreadCount(): Promise<{ unreadCount: number }>;
+  markAsRead(id: string): Promise<{ success: boolean }>;
+  markAllAsRead(): Promise<{ success: boolean }>;
   getPreferences(): Promise<{ quietHoursEnabled: boolean; prayerQuietHours: boolean; pushEnabled: boolean }>;
   updatePreferences(prefs: { quietHoursEnabled?: boolean; prayerQuietHours?: boolean; pushEnabled?: boolean }): Promise<{ success: boolean }>;
 }

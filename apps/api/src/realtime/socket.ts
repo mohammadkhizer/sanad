@@ -10,7 +10,14 @@ interface AuthenticatedSocket extends Socket {
   userRoles?: string[];
 }
 
+let ioInstance: Server | null = null;
+
+export function getSocketIO(): Server | null {
+  return ioInstance;
+}
+
 export function setupSocketIO(io: Server): void {
+  ioInstance = io;
   // Authentication middleware
   io.use(async (socket: AuthenticatedSocket, next) => {
     const token = socket.handshake.auth?.token || socket.handshake.headers.authorization?.replace('Bearer ', '');

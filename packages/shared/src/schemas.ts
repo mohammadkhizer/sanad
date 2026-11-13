@@ -279,6 +279,8 @@ export const scholarProfileSchema = z.object({
   verified: z.boolean(),
   verifiedAt: z.string().optional(),
   institution: z.string().optional(),
+  country: z.string().optional(),
+  yearsOfExperience: z.number().optional(),
   specialties: z.array(z.string()).default([]),
   languages: z.array(z.string()).default([]),
 });

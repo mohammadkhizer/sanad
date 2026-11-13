@@ -223,6 +223,14 @@ export const httpAdapter: ApiClientModules = {
   },
 
   notifications: {
+    getNotifications: async (limit) => {
+      const qs = limit ? `?limit=${limit}` : '';
+      const data = await apiClient<any>(`/notifications${qs}`);
+      return Array.isArray(data) ? data : data.notifications || [];
+    },
+    getUnreadCount: () => apiClient('/notifications/unread-count'),
+    markAsRead: (id: string) => apiClient(`/notifications/${id}/read`, { method: 'PUT' }),
+    markAllAsRead: () => apiClient('/notifications/read-all', { method: 'PUT' }),
     getPreferences: () => apiClient('/notifications/preferences'),
     updatePreferences: (prefs) => apiClient('/notifications/preferences', { method: 'PUT', body: JSON.stringify(prefs) }),
   },

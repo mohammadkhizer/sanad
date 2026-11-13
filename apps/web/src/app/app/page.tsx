@@ -91,7 +91,7 @@ export default function AppPortalPage() {
               }}
             >
               <h2 style={{ fontSize: '20px', color: 'var(--color-emerald)', marginBottom: '16px' }}>
-                Application Runtime Environments
+                Platform Modules & Services
               </h2>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
@@ -100,7 +100,7 @@ export default function AppPortalPage() {
                     Directory & Search
                   </div>
                   <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '16px' }}>
-                    Search across all users by their unique username, public ID, and discipline.
+                    Discover accredited scholars and registered members by username, public ID, and discipline.
                   </p>
                   <Link
                     href="/explore"
@@ -113,32 +113,34 @@ export default function AppPortalPage() {
 
                 <div style={{ padding: '20px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-ivory)' }}>
                   <div style={{ fontWeight: 700, color: 'var(--color-emerald)', marginBottom: '6px' }}>
-                    Mobile App (Expo Go)
+                    Verification Protocol
                   </div>
                   <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '16px' }}>
-                    Native iOS & Android mobile build with real-time video calls and feed.
+                    Review the 4-Stage Isnad accreditation criteria for traditional teachers and institutions.
                   </p>
-                  <div style={{ fontSize: '12px', fontFamily: 'monospace', backgroundColor: 'var(--color-white)', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}>
-                    npm run dev:mobile
-                  </div>
+                  <Link
+                    href="/how-verification-works"
+                    className="btn btn-outline"
+                    style={{ width: '100%', fontSize: '14px', padding: '8px 12px', display: 'block', textAlign: 'center' }}
+                  >
+                    View Standards
+                  </Link>
                 </div>
 
                 <div style={{ padding: '20px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-ivory)' }}>
                   <div style={{ fontWeight: 700, color: 'var(--color-emerald)', marginBottom: '6px' }}>
-                    Backend REST & Socket API
+                    Community Standards
                   </div>
                   <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '16px' }}>
-                    Node.js Express + MongoDB API serving endpoints on port 4000.
+                    Explore code of conduct, academic etiquette (adab), and discourse moderation rules.
                   </p>
-                  <a
-                    href="http://localhost:4000/health"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link
+                    href="/conduct"
                     className="btn btn-outline"
                     style={{ width: '100%', fontSize: '14px', padding: '8px 12px', display: 'block', textAlign: 'center' }}
                   >
-                    API Health Status
-                  </a>
+                    Read Code of Conduct
+                  </Link>
                 </div>
               </div>
             </div>

@@ -7,12 +7,14 @@ import { liveRouter } from '../modules/live/live.routes.js';
 import { messagingRouter } from '../modules/messaging/messaging.routes.js';
 import { moderationRouter } from '../modules/moderation/moderation.routes.js';
 import { adminRouter } from '../modules/admin/admin.routes.js';
+import { notificationsRouter } from '../modules/notifications/notifications.routes.js';
 
 const router = Router();
 
 router.use('/auth', authRouter);
 router.use('/users', usersRouter);
 router.use('/scholar', scholarRouter);
+router.use('/notifications', notificationsRouter);
 router.use('/', contentRouter);
 router.use('/', liveRouter);
 router.use('/', messagingRouter);

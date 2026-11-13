@@ -55,6 +55,8 @@ const userSchema = new Schema<IUser>(
       verified: { type: Boolean, default: false },
       verifiedAt: { type: Date },
       institution: { type: String },
+      country: { type: String, default: 'Saudi Arabia' },
+      yearsOfExperience: { type: Number, default: 12 },
       specialties: { type: [String], default: [] },
       languages: { type: [String], default: [] },
     },
