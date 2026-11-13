@@ -42,6 +42,7 @@ export interface UsersModule {
   getMe(): Promise<UserEntity>;
   updateProfile(data: Partial<UserEntity>): Promise<UserEntity>;
   getUser(id: string): Promise<UserEntity>;
+  searchUsers(query?: string, role?: string): Promise<UserEntity[]>;
   createUser(input: Partial<UserEntity>): Promise<UserEntity>;
   deleteUser(userId: string): Promise<{ success: boolean }>;
   getNetwork(userId: string): Promise<{ followers: UserEntity[]; following: UserEntity[] }>;

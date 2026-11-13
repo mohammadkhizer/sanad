@@ -29,7 +29,7 @@ export default function CallScreen() {
   }, []);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     if (callState === 'connected') {
       interval = setInterval(() => {
         setDurationSecs((prev) => prev + 1);

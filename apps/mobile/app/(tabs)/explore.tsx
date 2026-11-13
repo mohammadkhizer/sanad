@@ -5,6 +5,8 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../src/api';
@@ -29,46 +31,109 @@ const POPULAR_TOPICS = [
 export default function ExploreScreen() {
   const router = useRouter();
   const [search, setSearch] = useState('');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'scholars'>('all');
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
 
-  const { data: scholarsData } = useQuery<UserEntity[]>({
-    queryKey: ['exploreScholars', search],
-    queryFn: () => api.moderation.getUsers(search),
+  const effectiveQuery = search.trim() || (selectedTopic ? selectedTopic : '');
+
+  const { data: usersData, isLoading } = useQuery<UserEntity[]>({
+    queryKey: ['exploreUsers', effectiveQuery, activeFilter],
+    queryFn: async () => {
+      const roleParam = activeFilter === 'scholars' ? 'scholar' : undefined;
+      return api.users.searchUsers(effectiveQuery, roleParam);
+    },
   });
 
-  const scholars = (scholarsData || []).filter((u) => u.roles.includes('scholar'));
+  const users = usersData || [];
+
+  const getRoleBadgeInfo = (roles: string[] = []) => {
+    if (roles.includes('admin')) {
+      return { label: 'Admin', style: styles.badgeAdmin, textStyle: styles.badgeAdminText };
+    }
+    if (roles.includes('scholar')) {
+      return { label: 'Scholar', style: styles.badgeScholar, textStyle: styles.badgeScholarText };
+    }
+    if (roles.includes('moderator')) {
+      return { label: 'Moderator', style: styles.badgeMod, textStyle: styles.badgeModText };
+    }
+    return { label: 'Member', style: styles.badgeMember, textStyle: styles.badgeMemberText };
+  };
 
   return (
     <View style={styles.container}>
       <AppHeader
-        title="Discover Knowledge"
-        subtitle="Accredited teachers and authentic curriculum"
-        rightIcon="filter"
+        title="Discover & Connect"
+        subtitle="Search users by username, scholars, and disciplines"
       />
 
-      <ScrollView contentContainerStyle={styles.content}>
-        {/* Search Input Box with Vector Icon */}
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        {/* Search Input Box */}
         <View style={styles.searchBox}>
           <Icon name="search" size={18} color={colors.light.textMuted} />
-          <Input
-            placeholder="Search scholars, disciplines, Hadith, Fiqh..."
+          <TextInput
+            placeholder="Search by @username, name, or specialty..."
+            placeholderTextColor={colors.light.textMuted}
             value={search}
-            onChangeText={setSearch}
+            onChangeText={(text) => {
+              setSearch(text);
+              if (selectedTopic) setSelectedTopic(null);
+            }}
             style={styles.searchInput}
+            autoCapitalize="none"
+            autoCorrect={false}
           />
+          {Boolean(search) && (
+            <TouchableOpacity onPress={() => setSearch('')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Icon name="close" size={16} color={colors.light.textMuted} />
+            </TouchableOpacity>
+          )}
         </View>
 
-        {/* Popular Disciplines Horizontal Scroll */}
+        {/* Filter Segment Tabs: All Users vs Scholars */}
+        <View style={styles.filterTabsRow}>
+          <TouchableOpacity
+            style={[styles.filterTab, activeFilter === 'all' && styles.filterTabActive]}
+            onPress={() => setActiveFilter('all')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.filterTabText, activeFilter === 'all' && styles.filterTabTextActive]}>
+              All Users
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterTab, activeFilter === 'scholars' && styles.filterTabActive]}
+            onPress={() => setActiveFilter('scholars')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.filterTabText, activeFilter === 'scholars' && styles.filterTabTextActive]}>
+              Scholars Only
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Curated Disciplines Chips */}
         <View style={styles.topicsSection}>
-          <Text style={styles.sectionTitle}>Curated Disciplines</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.topicsScroll}>
+          <Text style={styles.sectionSubtitle}>Curated Disciplines</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.topicsScroll}
+          >
             {POPULAR_TOPICS.map((topic) => {
               const isSelected = selectedTopic === topic;
               return (
                 <TouchableOpacity
                   key={topic}
                   style={[styles.topicChip, isSelected && styles.topicChipActive]}
-                  onPress={() => setSelectedTopic(isSelected ? null : topic)}
+                  onPress={() => {
+                    if (isSelected) {
+                      setSelectedTopic(null);
+                    } else {
+                      setSelectedTopic(topic);
+                      setSearch('');
+                    }
+                  }}
                   activeOpacity={0.7}
                 >
                   <Text style={[styles.topicChipText, isSelected && styles.topicChipTextActive]}>
@@ -80,97 +145,102 @@ export default function ExploreScreen() {
           </ScrollView>
         </View>
 
-        {/* Accredited Scholars Directory */}
+        {/* Results Header */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Accredited Scholars</Text>
-          <TouchableOpacity onPress={() => router.push('/scholar/apply')}>
-            <Text style={styles.applyLinkText}>Apply as Scholar</Text>
-          </TouchableOpacity>
+          <Text style={styles.sectionTitle}>
+            {search.trim()
+              ? `Search Results for "${search.trim()}"`
+              : activeFilter === 'scholars'
+                ? 'Accredited Scholars'
+                : 'Sanad Community Members'}
+          </Text>
+          <Text style={styles.resultCountText}>{users.length} found</Text>
         </View>
 
-        {scholars.length === 0 ? (
+        {isLoading ? (
+          <View style={styles.loadingBox}>
+            <ActivityIndicator size="small" color={colors.light.primary} />
+          </View>
+        ) : users.length === 0 ? (
           <Card style={styles.emptyCard}>
+            <Text style={styles.emptyTitle}>No Users Found</Text>
             <Text style={styles.emptyText}>
-              Scholars registered in the database will appear here once accredited.
+              {search.trim()
+                ? `No user matching "${search.trim()}" was found across any roles.`
+                : 'No users registered under this criteria yet.'}
             </Text>
           </Card>
         ) : (
-          scholars.map((scholar) => (
-            <Card key={scholar._id} style={styles.scholarCard}>
-              <TouchableOpacity
-                style={styles.scholarRow}
-                onPress={() => router.push(`/scholar/${scholar._id}`)}
-                activeOpacity={0.8}
-              >
-                <Avatar name={scholar.displayName} url={scholar.avatarUrl} size={50} />
-                <View style={styles.scholarDetails}>
-                  <View style={styles.scholarNameRow}>
-                    <Text style={styles.scholarName}>{scholar.displayName}</Text>
-                    <VerifiedBadge size="small" />
-                  </View>
-                  {Boolean(scholar.scholarProfile?.institution) && (
-                    <Text style={styles.scholarInst}>
-                      {scholar.scholarProfile?.institution}
-                    </Text>
-                  )}
-                  {Boolean(scholar.bio) && (
-                    <Text style={styles.scholarBio} numberOfLines={2}>
-                      {scholar.bio}
-                    </Text>
-                  )}
-                </View>
-              </TouchableOpacity>
+          users.map((item) => {
+            const isScholar = Boolean(
+              item.scholarProfile?.verified || item.roles?.includes('scholar')
+            );
+            const badge = getRoleBadgeInfo(item.roles);
 
-              <View style={styles.scholarActions}>
+            return (
+              <Card key={item._id} style={styles.userCard}>
                 <TouchableOpacity
-                  style={styles.actionBtnOutline}
-                  onPress={() => router.push(`/chat/${scholar._id}`)}
+                  style={styles.userRow}
+                  onPress={() => router.push(`/profile/${item._id}`)}
+                  activeOpacity={0.8}
                 >
-                  <Icon name="inbox" size={15} color={colors.light.primary} />
-                  <Text style={styles.actionBtnOutlineText}>Consultation</Text>
+                  <Avatar name={item.displayName} url={item.avatarUrl} size={50} />
+
+                  <View style={styles.userDetails}>
+                    <View style={styles.nameHeaderRow}>
+                      <Text style={styles.displayName}>{item.displayName}</Text>
+                      {isScholar && <VerifiedBadge size="small" />}
+                      <View style={[styles.badgeBase, badge.style]}>
+                        <Text style={[styles.badgeBaseText, badge.textStyle]}>
+                          {badge.label}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {Boolean(item.username) && (
+                      <Text style={styles.usernameHandle}>@{item.username}</Text>
+                    )}
+
+                    {Boolean(item.scholarProfile?.institution) && (
+                      <Text style={styles.institutionText}>
+                        {item.scholarProfile?.institution}
+                      </Text>
+                    )}
+
+                    {Boolean(item.bio) && (
+                      <Text style={styles.bioText} numberOfLines={2}>
+                        {item.bio}
+                      </Text>
+                    )}
+                  </View>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.actionBtnFill}
-                  onPress={() => router.push(`/call/${scholar._id}`)}
-                >
-                  <Icon name="call" size={15} color={colors.light.accentText} />
-                  <Text style={styles.actionBtnFillText}>Video Call</Text>
-                </TouchableOpacity>
-              </View>
-            </Card>
-          ))
+
+                {/* Profile Quick Actions */}
+                <View style={styles.cardActionsRow}>
+                  <TouchableOpacity
+                    style={styles.actionBtnOutline}
+                    onPress={() => router.push(`/profile/${item._id}`)}
+                    activeOpacity={0.7}
+                  >
+                    <Icon name="profile" size={14} color={colors.light.primary} />
+                    <Text style={styles.actionBtnOutlineText}>View Profile</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.actionBtnFill}
+                    onPress={() => router.push(`/chat/${item._id}`)}
+                    activeOpacity={0.7}
+                  >
+                    <Icon name="send" size={14} color={colors.light.accentText} />
+                    <Text style={styles.actionBtnFillText}>Message</Text>
+                  </TouchableOpacity>
+                </View>
+              </Card>
+            );
+          })
         )}
       </ScrollView>
     </View>
-  );
-}
-
-// Simple internal inline input to maintain styling
-import { TextInput } from 'react-native';
-
-interface InputWrapperProps {
-  placeholder: string;
-  value: string;
-  onChangeText: (t: string) => void;
-  style?: any;
-}
-function Input({ placeholder, value, onChangeText, style }: InputWrapperProps) {
-  return (
-    <TextInput
-      placeholder={placeholder}
-      placeholderTextColor={colors.light.textMuted}
-      value={value}
-      onChangeText={onChangeText}
-      style={[
-        {
-          flex: 1,
-          fontSize: 14,
-          color: colors.light.text,
-          paddingVertical: 10,
-        },
-        style,
-      ]}
-    />
   );
 }
 
@@ -192,35 +262,75 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.light.border,
     paddingHorizontal: 12,
-    marginBottom: 20,
+    marginBottom: 14,
   },
-  searchInput: {},
-  topicsSection: {
-    marginBottom: 20,
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: colors.light.text,
+    paddingVertical: 10,
   },
-  topicsScroll: {
+  filterTabsRow: {
+    flexDirection: 'row',
     gap: 8,
-    paddingVertical: 4,
+    marginBottom: 16,
   },
-  topicChip: {
-    backgroundColor: colors.light.surface,
-    paddingHorizontal: 14,
+  filterTab: {
+    flex: 1,
     paddingVertical: 8,
+    alignItems: 'center',
     borderRadius: 8,
+    backgroundColor: colors.light.surface,
     borderWidth: 1,
     borderColor: colors.light.border,
   },
-  topicChipActive: {
+  filterTabActive: {
     backgroundColor: colors.light.primary,
     borderColor: colors.light.primary,
   },
-  topicChipText: {
+  filterTabText: {
     fontSize: 13,
     fontWeight: '600',
     color: colors.light.textSecondary,
   },
-  topicChipTextActive: {
+  filterTabTextActive: {
     color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  topicsSection: {
+    marginBottom: 16,
+  },
+  sectionSubtitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.light.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  topicsScroll: {
+    gap: 8,
+    paddingVertical: 2,
+  },
+  topicChip: {
+    backgroundColor: colors.light.surface,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+  },
+  topicChipActive: {
+    backgroundColor: '#FAF5EC',
+    borderColor: colors.light.primary,
+  },
+  topicChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.light.textSecondary,
+  },
+  topicChipTextActive: {
+    color: colors.light.primary,
     fontWeight: '700',
   },
   sectionHeader: {
@@ -228,38 +338,32 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
-    marginTop: 8,
+    marginTop: 4,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: colors.light.primary,
     letterSpacing: 0.2,
   },
-  badgeLive: {
-    flexDirection: 'row',
+  resultCountText: {
+    fontSize: 12,
+    color: colors.light.textMuted,
+    fontWeight: '600',
+  },
+  loadingBox: {
+    paddingVertical: 30,
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#B3261E',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  badgeLiveText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.6,
-  },
-  applyLinkText: {
-    color: colors.light.primary,
-    fontSize: 13,
-    fontWeight: '700',
   },
   emptyCard: {
-    padding: 18,
+    padding: 24,
     alignItems: 'center',
-    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.light.text,
+    marginBottom: 4,
   },
   emptyText: {
     fontSize: 13,
@@ -267,92 +371,89 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
   },
-  liveCard: {
+  userCard: {
     marginBottom: 12,
     padding: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(201, 162, 39, 0.4)',
-    backgroundColor: colors.light.surface,
   },
-  liveRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  liveInfo: {
-    flex: 1,
-  },
-  liveTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.light.text,
-    marginBottom: 2,
-  },
-  liveHost: {
-    fontSize: 13,
-    color: colors.light.primary,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  viewersCount: {
-    fontSize: 11,
-    color: colors.light.textMuted,
-  },
-  joinButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    backgroundColor: colors.light.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 6,
-  },
-  joinButtonText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  scholarCard: {
-    marginBottom: 14,
-    padding: 16,
-  },
-  scholarRow: {
+  userRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
     marginBottom: 12,
   },
-  scholarDetails: {
+  userDetails: {
     flex: 1,
   },
-  scholarNameRow: {
+  nameHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    flexWrap: 'wrap',
     marginBottom: 2,
   },
-  scholarName: {
+  displayName: {
     fontSize: 15,
     fontWeight: '700',
     color: colors.light.text,
   },
-  scholarInst: {
+  usernameHandle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.light.primary,
+    marginBottom: 2,
+  },
+  badgeBase: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  badgeBaseText: {
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  badgeAdmin: {
+    backgroundColor: '#FEF7E0',
+  },
+  badgeAdminText: {
+    color: '#B06000',
+  },
+  badgeScholar: {
+    backgroundColor: '#E6F4EA',
+  },
+  badgeScholarText: {
+    color: '#137333',
+  },
+  badgeMod: {
+    backgroundColor: '#E8F0FE',
+  },
+  badgeModText: {
+    color: '#1A73E8',
+  },
+  badgeMember: {
+    backgroundColor: '#F1F3F4',
+  },
+  badgeMemberText: {
+    color: '#5F6368',
+  },
+  institutionText: {
     fontSize: 12,
     color: colors.light.accent,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: 2,
   },
-  scholarBio: {
-    fontSize: 13,
+  bioText: {
+    fontSize: 12,
     color: colors.light.textSecondary,
-    lineHeight: 18,
+    lineHeight: 16,
+    marginTop: 2,
   },
-  scholarActions: {
+  cardActionsRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
     borderTopWidth: 1,
     borderTopColor: colors.light.border,
-    paddingTop: 12,
+    paddingTop: 10,
   },
   actionBtnOutline: {
     flex: 1,
@@ -360,14 +461,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    height: 38,
-    borderRadius: 8,
-    borderWidth: 1.5,
-    borderColor: colors.light.primary,
+    height: 34,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    backgroundColor: colors.light.surface,
   },
   actionBtnOutlineText: {
     color: colors.light.primary,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
   },
   actionBtnFill: {
@@ -376,13 +478,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    height: 38,
-    borderRadius: 8,
+    height: 34,
+    borderRadius: 6,
     backgroundColor: colors.light.accent,
   },
   actionBtnFillText: {
     color: colors.light.accentText,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
   },
 });

@@ -79,17 +79,49 @@ export default function ProfileScreen() {
         {/* Profile Card */}
         <Card style={styles.profileCard}>
           <View style={styles.avatarRow}>
-            <Avatar name={user.displayName} size={64} />
+            <Avatar name={user.displayName} url={profileData?.user?.avatarUrl} size={64} />
             <View style={styles.userDetails}>
               <View style={styles.nameRow}>
-                <Text style={styles.userName}>{user.displayName}</Text>
+                <Text style={styles.userName}>{profileData?.user?.displayName || user.displayName}</Text>
                 {isScholar && <VerifiedBadge />}
               </View>
+              {Boolean(profileData?.user?.username || user.username) && (
+                <Text style={styles.userHandle}>
+                  @{profileData?.user?.username || user.username}
+                </Text>
+              )}
               <Text style={styles.userRole}>
                 {isScholar ? 'Accredited Religious Scholar' : 'Registered Member'}
               </Text>
               <Text style={styles.userEmail}>{user.email || user.phone || ''}</Text>
             </View>
+          </View>
+
+          {Boolean(profileData?.user?.bio) && (
+            <Text style={styles.userBio}>{profileData.user.bio}</Text>
+          )}
+
+          {/* Action Row */}
+          <View style={styles.profileActionRow}>
+            <TouchableOpacity
+              style={styles.editProfileBtn}
+              onPress={() => router.push('/profile/edit')}
+              activeOpacity={0.8}
+            >
+              <Icon name="pencil" size={15} color={colors.light.primary} />
+              <Text style={styles.editProfileBtnText}>Edit Profile</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.shareProfileBtn}
+              onPress={() => {
+                Alert.alert('Share Profile', `Profile handle: @${profileData?.user?.username || user.username || user.displayName}`);
+              }}
+              activeOpacity={0.8}
+            >
+              <Icon name="share" size={15} color={colors.light.textMuted} />
+              <Text style={styles.shareProfileBtnText}>Share</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Metrics Row */}
@@ -316,15 +348,67 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.light.text,
   },
+  userHandle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.light.primary,
+    marginBottom: 2,
+  },
   userRole: {
     fontSize: 13,
-    color: colors.light.primary,
-    fontWeight: '600',
+    color: colors.light.textMuted,
+    fontWeight: '500',
     marginBottom: 2,
   },
   userEmail: {
     fontSize: 12,
     color: colors.light.textMuted,
+  },
+  userBio: {
+    fontSize: 13,
+    color: colors.light.text,
+    lineHeight: 18,
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  profileActionRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 14,
+  },
+  editProfileBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    height: 38,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.light.primary,
+    backgroundColor: '#FAF5EC',
+  },
+  editProfileBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.light.primary,
+  },
+  shareProfileBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    height: 38,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    backgroundColor: colors.light.surface,
+  },
+  shareProfileBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.light.text,
   },
   statsRow: {
     flexDirection: 'row',

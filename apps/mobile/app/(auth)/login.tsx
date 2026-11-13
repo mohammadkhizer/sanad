@@ -45,6 +45,7 @@ export default function LoginScreen() {
         await login(res.accessToken, res.refreshToken, {
           id: res.user._id || (res.user as any).id,
           displayName: res.user.displayName,
+          username: res.user.username,
           email: res.user.email,
           phone: res.user.phone,
           roles: res.user.roles,

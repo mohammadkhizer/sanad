@@ -29,6 +29,14 @@ export const httpAdapter: ApiClientModules = {
       const data = await apiClient<any>(`/users/${id}`);
       return data.user ? { ...data.user, counts: data.counts, isFollowing: data.isFollowing } : data;
     },
+    searchUsers: async (query, role) => {
+      const params = new URLSearchParams();
+      if (query) params.append('q', query);
+      if (role) params.append('role', role);
+      const qs = params.toString() ? `?${params.toString()}` : '';
+      const data = await apiClient<any>(`/users${qs}`);
+      return Array.isArray(data) ? data : data.users || [];
+    },
     createUser: async (input) => {
       const res = await apiClient<any>('/admin/users', { method: 'POST', body: JSON.stringify(input) });
       return res.user || res;

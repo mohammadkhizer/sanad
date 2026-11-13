@@ -47,7 +47,8 @@ export type IconName =
   | 'trash'
   | 'plus'
   | 'download'
-  | 'globe';
+  | 'globe'
+  | 'pencil';
 
 interface IconProps {
   name: IconName;
@@ -617,6 +618,19 @@ export const Icon: React.FC<IconProps> = ({
             d="M3.6 9H20.4M3.6 15H20.4M12 3C10 5.5 8.8 8.6 8.8 12C8.8 15.4 10 18.5 12 21M12 3C14 5.5 15.2 8.6 15.2 12C15.2 15.4 14 18.5 12 21"
             stroke={strokeColor}
             strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'pencil':
+      return (
+        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"
+            stroke={strokeColor}
+            strokeWidth="1.8"
             strokeLinecap="round"
             strokeLinejoin="round"
           />

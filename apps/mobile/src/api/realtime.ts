@@ -12,7 +12,7 @@ export interface RealtimeClient {
 class MockRealtimeClient implements RealtimeClient {
   private listeners: Map<string, Set<EventCallback>> = new Map();
   private joinedRooms: Set<string> = new Set();
-  private mockInterval: NodeJS.Timeout | null = null;
+  private mockInterval: ReturnType<typeof setInterval> | null = null;
 
   connect() {
     // Start occasional simulated live events if in a room

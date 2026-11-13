@@ -126,6 +126,12 @@ export const resetPasswordSchema = z.object({
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
 export const updateProfileSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(/^[a-z0-9_]{3,30}$/, 'Username must be 3-30 lowercase alphanumeric characters or underscores')
+    .optional(),
   displayName: z.string().trim().min(2).max(50).optional(),
   bio: z.string().max(500).optional(),
   avatarUrl: z.string().url().optional(),
@@ -281,6 +287,7 @@ export type ScholarProfile = z.infer<typeof scholarProfileSchema>;
 export const userEntitySchema = z.object({
   _id: z.string(),
   displayName: z.string(),
+  username: z.string().optional(),
   email: z.string().optional(),
   phone: z.string().optional(),
   dateOfBirth: z.string().optional(),

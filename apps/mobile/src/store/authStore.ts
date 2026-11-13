@@ -22,6 +22,7 @@ const USER_DATA_KEY = 'sanad_user_data';
 export interface AuthUser {
   id: string;
   displayName: string;
+  username?: string;
   email?: string;
   phone?: string;
   roles: Role[];
@@ -36,6 +37,7 @@ interface AuthState {
   isAuthenticated: boolean;
   login: (accessToken: string, refreshToken: string, user: AuthUser) => Promise<void>;
   updateAccessToken: (token: string) => Promise<void>;
+  updateUser: (partialUser: Partial<AuthUser>) => Promise<void>;
   logout: () => Promise<void>;
   initialize: () => Promise<void>;
 }
@@ -73,6 +75,7 @@ export const useAuthStore = create<AuthState>((set) => ({
             const liveUser: AuthUser = {
               id: dbUser._id || dbUser.id,
               displayName: dbUser.displayName,
+              username: dbUser.username,
               email: dbUser.email,
               phone: dbUser.phone,
               roles: dbUser.roles || ['member'],
@@ -140,6 +143,15 @@ export const useAuthStore = create<AuthState>((set) => ({
   updateAccessToken: async (accessToken) => {
     await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
     set({ accessToken });
+  },
+
+  updateUser: async (partialUser: Partial<AuthUser>) => {
+    set((state) => {
+      if (!state.user) return state;
+      const updated: AuthUser = { ...state.user, ...partialUser };
+      SecureStore.setItemAsync(USER_DATA_KEY, JSON.stringify(updated)).catch(() => {});
+      return { user: updated };
+    });
   },
 
   logout: async () => {

@@ -36,11 +36,26 @@ export class UsersController {
 
   async updateMe(req: Request, res: Response, next: NextFunction) {
     try {
-      const { displayName, bio, avatarUrl, specialties, languages } = req.body;
+      const { username, displayName, bio, avatarUrl, specialties, languages } = req.body;
       const updateData: Record<string, unknown> = {};
 
-      if (displayName) updateData.displayName = displayName;
-      if (bio !== undefined) updateData.bio = bio;
+      if (username !== undefined) {
+        const cleanUsername = username.trim().toLowerCase();
+        if (cleanUsername) {
+          const existing = await UserModel.findOne({
+            username: cleanUsername,
+            _id: { $ne: req.user!.id },
+          }).exec();
+
+          if (existing) {
+            throw new ConflictError('Username is already taken');
+          }
+          updateData.username = cleanUsername;
+        }
+      }
+
+      if (displayName) updateData.displayName = displayName.trim();
+      if (bio !== undefined) updateData.bio = bio.trim();
       if (avatarUrl) updateData.avatarUrl = avatarUrl;
       if (specialties) updateData['scholarProfile.specialties'] = specialties;
       if (languages) updateData['scholarProfile.languages'] = languages;
@@ -57,10 +72,24 @@ export class UsersController {
 
   async getUser(req: Request, res: Response, next: NextFunction) {
     try {
-      const targetId = req.params.id;
-      if (!mongoose.Types.ObjectId.isValid(targetId)) {
+      const targetParam = req.params.id;
+      const isObjectId = mongoose.Types.ObjectId.isValid(targetParam);
+      const cleanParam = targetParam.startsWith('@') ? targetParam.slice(1).toLowerCase() : targetParam.toLowerCase();
+
+      const baseFilter: Record<string, unknown> = { status: 'active' };
+      const identifierFilter = isObjectId
+        ? { $or: [{ _id: targetParam }, { username: cleanParam }] }
+        : { username: cleanParam };
+
+      const user = await UserModel.findOne({ ...baseFilter, ...identifierFilter })
+        .select('displayName username avatarUrl bio roles scholarProfile status createdAt')
+        .exec();
+
+      if (!user) {
         throw new NotFoundError('User not found');
       }
+
+      const targetId = user._id.toString();
 
       // Check block status if viewer is logged in
       if (req.user) {
@@ -73,14 +102,6 @@ export class UsersController {
         if (isBlocked) {
           throw new NotFoundError('User not found');
         }
-      }
-
-      const user = await UserModel.findById(targetId)
-        .select('displayName avatarUrl bio roles scholarProfile createdAt')
-        .exec();
-
-      if (!user || user.status !== 'active') {
-        throw new NotFoundError('User not found');
       }
 
       const followerCount = await FollowModel.countDocuments({ followeeId: user._id });
@@ -234,10 +255,12 @@ export class UsersController {
       }
 
       if (q && q.trim()) {
-        const regex = new RegExp(q.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+        const cleanQ = q.trim();
+        const strippedQ = cleanQ.startsWith('@') ? cleanQ.slice(1) : cleanQ;
+        const regex = new RegExp(strippedQ.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
         query.$or = [
-          { displayName: regex },
           { username: regex },
+          { displayName: regex },
           { bio: regex },
           { 'scholarProfile.specialties': regex },
         ];

@@ -215,6 +215,19 @@ const usersMock: UsersModule = {
     return userEntitySchema.parse(found);
   },
 
+  async searchUsers(query, role) {
+    await simulateLatency();
+    let list = Object.values(mockUsers);
+    if (role) {
+      list = list.filter((u) => u.roles.includes(role as any));
+    }
+    if (query && query.trim()) {
+      const q = query.trim().toLowerCase().replace(/^@/, '');
+      list = list.filter((u) => (u.username && u.username.toLowerCase().includes(q)) || u.displayName.toLowerCase().includes(q));
+    }
+    return list.map((u) => userEntitySchema.parse(u));
+  },
+
   async createUser(input) {
     await simulateLatency();
     const newUser: UserEntity = {
