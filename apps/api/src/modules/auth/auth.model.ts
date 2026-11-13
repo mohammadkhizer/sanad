@@ -1,7 +1,10 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import crypto from 'node:crypto';
 import { Role, ROLES } from '@sanad/shared';
 
 export interface IUser extends Document {
+  publicId?: string;
+  isPrivate?: boolean;
   username?: string;
   email?: string;
   phone?: string;
@@ -33,6 +36,8 @@ export interface IUser extends Document {
 
 const userSchema = new Schema<IUser>(
   {
+    publicId: { type: String, unique: true, sparse: true, index: true },
+    isPrivate: { type: Boolean, default: false },
     username: { type: String, unique: true, sparse: true, lowercase: true, trim: true },
     email: { type: String, unique: true, sparse: true, lowercase: true, trim: true },
     phone: { type: String, unique: true, sparse: true, trim: true },
@@ -69,6 +74,17 @@ const userSchema = new Schema<IUser>(
   },
   { timestamps: true }
 );
+
+userSchema.pre('save', function (next) {
+  if (!this.publicId) {
+    const hex = crypto.randomBytes(5).toString('hex');
+    this.publicId = `snd_${hex}`;
+  }
+  if (this.username) {
+    this.username = this.username.toLowerCase().trim();
+  }
+  next();
+});
 
 export const UserModel = mongoose.models.User || mongoose.model<IUser>('User', userSchema);
 

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import crypto from 'node:crypto';
 import { UserModel } from '../auth/auth.model.js';
 import { FollowModel, BlockModel } from './users.model.js';
 import { PostModel } from '../content/content.model.js';
@@ -15,6 +16,11 @@ export class UsersController {
 
       if (!user) {
         throw new NotFoundError('User not found');
+      }
+
+      if (!user.publicId) {
+        user.publicId = `snd_${crypto.randomBytes(5).toString('hex')}`;
+        await user.save();
       }
 
       const followerCount = await FollowModel.countDocuments({ followeeId: user._id });
@@ -36,7 +42,7 @@ export class UsersController {
 
   async updateMe(req: Request, res: Response, next: NextFunction) {
     try {
-      const { username, displayName, bio, avatarUrl, specialties, languages } = req.body;
+      const { username, displayName, bio, avatarUrl, isPrivate, specialties, languages } = req.body;
       const updateData: Record<string, unknown> = {};
 
       if (username !== undefined) {
@@ -57,6 +63,7 @@ export class UsersController {
       if (displayName) updateData.displayName = displayName.trim();
       if (bio !== undefined) updateData.bio = bio.trim();
       if (avatarUrl) updateData.avatarUrl = avatarUrl;
+      if (isPrivate !== undefined) updateData.isPrivate = Boolean(isPrivate);
       if (specialties) updateData['scholarProfile.specialties'] = specialties;
       if (languages) updateData['scholarProfile.languages'] = languages;
 
@@ -78,15 +85,20 @@ export class UsersController {
 
       const baseFilter: Record<string, unknown> = { status: 'active' };
       const identifierFilter = isObjectId
-        ? { $or: [{ _id: targetParam }, { username: cleanParam }] }
-        : { username: cleanParam };
+        ? { $or: [{ _id: targetParam }, { username: cleanParam }, { publicId: cleanParam }] }
+        : { $or: [{ username: cleanParam }, { publicId: cleanParam }] };
 
       const user = await UserModel.findOne({ ...baseFilter, ...identifierFilter })
-        .select('displayName username avatarUrl bio roles scholarProfile status createdAt')
+        .select('publicId username displayName avatarUrl bio roles scholarProfile isPrivate status createdAt')
         .exec();
 
       if (!user) {
         throw new NotFoundError('User not found');
+      }
+
+      if (!user.publicId) {
+        user.publicId = `snd_${crypto.randomBytes(5).toString('hex')}`;
+        await user.save();
       }
 
       const targetId = user._id.toString();
@@ -109,13 +121,24 @@ export class UsersController {
       const lessonsCount = await PostModel.countDocuments({ authorId: user._id, status: 'live' });
 
       let isFollowing = false;
+      let isFollowedBy = false;
       if (req.user) {
-        const followDoc = await FollowModel.findOne({
-          followerId: req.user.id,
-          followeeId: user._id,
-        });
-        isFollowing = Boolean(followDoc);
+        const [followingDoc, followedByDoc] = await Promise.all([
+          FollowModel.findOne({ followerId: req.user.id, followeeId: user._id }),
+          FollowModel.findOne({ followerId: user._id, followeeId: req.user.id }),
+        ]);
+        isFollowing = Boolean(followingDoc);
+        isFollowedBy = Boolean(followedByDoc);
       }
+
+      const relation =
+        isFollowing && isFollowedBy
+          ? 'mutual'
+          : isFollowing
+            ? 'following'
+            : isFollowedBy
+              ? 'follow_back'
+              : 'none';
 
       res.status(200).json({
         user,
@@ -125,6 +148,8 @@ export class UsersController {
           lessons: lessonsCount,
         },
         isFollowing,
+        isFollowedBy,
+        relation,
       });
     } catch (error) {
       next(error);
@@ -260,6 +285,7 @@ export class UsersController {
         const regex = new RegExp(strippedQ.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
         query.$or = [
           { username: regex },
+          { publicId: regex },
           { displayName: regex },
           { bio: regex },
           { 'scholarProfile.specialties': regex },
@@ -267,10 +293,47 @@ export class UsersController {
       }
 
       const users = await UserModel.find(query)
-        .select('displayName username avatarUrl bio roles scholarProfile createdAt')
+        .select('publicId displayName username avatarUrl bio roles scholarProfile isPrivate createdAt')
         .sort({ 'scholarProfile.verified': -1, createdAt: -1 })
         .limit(50)
         .exec();
+
+      if (req.user) {
+        const viewerId = req.user.id;
+        const userIds = users.map((u) => u._id);
+
+        const [myFollows, followsMe] = await Promise.all([
+          FollowModel.find({ followerId: viewerId, followeeId: { $in: userIds } }).select('followeeId').exec(),
+          FollowModel.find({ followerId: { $in: userIds }, followeeId: viewerId }).select('followerId').exec(),
+        ]);
+
+        const myFollowSet = new Set(myFollows.map((f: any) => f.followeeId.toString()));
+        const followsMeSet = new Set(followsMe.map((f: any) => f.followerId.toString()));
+
+        const enriched = users.map((u) => {
+          const uId = u._id.toString();
+          const isFollowing = myFollowSet.has(uId);
+          const isFollowedBy = followsMeSet.has(uId);
+          const relation =
+            isFollowing && isFollowedBy
+              ? 'mutual'
+              : isFollowing
+                ? 'following'
+                : isFollowedBy
+                  ? 'follow_back'
+                  : 'none';
+
+          const plain = typeof (u as any).toObject === 'function' ? (u as any).toObject() : u;
+          return {
+            ...plain,
+            isFollowing,
+            isFollowedBy,
+            relation,
+          };
+        });
+
+        return res.status(200).json({ users: enriched });
+      }
 
       res.status(200).json({ users });
     } catch (error) {
@@ -290,6 +353,11 @@ export class UsersController {
       const user = await UserModel.findById(id);
       if (!user) {
         throw new NotFoundError('User not found');
+      }
+
+      if (!user.publicId) {
+        user.publicId = `snd_${crypto.randomBytes(5).toString('hex')}`;
+        await user.save();
       }
 
       user.roles = roles;

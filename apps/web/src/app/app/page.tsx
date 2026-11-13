@@ -1,14 +1,14 @@
+'use client';
+
+import React from 'react';
 import Link from 'next/link';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
-
-export const metadata = {
-  title: 'Sanad Web Application Portal | app.sanad.app',
-  description:
-    'Web application client for Sanad. Access verified scholar feeds, live halaqat, and scholarly inquiries from any modern browser.',
-};
+import { useAuth } from '../../context/AuthContext';
 
 export default function AppPortalPage() {
+  const { user, isAuthenticated, isAdmin, isModerator } = useAuth();
+
   return (
     <>
       <Header />
@@ -18,13 +18,66 @@ export default function AppPortalPage() {
             <div className="hero-pill" style={{ margin: '0 auto 20px' }}>
               app.sanad.app - User Web Application
             </div>
-            <h1 className="hero-title" style={{ fontSize: '42px', marginBottom: '16px' }}>
-              Sanad Web Application Portal
+
+            <h1 className="hero-title" style={{ fontSize: '38px', marginBottom: '14px' }}>
+              {isAuthenticated && user
+                ? `Welcome back, ${user.displayName}`
+                : 'Sanad Web Application Portal'}
             </h1>
-            <p className="hero-subtitle" style={{ marginBottom: '36px' }}>
-              Welcome to the official client for Sanad. Explore verified scholar discourses,
-              attend interactive halaqat circles, and submit private inquiries.
+
+            <p className="hero-subtitle" style={{ marginBottom: '32px' }}>
+              {isAuthenticated && user
+                ? `Logged in as @${user.username || 'user'} (Public ID: ${user.publicId || user.id}). Explore verified discourse, connect with scholars, and participate in academic circles.`
+                : 'Explore verified scholar discourses, attend interactive halaqat circles, and connect with peers.'}
             </p>
+
+            {/* Authenticated Quick Status */}
+            {isAuthenticated && user && (
+              <div
+                style={{
+                  backgroundColor: '#FAF5EC',
+                  border: '1px solid var(--color-gold)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '18px 24px',
+                  marginBottom: '28px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '12px',
+                  textAlign: 'left',
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-emerald)' }}>
+                    Active Persona: {user.displayName}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '2px' }}>
+                    Roles: {user.roles.join(', ')} | Public ID: {user.publicId || user.id}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <Link
+                    href={`/profile/${user.username || user.id}`}
+                    className="btn btn-primary"
+                    style={{ fontSize: '13px', padding: '6px 14px' }}
+                  >
+                    View My Profile
+                  </Link>
+
+                  {(isAdmin || isModerator) && (
+                    <Link
+                      href="/admin"
+                      className="btn btn-gold"
+                      style={{ fontSize: '13px', padding: '6px 14px' }}
+                    >
+                      Admin Dashboard
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div
               style={{
@@ -44,28 +97,26 @@ export default function AppPortalPage() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
                 <div style={{ padding: '20px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-ivory)' }}>
                   <div style={{ fontWeight: 700, color: 'var(--color-emerald)', marginBottom: '6px' }}>
-                    Web Browser Client
+                    Directory & Search
                   </div>
                   <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '16px' }}>
-                    Runs locally on port 8081 via Expo Web bundler or hosted on app.sanad.app.
+                    Search across all users by their unique username, public ID, and discipline.
                   </p>
-                  <a
-                    href="http://localhost:8081"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link
+                    href="/explore"
                     className="btn btn-primary"
-                    style={{ width: '100%', fontSize: '14px', padding: '8px 12px' }}
+                    style={{ width: '100%', fontSize: '14px', padding: '8px 12px', display: 'block', textAlign: 'center' }}
                   >
-                    Open Local Web App (Port 8081)
-                  </a>
+                    Explore Community
+                  </Link>
                 </div>
 
                 <div style={{ padding: '20px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--color-ivory)' }}>
                   <div style={{ fontWeight: 700, color: 'var(--color-emerald)', marginBottom: '6px' }}>
-                    Mobile Development Build
+                    Mobile App (Expo Go)
                   </div>
                   <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginBottom: '16px' }}>
-                    Expo SDK 58 development build running with custom native runtimes on Android and iOS.
+                    Native iOS & Android mobile build with real-time video calls and feed.
                   </p>
                   <div style={{ fontSize: '12px', fontFamily: 'monospace', backgroundColor: 'var(--color-white)', padding: '8px', borderRadius: '4px', border: '1px solid var(--color-border)' }}>
                     npm run dev:mobile
@@ -80,13 +131,13 @@ export default function AppPortalPage() {
                     Node.js Express + MongoDB API serving endpoints on port 4000.
                   </p>
                   <a
-                    href="http://localhost:4000/api/v1/health"
+                    href="http://localhost:4000/health"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn btn-outline"
-                    style={{ width: '100%', fontSize: '14px', padding: '8px 12px' }}
+                    style={{ width: '100%', fontSize: '14px', padding: '8px 12px', display: 'block', textAlign: 'center' }}
                   >
-                    API Health Check
+                    API Health Status
                   </a>
                 </div>
               </div>
@@ -94,10 +145,10 @@ export default function AppPortalPage() {
 
             <div style={{ display: 'flex', justifyContent: 'center', gap: '16px' }}>
               <Link href="/" className="btn btn-outline">
-                Return to Marketing Home
+                Marketing Home
               </Link>
-              <Link href="/how-verification-works" className="btn btn-gold">
-                Learn About Verification
+              <Link href="/explore" className="btn btn-gold">
+                Discover Users
               </Link>
             </div>
           </div>
@@ -107,4 +158,3 @@ export default function AppPortalPage() {
     </>
   );
 }
-

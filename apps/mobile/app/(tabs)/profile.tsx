@@ -90,6 +90,11 @@ export default function ProfileScreen() {
                   @{profileData?.user?.username || user.username}
                 </Text>
               )}
+              {Boolean(profileData?.user?.publicId) && (
+                <Text style={styles.publicIdText}>
+                  Public ID: {profileData.user.publicId}
+                </Text>
+              )}
               <Text style={styles.userRole}>
                 {isScholar ? 'Accredited Religious Scholar' : 'Registered Member'}
               </Text>
@@ -352,6 +357,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: colors.light.primary,
+    marginBottom: 2,
+  },
+  publicIdText: {
+    fontSize: 11,
+    fontFamily: 'monospace',
+    color: colors.light.textMuted,
     marginBottom: 2,
   },
   userRole: {

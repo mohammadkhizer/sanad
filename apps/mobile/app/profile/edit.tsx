@@ -7,6 +7,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Switch,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -30,6 +31,7 @@ export default function EditProfileScreen() {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [specialties, setSpecialties] = useState('');
   const [languages, setLanguages] = useState('');
+  const [isPrivate, setIsPrivate] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const { data: profileData, isLoading: isProfileLoading } = useQuery<any>({
@@ -44,6 +46,7 @@ export default function EditProfileScreen() {
       if (active.username) setUsername(active.username);
       if (active.bio !== undefined) setBio(active.bio);
       if (active.avatarUrl) setAvatarUrl(active.avatarUrl);
+      if (active.isPrivate !== undefined) setIsPrivate(Boolean(active.isPrivate));
       if (active.scholarProfile?.specialties) {
         setSpecialties(active.scholarProfile.specialties.join(', '));
       }
@@ -111,6 +114,7 @@ export default function EditProfileScreen() {
     const payload: Record<string, unknown> = {
       displayName: trimmedName,
       bio: bio.trim(),
+      isPrivate,
     };
 
     if (cleanUsername) {
@@ -227,6 +231,22 @@ export default function EditProfileScreen() {
             />
             <Text style={styles.charCount}>{bio.length}/500</Text>
 
+            {/* Account Privacy Setting */}
+            <View style={styles.privacyRow}>
+              <View style={styles.privacyTextCol}>
+                <Text style={styles.privacyTitle}>Private Account</Text>
+                <Text style={styles.privacyDesc}>
+                  When enabled, your profile details and lessons are only visible to approved followers.
+                </Text>
+              </View>
+              <Switch
+                value={isPrivate}
+                onValueChange={setIsPrivate}
+                trackColor={{ false: colors.light.border, true: colors.light.primary }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+
             {isScholar && (
               <>
                 <View style={styles.scholarDivider} />
@@ -331,7 +351,33 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light.border,
     marginVertical: 14,
   },
+  privacyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.light.border,
+    marginTop: 6,
+    marginBottom: 14,
+    gap: 12,
+  },
+  privacyTextCol: {
+    flex: 1,
+  },
+  privacyTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.light.text,
+    marginBottom: 2,
+  },
+  privacyDesc: {
+    fontSize: 12,
+    color: colors.light.textMuted,
+    lineHeight: 16,
+  },
   saveButton: {
     marginTop: 8,
   },
 });
+

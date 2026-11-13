@@ -135,6 +135,7 @@ export const updateProfileSchema = z.object({
   displayName: z.string().trim().min(2).max(50).optional(),
   bio: z.string().max(500).optional(),
   avatarUrl: z.string().url().optional(),
+  isPrivate: z.boolean().optional(),
   specialties: z.array(z.string().max(40)).max(10).optional(),
   languages: z.array(z.string().max(20)).max(5).optional(),
 });
@@ -286,8 +287,10 @@ export type ScholarProfile = z.infer<typeof scholarProfileSchema>;
 
 export const userEntitySchema = z.object({
   _id: z.string(),
+  publicId: z.string().optional(),
   displayName: z.string(),
   username: z.string().optional(),
+  isPrivate: z.boolean().optional(),
   email: z.string().optional(),
   phone: z.string().optional(),
   dateOfBirth: z.string().optional(),
@@ -297,6 +300,9 @@ export const userEntitySchema = z.object({
   scholarProfile: scholarProfileSchema.optional(),
   twoFA: z.object({ enabled: z.boolean() }).optional(),
   status: z.enum(['active', 'suspended', 'deleted']).default('active'),
+  isFollowing: z.boolean().optional(),
+  isFollowedBy: z.boolean().optional(),
+  relation: z.enum(['none', 'following', 'follow_back', 'mutual']).optional(),
   createdAt: z.string().optional(),
 });
 

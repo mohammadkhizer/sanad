@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -165,6 +166,10 @@ export default function UserProfileScreen() {
                 <Text style={styles.userHandle}>@{user.username}</Text>
               )}
 
+              {Boolean(user.publicId) && (
+                <Text style={styles.publicIdText}>Public ID: {user.publicId}</Text>
+              )}
+
               <View style={styles.roleBadgeRow}>
                 <View
                   style={[
@@ -185,6 +190,18 @@ export default function UserProfileScreen() {
                     {primaryRoleLabel}
                   </Text>
                 </View>
+
+                {Boolean(user.isPrivate) && (
+                  <View style={styles.privateBadge}>
+                    <Text style={styles.privateBadgeText}>Private</Text>
+                  </View>
+                )}
+
+                {Boolean(userData?.relation === 'mutual') && (
+                  <View style={styles.mutualBadge}>
+                    <Text style={styles.mutualBadgeText}>Mutual</Text>
+                  </View>
+                )}
               </View>
             </View>
           </View>
@@ -205,7 +222,13 @@ export default function UserProfileScreen() {
             ) : (
               <>
                 <Button
-                  title={userData?.isFollowing ? 'Following' : 'Follow'}
+                  title={
+                    userData?.isFollowing
+                      ? 'Following'
+                      : userData?.isFollowedBy
+                        ? 'Follow Back'
+                        : 'Follow'
+                  }
                   onPress={() => followMutation.mutate()}
                   variant={userData?.isFollowing ? 'outline' : 'primary'}
                   loading={followMutation.isPending}
@@ -358,10 +381,19 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: colors.light.primary,
+    marginBottom: 2,
+  },
+  publicIdText: {
+    fontSize: 11,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    color: colors.light.textMuted,
     marginBottom: 4,
   },
   roleBadgeRow: {
     flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
     marginTop: 2,
   },
   roleBadge: {
@@ -392,6 +424,28 @@ const styles = StyleSheet.create({
   },
   roleBadgeModText: {
     color: '#1A73E8',
+  },
+  privateBadge: {
+    backgroundColor: '#FDE8E8',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  privateBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#C81E1E',
+  },
+  mutualBadge: {
+    backgroundColor: '#E1F8EB',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  mutualBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#0E9F6E',
   },
   userBio: {
     fontSize: 13,

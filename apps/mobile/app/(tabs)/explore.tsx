@@ -8,7 +8,7 @@ import {
   TextInput,
   ActivityIndicator,
 } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../src/api';
 import { colors } from '../../src/theme/colors';
 import { Card } from '../../src/components/Card';
@@ -30,6 +30,7 @@ const POPULAR_TOPICS = [
 
 export default function ExploreScreen() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState<'all' | 'scholars'>('all');
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
@@ -41,6 +42,19 @@ export default function ExploreScreen() {
     queryFn: async () => {
       const roleParam = activeFilter === 'scholars' ? 'scholar' : undefined;
       return api.users.searchUsers(effectiveQuery, roleParam);
+    },
+  });
+
+  const followMutation = useMutation({
+    mutationFn: async (target: { id: string; isFollowing?: boolean }) => {
+      if (target.isFollowing) {
+        return api.users.unfollow(target.id);
+      } else {
+        return api.users.follow(target.id);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['exploreUsers'] });
     },
   });
 
@@ -201,6 +215,10 @@ export default function ExploreScreen() {
                       <Text style={styles.usernameHandle}>@{item.username}</Text>
                     )}
 
+                    {Boolean(item.publicId) && (
+                      <Text style={styles.publicIdHandle}>ID: {item.publicId}</Text>
+                    )}
+
                     {Boolean(item.scholarProfile?.institution) && (
                       <Text style={styles.institutionText}>
                         {item.scholarProfile?.institution}
@@ -218,12 +236,41 @@ export default function ExploreScreen() {
                 {/* Profile Quick Actions */}
                 <View style={styles.cardActionsRow}>
                   <TouchableOpacity
+                    style={[
+                      styles.followBtn,
+                      item.isFollowing && styles.followBtnOutline,
+                      !item.isFollowing && item.isFollowedBy && styles.followBackBtn,
+                    ]}
+                    onPress={() =>
+                      followMutation.mutate({
+                        id: item._id,
+                        isFollowing: item.isFollowing,
+                      })
+                    }
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.followBtnText,
+                        item.isFollowing && styles.followBtnOutlineText,
+                        !item.isFollowing && item.isFollowedBy && styles.followBackBtnText,
+                      ]}
+                    >
+                      {item.isFollowing
+                        ? 'Following'
+                        : item.isFollowedBy
+                          ? 'Follow Back'
+                          : 'Follow'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
                     style={styles.actionBtnOutline}
                     onPress={() => router.push(`/profile/${item._id}`)}
                     activeOpacity={0.7}
                   >
                     <Icon name="profile" size={14} color={colors.light.primary} />
-                    <Text style={styles.actionBtnOutlineText}>View Profile</Text>
+                    <Text style={styles.actionBtnOutlineText}>Profile</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -232,7 +279,7 @@ export default function ExploreScreen() {
                     activeOpacity={0.7}
                   >
                     <Icon name="send" size={14} color={colors.light.accentText} />
-                    <Text style={styles.actionBtnFillText}>Message</Text>
+                    <Text style={styles.actionBtnFillText}>Chat</Text>
                   </TouchableOpacity>
                 </View>
               </Card>
@@ -402,6 +449,12 @@ const styles = StyleSheet.create({
     color: colors.light.primary,
     marginBottom: 2,
   },
+  publicIdHandle: {
+    fontSize: 11,
+    fontFamily: 'monospace',
+    color: colors.light.textMuted,
+    marginBottom: 2,
+  },
   badgeBase: {
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -485,6 +538,36 @@ const styles = StyleSheet.create({
   actionBtnFillText: {
     color: colors.light.accentText,
     fontSize: 12,
+    fontWeight: '700',
+  },
+  followBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 34,
+    borderRadius: 6,
+    backgroundColor: colors.light.primary,
+  },
+  followBtnOutline: {
+    backgroundColor: colors.light.surface,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+  },
+  followBackBtn: {
+    backgroundColor: colors.light.accent,
+  },
+  followBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  followBtnOutlineText: {
+    color: colors.light.textSecondary,
+    fontWeight: '600',
+  },
+  followBackBtnText: {
+    color: colors.light.accentText,
     fontWeight: '700',
   },
 });
