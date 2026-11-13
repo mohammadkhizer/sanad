@@ -210,6 +210,42 @@ export default function UserProfileScreen() {
             <Text style={styles.userBio}>{user.bio}</Text>
           )}
 
+          {/* High-Visibility Community Stats Deck */}
+          <View style={styles.statsCardContainer}>
+            <TouchableOpacity
+              style={styles.statBox}
+              onPress={() => router.push(`/profile/${user._id}/network`)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.statValue}>
+                {userData?.counts?.followers ?? 0}
+              </Text>
+              <Text style={styles.statCaption}>Followers</Text>
+            </TouchableOpacity>
+
+            <View style={styles.statVerticalSeparator} />
+
+            <TouchableOpacity
+              style={styles.statBox}
+              onPress={() => router.push(`/profile/${user._id}/network`)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.statValue}>
+                {userData?.counts?.following ?? 0}
+              </Text>
+              <Text style={styles.statCaption}>Following</Text>
+            </TouchableOpacity>
+
+            <View style={styles.statVerticalSeparator} />
+
+            <View style={styles.statBox}>
+              <Text style={styles.statValue}>
+                {userData?.counts?.lessons ?? 0}
+              </Text>
+              <Text style={styles.statCaption}>Lessons</Text>
+            </View>
+          </View>
+
           {/* Action Row */}
           <View style={styles.actionRow}>
             {isSelf ? (
@@ -242,30 +278,6 @@ export default function UserProfileScreen() {
                 />
               </>
             )}
-          </View>
-
-          {/* Metrics Row */}
-          <View style={styles.statsRow}>
-            <TouchableOpacity
-              style={styles.statCol}
-              onPress={() => router.push(`/profile/${user._id}/network`)}
-            >
-              <Text style={styles.statNumber}>{userData?.counts?.followers ?? 0}</Text>
-              <Text style={styles.statLabel}>Followers</Text>
-            </TouchableOpacity>
-            <View style={styles.statDivider} />
-            <TouchableOpacity
-              style={styles.statCol}
-              onPress={() => router.push(`/profile/${user._id}/network`)}
-            >
-              <Text style={styles.statNumber}>{userData?.counts?.following ?? 0}</Text>
-              <Text style={styles.statLabel}>Following</Text>
-            </TouchableOpacity>
-            <View style={styles.statDivider} />
-            <View style={styles.statCol}>
-              <Text style={styles.statNumber}>{userData?.counts?.lessons ?? 0}</Text>
-              <Text style={styles.statLabel}>Lessons</Text>
-            </View>
           </View>
         </Card>
 
@@ -460,6 +472,39 @@ const styles = StyleSheet.create({
   },
   actionBtn: {
     flex: 1,
+  },
+  statsCardContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    backgroundColor: '#FAF7F0',
+    borderWidth: 1,
+    borderColor: '#E6E0D2',
+    borderRadius: 12,
+    paddingVertical: 14,
+    marginBottom: 14,
+  },
+  statBox: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statValue: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: colors.light.primary,
+  },
+  statCaption: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.light.textMuted,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginTop: 3,
+  },
+  statVerticalSeparator: {
+    width: 1,
+    height: 32,
+    backgroundColor: '#E2DDD0',
   },
   statsRow: {
     flexDirection: 'row',

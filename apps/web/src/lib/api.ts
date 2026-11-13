@@ -172,3 +172,4 @@ export const webApi = {
       apiFetch<{ logs: any[]; auditLogs?: any[] }>(`/admin/audit-logs?limit=${limit}`),
   },
 };
+

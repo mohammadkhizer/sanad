@@ -102,9 +102,45 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {Boolean(profileData?.user?.bio) && (
-            <Text style={styles.userBio}>{profileData.user.bio}</Text>
+          {Boolean(profileData?.user?.bio || profileData?.bio) && (
+            <Text style={styles.userBio}>{profileData?.user?.bio || profileData?.bio}</Text>
           )}
+
+          {/* High-Visibility Community Stats Deck */}
+          <View style={styles.statsCardContainer}>
+            <TouchableOpacity
+              style={styles.statBox}
+              onPress={() => router.push(`/profile/${user.id}/network`)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.statValue}>
+                {profileData?.counts?.followers ?? 0}
+              </Text>
+              <Text style={styles.statCaption}>Followers</Text>
+            </TouchableOpacity>
+
+            <View style={styles.statVerticalSeparator} />
+
+            <TouchableOpacity
+              style={styles.statBox}
+              onPress={() => router.push(`/profile/${user.id}/network`)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.statValue}>
+                {profileData?.counts?.following ?? 0}
+              </Text>
+              <Text style={styles.statCaption}>Following</Text>
+            </TouchableOpacity>
+
+            <View style={styles.statVerticalSeparator} />
+
+            <View style={styles.statBox}>
+              <Text style={styles.statValue}>
+                {profileData?.counts?.lessons ?? postsData?.items?.length ?? 0}
+              </Text>
+              <Text style={styles.statCaption}>Lessons</Text>
+            </View>
+          </View>
 
           {/* Action Row */}
           <View style={styles.profileActionRow}>
@@ -120,39 +156,13 @@ export default function ProfileScreen() {
             <TouchableOpacity
               style={styles.shareProfileBtn}
               onPress={() => {
-                Alert.alert('Share Profile', `Profile handle: @${profileData?.user?.username || user.username || user.displayName}`);
+                Alert.alert('Share Profile', `Profile handle: @${profileData?.user?.username || profileData?.username || user.username || user.displayName}`);
               }}
               activeOpacity={0.8}
             >
               <Icon name="share" size={15} color={colors.light.textMuted} />
               <Text style={styles.shareProfileBtnText}>Share</Text>
             </TouchableOpacity>
-          </View>
-
-          {/* Metrics Row */}
-          <View style={styles.statsRow}>
-            <TouchableOpacity
-              style={styles.statCol}
-              onPress={() => router.push(`/profile/${user.id}/network`)}
-            >
-              <Text style={styles.statNumber}>{profileData?.counts?.followers ?? 0}</Text>
-              <Text style={styles.statLabel}>Followers</Text>
-            </TouchableOpacity>
-            <View style={styles.statDivider} />
-            <TouchableOpacity
-              style={styles.statCol}
-              onPress={() => router.push(`/profile/${user.id}/network`)}
-            >
-              <Text style={styles.statNumber}>{profileData?.counts?.following ?? 0}</Text>
-              <Text style={styles.statLabel}>Following</Text>
-            </TouchableOpacity>
-            <View style={styles.statDivider} />
-            <View style={styles.statCol}>
-              <Text style={styles.statNumber}>
-                {profileData?.counts?.lessons ?? postsData?.items?.length ?? 0}
-              </Text>
-              <Text style={styles.statLabel}>Lessons</Text>
-            </View>
           </View>
         </Card>
 
@@ -420,6 +430,39 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: colors.light.text,
+  },
+  statsCardContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    backgroundColor: '#FAF7F0',
+    borderWidth: 1,
+    borderColor: '#E6E0D2',
+    borderRadius: 12,
+    paddingVertical: 14,
+    marginBottom: 16,
+  },
+  statBox: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statValue: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: colors.light.primary,
+  },
+  statCaption: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.light.textMuted,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginTop: 3,
+  },
+  statVerticalSeparator: {
+    width: 1,
+    height: 32,
+    backgroundColor: '#E2DDD0',
   },
   statsRow: {
     flexDirection: 'row',

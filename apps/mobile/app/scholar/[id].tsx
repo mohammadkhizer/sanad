@@ -182,9 +182,10 @@ export default function ScholarProfileScreen() {
             <TouchableOpacity
               style={styles.metricItem}
               onPress={() => router.push(`/profile/${user._id}/network`)}
+              activeOpacity={0.7}
             >
               <Text style={styles.metricVal}>{user.counts?.followers ?? 0}</Text>
-              <Text style={styles.metricLabel}>Students</Text>
+              <Text style={styles.metricLabel}>Followers</Text>
             </TouchableOpacity>
 
             <View style={styles.metricDivider} />
@@ -192,6 +193,7 @@ export default function ScholarProfileScreen() {
             <TouchableOpacity
               style={styles.metricItem}
               onPress={() => router.push(`/profile/${user._id}/network`)}
+              activeOpacity={0.7}
             >
               <Text style={styles.metricVal}>{user.counts?.following ?? 0}</Text>
               <Text style={styles.metricLabel}>Following</Text>
@@ -405,30 +407,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: 12,
-    backgroundColor: colors.light.background,
-    borderRadius: 10,
+    paddingVertical: 14,
+    backgroundColor: '#FAF7F0',
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.light.border,
+    borderColor: '#E6E0D2',
+    marginVertical: 4,
   },
   metricItem: {
     alignItems: 'center',
     flex: 1,
   },
   metricVal: {
-    fontSize: 17,
+    fontSize: 22,
     fontWeight: '800',
     color: colors.light.primary,
   },
   metricLabel: {
     fontSize: 11,
-    color: colors.light.textSecondary,
-    marginTop: 2,
+    fontWeight: '700',
+    color: colors.light.textMuted,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginTop: 3,
   },
   metricDivider: {
     width: 1,
-    height: 24,
-    backgroundColor: colors.light.border,
+    height: 32,
+    backgroundColor: '#E2DDD0',
   },
   actionsRow: {
     flexDirection: 'row',

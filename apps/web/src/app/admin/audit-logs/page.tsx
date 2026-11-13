@@ -104,3 +104,4 @@ export default function AdminAuditLogsPage() {
     </AdminLayout>
   );
 }
+

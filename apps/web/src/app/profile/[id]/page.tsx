@@ -146,15 +146,26 @@ export default function WebProfilePage() {
                     {isScholar && (
                       <span
                         style={{
-                          backgroundColor: '#E6F4EA',
-                          color: '#137333',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          backgroundColor: '#FAF5EC',
+                          border: '1px solid #E6D29A',
+                          color: '#8C6C0A',
                           fontSize: '11px',
                           fontWeight: 800,
-                          padding: '3px 8px',
-                          borderRadius: '4px',
+                          padding: '3px 10px',
+                          borderRadius: '9999px',
+                          letterSpacing: '0.6px',
                           textTransform: 'uppercase',
                         }}
                       >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                          <rect x="3" y="3" width="18" height="18" rx="2.5" fill="#C9A227" transform="rotate(0 12 12)" />
+                          <rect x="3" y="3" width="18" height="18" rx="2.5" fill="#C9A227" transform="rotate(45 12 12)" />
+                          <circle cx="12" cy="12" r="7.5" stroke="rgba(255,255,255,0.45)" strokeWidth="1" />
+                          <path d="M8.2 12.2L10.7 14.7L15.8 9.3" stroke="#FFFFFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
                         Accredited Scholar
                       </span>
                     )}
@@ -257,28 +268,41 @@ export default function WebProfilePage() {
                   </span>
                 )}
 
-                <div style={{ marginLeft: 'auto', display: 'flex', gap: '20px' }}>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-emerald)' }}>
+                <div
+                  style={{
+                    marginLeft: 'auto',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '24px',
+                    backgroundColor: '#FAF7F0',
+                    border: '1px solid #E6E0D2',
+                    borderRadius: '10px',
+                    padding: '8px 20px',
+                  }}
+                >
+                  <div style={{ textAlign: 'center', minWidth: '60px' }}>
+                    <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-emerald)', lineHeight: 1.2 }}>
                       {counts.followers}
                     </div>
-                    <div style={{ fontSize: '11px', color: 'var(--color-muted)', textTransform: 'uppercase' }}>
+                    <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-muted)', letterSpacing: '0.6px', textTransform: 'uppercase', marginTop: '2px' }}>
                       Followers
                     </div>
                   </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-emerald)' }}>
+                  <div style={{ width: '1px', height: '24px', backgroundColor: '#E2DDD0' }} />
+                  <div style={{ textAlign: 'center', minWidth: '60px' }}>
+                    <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-emerald)', lineHeight: 1.2 }}>
                       {counts.following}
                     </div>
-                    <div style={{ fontSize: '11px', color: 'var(--color-muted)', textTransform: 'uppercase' }}>
+                    <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-muted)', letterSpacing: '0.6px', textTransform: 'uppercase', marginTop: '2px' }}>
                       Following
                     </div>
                   </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-emerald)' }}>
+                  <div style={{ width: '1px', height: '24px', backgroundColor: '#E2DDD0' }} />
+                  <div style={{ textAlign: 'center', minWidth: '60px' }}>
+                    <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-emerald)', lineHeight: 1.2 }}>
                       {counts.lessons}
                     </div>
-                    <div style={{ fontSize: '11px', color: 'var(--color-muted)', textTransform: 'uppercase' }}>
+                    <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-muted)', letterSpacing: '0.6px', textTransform: 'uppercase', marginTop: '2px' }}>
                       Lessons
                     </div>
                   </div>
@@ -326,3 +350,4 @@ export default function WebProfilePage() {
     </>
   );
 }
+
