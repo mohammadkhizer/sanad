@@ -38,6 +38,8 @@ export function subscribeApiMode(_listener: (mode: AdapterMode) => void): () => 
   return () => {};
 }
 
+export const DEFAULT_API_BASE_URL = 'https://sanad-api-s8t5.onrender.com/api/v1';
+
 export function getApiBaseUrl(): string {
   const envUrl = process.env.EXPO_PUBLIC_API_URL;
   if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
@@ -46,7 +48,7 @@ export function getApiBaseUrl(): string {
 
   const os = getPlatformOS();
   if (os === 'web' || os === 'node') {
-    return envUrl || 'http://localhost:4000/api/v1';
+    return envUrl || DEFAULT_API_BASE_URL;
   }
 
   const hostUri = getExpoHostUri();
@@ -61,7 +63,7 @@ export function getApiBaseUrl(): string {
     return 'http://10.0.2.2:4000/api/v1';
   }
 
-  return envUrl || 'http://localhost:4000/api/v1';
+  return envUrl || DEFAULT_API_BASE_URL;
 }
 
 export async function checkBackendHealth(): Promise<{

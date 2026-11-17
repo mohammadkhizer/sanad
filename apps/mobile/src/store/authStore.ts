@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { Role } from '@sanad/shared';
+import { getApiBaseUrl } from '../api/config';
 
 function getSecureStore() {
   try {
@@ -57,7 +58,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         SecureStore.getItemAsync(USER_DATA_KEY),
       ]);
 
-      const baseUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+      const baseUrl = getApiBaseUrl();
 
       if (accessToken && refreshToken && rawUser) {
         try {
