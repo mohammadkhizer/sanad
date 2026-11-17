@@ -46,3 +46,4 @@ USER node
 EXPOSE 4000
 
 CMD ["node", "apps/api/dist/server.js"]
+

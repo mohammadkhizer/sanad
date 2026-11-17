@@ -9,3 +9,4 @@ apps/web
 .env.*
 *.log
 .DS_Store
+

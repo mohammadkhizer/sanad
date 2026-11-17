@@ -40,3 +40,4 @@ const jobSchema = new Schema<IJob>(
 jobSchema.index({ status: 1, runAt: 1 });
 
 export const JobModel = mongoose.models.Job || mongoose.model<IJob>('Job', jobSchema);
+

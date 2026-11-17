@@ -50,3 +50,4 @@ const securityEventSchema = new Schema<ISecurityEvent>(
 
 export const SecurityEventModel =
   mongoose.models.SecurityEvent || mongoose.model<ISecurityEvent>('SecurityEvent', securityEventSchema);
+
