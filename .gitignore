@@ -19,6 +19,8 @@ build/
 .next/
 .expo/
 .expo-shared/
+.netlify/
+deploy-*.zip
 web-build/
 *.tsbuildinfo
 
