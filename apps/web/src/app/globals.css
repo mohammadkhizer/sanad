@@ -37,7 +37,19 @@
   padding: 0;
 }
 
+html {
+  overflow-x: hidden;
+  max-width: 100%;
+  width: 100%;
+  overscroll-behavior-x: none;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
+  overflow-x: hidden;
+  max-width: 100%;
+  width: 100%;
+  position: relative;
   background-color: var(--color-ivory);
   background-image: 
     radial-gradient(circle at 10% 20%, rgba(201, 151, 39, 0.03) 0%, transparent 40%),
@@ -46,6 +58,10 @@ body {
   font-family: var(--font-sans);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+}
+
+img, video, canvas, svg {
+  max-width: 100%;
 }
 
 a {
@@ -389,8 +405,10 @@ a {
   justify-content: space-between;
   position: relative;
   gap: 12px;
-  overflow-x: auto;
+  overflow-x: hidden;
+  flex-wrap: wrap;
   padding: 12px 6px;
+  width: 100%;
 }
 
 .isnad-node {
@@ -1035,6 +1053,22 @@ a {
   }
   .nav-links {
     display: none;
+  }
+  .isnad-chain-flow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .isnad-node {
+    min-width: 100%;
+    width: 100%;
+  }
+  .isnad-arrow {
+    transform: rotate(90deg);
+    margin: 4px auto;
+  }
+  .container {
+    padding: 0 16px;
   }
   .mobile-menu-btn {
     display: block;

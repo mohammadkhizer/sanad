@@ -116,8 +116,27 @@ export default function RootHtml({ children }: { children: React.ReactNode }) {
         {/* JSON-LD Structured Schema */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: SCHEMA_JSON_LD }} />
 
-        {/* Expo Native Reset */}
+        {/* Expo Native Reset & Horizontal Scroll Prevention */}
         <ScrollViewStyleReset />
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              html, body {
+                width: 100%;
+                max-width: 100vw;
+                overflow-x: hidden !important;
+                overscroll-behavior-x: none;
+                margin: 0;
+                padding: 0;
+              }
+              #root, [data-reactroot] {
+                width: 100%;
+                max-width: 100vw;
+                overflow-x: hidden !important;
+              }
+            `,
+          }}
+        />
       </head>
       <body>{children}</body>
     </html>

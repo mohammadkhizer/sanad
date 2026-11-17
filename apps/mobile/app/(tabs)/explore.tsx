@@ -131,11 +131,7 @@ export default function ExploreScreen() {
         {/* Curated Disciplines Chips */}
         <View style={styles.topicsSection}>
           <Text style={styles.sectionSubtitle}>Curated Disciplines</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.topicsScroll}
-          >
+          <View style={styles.topicsScroll}>
             {POPULAR_TOPICS.map((topic) => {
               const isSelected = selectedTopic === topic;
               return (
@@ -158,7 +154,7 @@ export default function ExploreScreen() {
                 </TouchableOpacity>
               );
             })}
-          </ScrollView>
+          </View>
         </View>
 
         {/* Results Header */}
@@ -382,6 +378,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   topicsScroll: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
     paddingVertical: 2,
   },

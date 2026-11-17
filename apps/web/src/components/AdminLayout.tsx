@@ -132,7 +132,7 @@ export default function AdminLayout({ children, title, subtitle }: AdminLayoutPr
             style={{
               display: 'flex',
               gap: '8px',
-              overflowX: 'auto',
+              flexWrap: 'wrap',
               paddingBottom: '12px',
               marginBottom: '24px',
               borderBottom: '1px solid var(--color-border)',
