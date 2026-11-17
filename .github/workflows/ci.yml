@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: npm ci --omit=optional
 
+      - name: Build shared workspace
+        run: npm --workspace=packages/shared run build
+
       - name: Lint
         run: npm run lint
 
