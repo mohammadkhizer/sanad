@@ -18,6 +18,12 @@ export default function AdminLayout({ children, title, subtitle }: AdminLayoutPr
   const router = useRouter();
   const { user, isAuthenticated, isLoading, isAdmin, isModerator } = useAuth();
 
+  React.useEffect(() => {
+    if (!isLoading && (!isAuthenticated || (!isAdmin && !isModerator))) {
+      router.push('/login');
+    }
+  }, [isLoading, isAuthenticated, isAdmin, isModerator, router]);
+
   if (isLoading) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -41,9 +47,6 @@ export default function AdminLayout({ children, title, subtitle }: AdminLayoutPr
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
               <Link href="/login" className="btn btn-primary">
                 Sign In as Administrator
-              </Link>
-              <Link href="/" className="btn btn-outline">
-                Return Home
               </Link>
             </div>
           </div>

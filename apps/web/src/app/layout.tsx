@@ -3,9 +3,9 @@ import { AuthProvider } from '../context/AuthContext';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Sanad | Verified-Scholars Social and Learning Platform',
+  title: 'Sanad Admin Console | Platform Governance Suite',
   description:
-    'The authentic verified-scholars-only platform for classical Islamic sciences, isnad chains, masterclasses, and peer-reviewed discourse.',
+    'The dedicated administration and governance platform for Sanad verified scholarship, security monitoring, and isnad registry review.',
   keywords: [
     'Islamic scholarship',
     'verified scholars',

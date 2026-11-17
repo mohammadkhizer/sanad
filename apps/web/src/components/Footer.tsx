@@ -28,7 +28,7 @@ export default function Footer() {
                 gap: '8px',
               }}
             >
-              <span>Sanad</span>
+              <span>Sanad Admin</span>
               <span style={{ fontSize: '12px', color: 'var(--color-gold)' }}>&#9670;</span>
               <span style={{ fontFamily: 'var(--font-arabic)', fontSize: '20px', color: 'var(--color-gold)' }}>
                 سند
@@ -43,44 +43,48 @@ export default function Footer() {
                 marginBottom: '18px',
               }}
             >
-              The authentic verified-scholars-only sanctuary for classical Islamic sciences, isnad
-              preservation, accredited masterclasses, and peer-reviewed religious discourse.
+              Sanad Administrative Command Center &amp; Platform Governance Suite. Restricted strictly to authorized platform staff and verified governance councils.
             </p>
           </div>
 
           <div>
-            <div className="footer-col-title">Platform</div>
+            <div className="footer-col-title">Admin Suite</div>
             <ul className="footer-links">
               <li>
-                <Link href="/explore" className="footer-link">
-                  Scholar Directory
+                <Link href="/admin" className="footer-link">
+                  Platform Overview
                 </Link>
               </li>
               <li>
-                <Link href="/app" className="footer-link">
-                  User Portal (app.sanad.app)
+                <Link href="/admin/users" className="footer-link">
+                  User Governance
                 </Link>
               </li>
               <li>
-                <Link href="/how-verification-works" className="footer-link">
-                  4-Stage Isnad Protocol
+                <Link href="/admin/review-queue" className="footer-link">
+                  Scholar Review Queue
                 </Link>
               </li>
               <li>
-                <Link href="/#features" className="footer-link">
-                  Platform Capabilities
+                <Link href="/admin/activity" className="footer-link">
+                  Security Activity Monitor
                 </Link>
               </li>
               <li>
-                <Link href="/#faq" className="footer-link">
-                  Scholar Application FAQ
+                <Link href="/admin/reports" className="footer-link">
+                  Trust &amp; Safety Queue
+                </Link>
+              </li>
+              <li>
+                <Link href="/admin/audit-logs" className="footer-link">
+                  Audit Trail
                 </Link>
               </li>
             </ul>
           </div>
 
           <div>
-            <div className="footer-col-title">Trust & Legal</div>
+            <div className="footer-col-title">Trust &amp; Legal</div>
             <ul className="footer-links">
               <li>
                 <Link href="/terms" className="footer-link">
@@ -94,7 +98,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="/conduct" className="footer-link">
-                  Code of Scholarly Conduct
+                  Code of Conduct
                 </Link>
               </li>
               <li>

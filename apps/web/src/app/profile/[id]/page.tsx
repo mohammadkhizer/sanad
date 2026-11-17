@@ -11,7 +11,7 @@ import { useAuth } from '../../../context/AuthContext';
 export default function WebProfilePage() {
   const params = useParams();
   const rawId = params?.id as string;
-  const { user: currentUser, isAuthenticated } = useAuth();
+  const { user: currentUser, isAuthenticated, isAdmin: currentIsAdmin, isModerator: currentIsMod } = useAuth();
 
   const [profile, setProfile] = useState<any | null>(null);
   const [counts, setCounts] = useState<{ followers: number; following: number; lessons: number }>({
@@ -70,6 +70,30 @@ export default function WebProfilePage() {
       setActionLoading(false);
     }
   };
+
+  if (!isAuthenticated || (!currentIsAdmin && !currentIsMod)) {
+    return (
+      <>
+        <Header />
+        <main className="section" style={{ minHeight: '70vh', display: 'flex', alignItems: 'center' }}>
+          <div className="container" style={{ textAlign: 'center', maxWidth: '500px' }}>
+            <h1 style={{ fontSize: '28px', color: '#9B1C1C', marginBottom: '12px' }}>
+              Access Restricted
+            </h1>
+            <p style={{ color: 'var(--color-muted)', marginBottom: '24px', fontSize: '14px' }}>
+              You must have an authorized administrator or moderator role to inspect user profiles on this portal.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <Link href="/login" className="btn btn-primary">
+                Sign In as Administrator
+              </Link>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
   const isScholar = Boolean(
     profile?.scholarProfile?.verified || profile?.roles?.includes('scholar')

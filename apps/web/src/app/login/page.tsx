@@ -53,13 +53,15 @@ export default function LoginPage() {
           scholarProfile: res.user.scholarProfile,
         };
 
-        login(res.accessToken, userObj, res.refreshToken);
-
-        if (userObj.roles.includes('admin') || userObj.roles.includes('moderator')) {
-          router.push('/admin');
-        } else {
-          router.push('/app');
+        const hasAdminAccess = userObj.roles.includes('admin') || userObj.roles.includes('moderator');
+        if (!hasAdminAccess) {
+          setError('Access Denied: Your account does not possess administrator permissions for this governance portal.');
+          setLoading(false);
+          return;
         }
+
+        login(res.accessToken, userObj, res.refreshToken);
+        router.push('/admin');
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Invalid credentials. Please try again.';
@@ -92,11 +94,28 @@ export default function LoginPage() {
                 alt="Sanad Brand"
                 style={{ width: '48px', height: '48px', margin: '0 auto 12px', display: 'block' }}
               />
+              <div
+                style={{
+                  display: 'inline-block',
+                  backgroundColor: 'var(--color-gold-subtle)',
+                  color: 'var(--color-gold-hover)',
+                  border: '1px solid var(--color-gold)',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  padding: '3px 10px',
+                  borderRadius: '12px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.8px',
+                  marginBottom: '10px',
+                }}
+              >
+                Governance Console
+              </div>
               <h1 style={{ fontSize: '24px', color: 'var(--color-emerald)', fontWeight: 700 }}>
-                Sign In to Sanad
+                Administrator Sign In
               </h1>
               <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginTop: '4px' }}>
-                Accredited Islamic Scholarship & Community Platform
+                Sanad Platform Governance &amp; Security Command Center
               </p>
             </div>
 
@@ -110,6 +129,7 @@ export default function LoginPage() {
                   borderRadius: 'var(--radius-sm)',
                   fontSize: '13px',
                   marginBottom: '20px',
+                  lineHeight: 1.45,
                 }}
               >
                 {error}
@@ -127,14 +147,14 @@ export default function LoginPage() {
                     color: 'var(--color-charcoal)',
                   }}
                 >
-                  Email, Username, or Phone
+                  Admin Username, Email, or Handle
                 </label>
                 <input
                   type="text"
                   required
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder="e.g. user@sanad.app or username"
+                  placeholder="e.g. admin@sanad.app or admin"
                   style={{
                     width: '100%',
                     height: '44px',
@@ -163,7 +183,7 @@ export default function LoginPage() {
                     href="/forgot-password"
                     style={{ fontSize: '12px', color: 'var(--color-emerald)', fontWeight: 600 }}
                   >
-                    Forgot password?
+                    Forgot Password?
                   </Link>
                 </div>
                 <input
@@ -171,7 +191,7 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your account password"
+                  placeholder="Enter administrator password"
                   style={{
                     width: '100%',
                     height: '44px',
@@ -196,26 +216,30 @@ export default function LoginPage() {
                       color: 'var(--color-charcoal)',
                     }}
                   >
-                    Two-Factor Authentication Code
+                    Two-Factor Authentication Code (TOTP)
                   </label>
                   <input
                     type="text"
                     required
-                    maxLength={6}
                     value={twoFactorCode}
                     onChange={(e) => setTwoFactorCode(e.target.value)}
                     placeholder="6-digit authenticator code"
+                    maxLength={6}
                     style={{
                       width: '100%',
                       height: '44px',
                       padding: '0 12px',
                       borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--color-gold)',
+                      border: '1px solid var(--color-border)',
                       fontSize: '16px',
-                      letterSpacing: '2px',
+                      letterSpacing: '4px',
                       textAlign: 'center',
+                      fontFamily: 'monospace',
                     }}
                   />
+                  <span style={{ fontSize: '11px', color: 'var(--color-muted)', display: 'block', marginTop: '4px' }}>
+                    Enter the code from your authenticator app
+                  </span>
                 </div>
               )}
 
@@ -226,13 +250,13 @@ export default function LoginPage() {
                 style={{
                   width: '100%',
                   height: '44px',
-                  fontSize: '15px',
+                  fontSize: '14px',
                   fontWeight: 700,
                   cursor: loading ? 'not-allowed' : 'pointer',
                   opacity: loading ? 0.7 : 1,
                 }}
               >
-                {loading ? 'Authenticating...' : 'Sign In'}
+                {loading ? 'Authenticating...' : 'Sign In as Administrator'}
               </button>
             </form>
 
@@ -242,17 +266,12 @@ export default function LoginPage() {
                 marginTop: '24px',
                 paddingTop: '20px',
                 borderTop: '1px solid var(--color-border)',
-                fontSize: '13px',
+                fontSize: '12px',
                 color: 'var(--color-muted)',
+                lineHeight: 1.5,
               }}
             >
-              Do not have an account?{' '}
-              <Link
-                href="/register"
-                style={{ color: 'var(--color-emerald)', fontWeight: 700 }}
-              >
-                Create Account
-              </Link>
+              Strictly restricted to authorized platform administrators and governance staff. All authentication attempts are logged.
             </div>
           </div>
         </div>
@@ -261,4 +280,3 @@ export default function LoginPage() {
     </>
   );
 }
-

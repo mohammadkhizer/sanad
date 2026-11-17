@@ -11,53 +11,46 @@ export default function Header() {
   return (
     <header className="header">
       <div className="container header-inner">
-        <Link href="/" className="brand-group">
+        <Link href="/admin" className="brand-group">
           <div className="brand-crest">
             <span className="brand-crest-arabic">سند</span>
           </div>
           <div>
             <div className="brand-title">
-              <span>Sanad</span>
+              <span>Sanad Admin</span>
               <span style={{ fontSize: '12px', color: 'var(--color-gold)' }}>&#9670;</span>
             </div>
-            <div className="brand-subtitle">Authentic Isnad Platform</div>
+            <div className="brand-subtitle">Platform Governance Suite</div>
           </div>
         </Link>
 
-        <nav className="nav-links">
-          <Link href="/explore" className="nav-link">
-            Explore Scholars
-          </Link>
-          <Link href="/how-verification-works" className="nav-link">
-            Verification Protocol
-          </Link>
-          <Link href="/#features" className="nav-link">
-            Platform Capabilities
-          </Link>
-          <Link href="/#faq" className="nav-link">
-            FAQ
-          </Link>
-          {isAuthenticated && (
-            <Link href="/app" className="nav-link">
-              User Portal
+        {isAuthenticated && (isAdmin || isModerator) && (
+          <nav className="nav-links">
+            <Link href="/admin" className="nav-link">
+              Overview
             </Link>
-          )}
-          {(isAdmin || isModerator) && (
-            <Link
-              href="/admin"
-              className="nav-link"
-              style={{ color: 'var(--color-gold-dark)', fontWeight: 700 }}
-            >
-              Admin Governance
+            <Link href="/admin/users" className="nav-link">
+              User Governance
             </Link>
-          )}
-        </nav>
+            <Link href="/admin/review-queue" className="nav-link">
+              Scholar Review
+            </Link>
+            <Link href="/admin/activity" className="nav-link">
+              Security Monitor
+            </Link>
+            <Link href="/admin/reports" className="nav-link">
+              Safety Queue
+            </Link>
+            <Link href="/admin/audit-logs" className="nav-link">
+              Audit Logs
+            </Link>
+          </nav>
+        )}
 
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
           {isAuthenticated && user ? (
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-              <Link
-                href={`/profile/${user.username || user.id}`}
+              <div
                 style={{
                   fontSize: '13px',
                   fontWeight: 600,
@@ -67,13 +60,22 @@ export default function Header() {
                   gap: '6px',
                 }}
               >
+                <span
+                  style={{
+                    backgroundColor: 'var(--color-gold-subtle)',
+                    color: 'var(--color-gold-hover)',
+                    border: '1px solid var(--color-gold)',
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Admin
+                </span>
                 <span>{user.displayName}</span>
-                {user.username && (
-                  <span style={{ fontSize: '11px', color: 'var(--color-muted)' }}>
-                    (@{user.username})
-                  </span>
-                )}
-              </Link>
+              </div>
               <button
                 onClick={logout}
                 className="btn btn-outline"
@@ -83,36 +85,29 @@ export default function Header() {
               </button>
             </div>
           ) : (
-            <>
-              <Link
-                href="/login"
-                className="btn btn-outline"
-                style={{ fontSize: '13px', padding: '8px 16px' }}
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/register"
-                className="btn btn-gold"
-                style={{ fontSize: '13px', padding: '8px 18px' }}
-              >
-                Create Account
-              </Link>
-            </>
+            <Link
+              href="/login"
+              className="btn btn-primary"
+              style={{ fontSize: '13px', padding: '8px 18px' }}
+            >
+              Admin Sign In
+            </Link>
           )}
 
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="mobile-menu-btn"
-            aria-label="Toggle navigation menu"
-          >
-            {mobileMenuOpen ? 'Close' : 'Menu'}
-          </button>
+          {isAuthenticated && (isAdmin || isModerator) && (
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="mobile-menu-btn"
+              aria-label="Toggle navigation menu"
+            >
+              {mobileMenuOpen ? 'Close' : 'Menu'}
+            </button>
+          )}
         </div>
       </div>
 
       {/* Mobile Drawer */}
-      {mobileMenuOpen && (
+      {mobileMenuOpen && isAuthenticated && (isAdmin || isModerator) && (
         <div
           style={{
             backgroundColor: 'var(--color-white)',
@@ -124,51 +119,47 @@ export default function Header() {
           }}
         >
           <Link
-            href="/explore"
+            href="/admin"
             onClick={() => setMobileMenuOpen(false)}
             style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-emerald)' }}
           >
-            Explore Scholars & Users
+            Platform Overview
           </Link>
           <Link
-            href="/how-verification-works"
+            href="/admin/users"
             onClick={() => setMobileMenuOpen(false)}
             style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-emerald)' }}
           >
-            Verification Protocol
+            User Governance
           </Link>
           <Link
-            href="/#features"
+            href="/admin/review-queue"
             onClick={() => setMobileMenuOpen(false)}
             style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-emerald)' }}
           >
-            Features & Capabilities
+            Scholar Review Queue
           </Link>
           <Link
-            href="/#faq"
+            href="/admin/activity"
             onClick={() => setMobileMenuOpen(false)}
             style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-emerald)' }}
           >
-            FAQ
+            Security Activity Monitor
           </Link>
-          {isAuthenticated && (
-            <Link
-              href="/app"
-              onClick={() => setMobileMenuOpen(false)}
-              style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-emerald)' }}
-            >
-              User Portal
-            </Link>
-          )}
-          {(isAdmin || isModerator) && (
-            <Link
-              href="/admin"
-              onClick={() => setMobileMenuOpen(false)}
-              style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-gold-dark)' }}
-            >
-              Admin Governance
-            </Link>
-          )}
+          <Link
+            href="/admin/reports"
+            onClick={() => setMobileMenuOpen(false)}
+            style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-emerald)' }}
+          >
+            Trust &amp; Safety Queue
+          </Link>
+          <Link
+            href="/admin/audit-logs"
+            onClick={() => setMobileMenuOpen(false)}
+            style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-emerald)' }}
+          >
+            Audit Trail
+          </Link>
         </div>
       )}
     </header>
