@@ -15,7 +15,7 @@
     "ios": "expo run:ios",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
-    "test": "npx tsx --test src/__tests__/mockApi.test.ts"
+    "test": "npx --yes tsx --test src/__tests__/mockApi.test.ts"
   },
   "dependencies": {
     "@expo/metro-runtime": "~58.0.0",
@@ -44,6 +44,7 @@
   },
   "devDependencies": {
     "@types/react": "^19.1.1",
+    "tsx": "^4.19.1",
     "typescript": "^5.5.4"
   }
 }

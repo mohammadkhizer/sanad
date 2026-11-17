@@ -41,6 +41,12 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Test
-        run: npm run test
+      - name: Test shared package
+        run: npm run test --workspace=packages/shared
+
+      - name: Test backend API
+        run: npm run test --workspace=apps/api
+
+      - name: Test mobile app
+        run: npm run test --workspace=apps/mobile
 
