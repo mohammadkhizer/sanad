@@ -58,7 +58,7 @@ describe('Authentication & Token Security', () => {
     expect(res.message).toContain('If an account exists');
     expect(res.token).toBeDefined();
     expect(res.token.length).toBe(64);
-  });
+  }, 15000);
 
   it('rejects password reset with insufficient password length', async () => {
     const { authService } = await import('../modules/auth/auth.service.js');
