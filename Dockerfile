@@ -11,8 +11,8 @@ COPY apps/api/package.json ./apps/api/
 # Install dependencies across workspaces for building
 RUN npm ci --omit=optional
 
-# Copy root tsconfig and workspace sources
-COPY tsconfig.json ./
+# Copy root tsconfigs and workspace sources
+COPY tsconfig.json tsconfig.base.json ./
 COPY packages/shared ./packages/shared
 COPY apps/api ./apps/api
 
