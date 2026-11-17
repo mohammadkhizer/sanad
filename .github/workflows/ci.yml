@@ -26,7 +26,12 @@ jobs:
           fi
 
       - name: Install dependencies
-        run: npm ci --omit=optional
+        run: |
+          npm ci --omit=optional --legacy-peer-deps || {
+            echo "=== NPM INSTALL FAILED - LOG OUTPUT ==="
+            find /home/runner/.npm/_logs -type f -exec cat {} + 2>/dev/null || true
+            exit 1
+          }
 
       - name: Lint
         run: npm run lint
