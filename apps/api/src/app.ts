@@ -24,9 +24,16 @@ app.use(
   })
 );
 
-// Enforce HTTPS in production via reverse-proxy header
+// Enforce HTTPS in production via reverse-proxy header (allow internal health checks to bypass)
 app.use((req: Request, res: Response, next) => {
-  if (env.NODE_ENV === 'production' && req.headers['x-forwarded-proto'] !== 'https') {
+  if (req.path === '/health') {
+    return next();
+  }
+  if (
+    env.NODE_ENV === 'production' &&
+    req.headers['x-forwarded-proto'] &&
+    req.headers['x-forwarded-proto'] !== 'https'
+  ) {
     return res.redirect(301, `https://${req.headers.host}${req.url}`);
   }
   next();
