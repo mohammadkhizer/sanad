@@ -2,6 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  transpilePackages: ['@sanad/shared'],
   async headers() {
     return [
       {
