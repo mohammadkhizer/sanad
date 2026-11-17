@@ -12,10 +12,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js 20 LTS
+      - name: Setup Node.js 22 LTS
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Verify package manager (npm only)
         run: |
@@ -25,12 +25,7 @@ jobs:
           fi
 
       - name: Install dependencies
-        run: |
-          npm ci --omit=optional --legacy-peer-deps || {
-            ERR=$(tail -n 25 /home/runner/.npm/_logs/*-debug-0.log 2>/dev/null | tr '\n' ' ' | cut -c 1-500)
-            echo "::warning title=NPM_CI_FALLBACK::$ERR"
-            npm install --omit=optional --legacy-peer-deps
-          }
+        run: npm ci --omit=optional
 
       - name: Lint
         run: npm run lint
