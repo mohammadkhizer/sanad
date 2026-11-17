@@ -128,7 +128,7 @@ export default function AdminRegisterScreen() {
 
           <Input
             label="Full Administrator Name *"
-            placeholder="e.g. Mohammed Khizer Shaikh"
+            placeholder="Enter administrator full name"
             value={displayName}
             onChangeText={setDisplayName}
           />

@@ -134,7 +134,7 @@ export default function LoginPage() {
                   required
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder="e.g. khizer@sanad.app or khizer"
+                  placeholder="e.g. user@sanad.app or username"
                   style={{
                     width: '100%',
                     height: '44px',

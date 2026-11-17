@@ -97,7 +97,7 @@ export default function RegisterScreen() {
 
           <Input
             label="Full Name *"
-            placeholder="e.g. Abdullah Al-Mansoor"
+            placeholder="Enter your full name"
             value={displayName}
             onChangeText={setDisplayName}
           />

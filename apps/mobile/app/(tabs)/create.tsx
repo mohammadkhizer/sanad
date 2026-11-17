@@ -259,7 +259,7 @@ export default function CreateScreen() {
             label="Subject Disciplines (Comma-separated)"
             value={tags}
             onChangeText={setTags}
-            placeholder="e.g. Usul al-Fiqh, Hadith Sciences, Bukhari"
+            placeholder="e.g. Usul al-Fiqh, Hadith Sciences, Primary Texts"
           />
 
           <Text style={styles.fieldLabel}>Distribution Visibility</Text>

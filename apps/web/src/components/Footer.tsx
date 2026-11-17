@@ -10,7 +10,7 @@ export default function Footer() {
             &ldquo;إِنَّ الْإِسْنَادَ مِنَ الدِّينِ، وَلَوْلَا الْإِسْنَادُ لَقَالَ مَنْ شَاءَ مَا شَاءَ&rdquo;
           </div>
           <div className="footer-quote-trans">
-            &mdash; Al-Imam &lsquo;Abdullah ibn al-Mubarak (d. 181 AH) &bull; Sahih Muslim, Introduction
+            &mdash; Classical Hadith Methodology Principle &bull; Sahih Muslim, Introduction
           </div>
         </div>
 

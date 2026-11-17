@@ -49,11 +49,11 @@ export async function seedDatabase() {
       status: 'active',
     });
 
-    // 3. Create Verified Scholar 1: Shaykh Dr. Ahmad al-Azhari
+    // 3. Create Verified Scholar 1: Faculty Scholar I
     const scholar1 = await UserModel.create({
-      username: 'ahmad_azhari',
-      email: 'ahmad@sanad.app',
-      displayName: 'Shaykh Dr. Ahmad al-Azhari',
+      username: 'scholar_faculty_1',
+      email: 'scholar1@sanad.app',
+      displayName: 'Faculty Scholar I',
       passwordHash,
       roles: ['scholar', 'member'],
       bio: 'Professor of Hadith and Usul al-Fiqh at Al-Azhar University. Holder of 14 continuous isnad chains.',
@@ -72,11 +72,11 @@ export async function seedDatabase() {
       status: 'active',
     });
 
-    // 4. Create Verified Scholar 2: Dr. Fatima al-Zahra
+    // 4. Create Verified Scholar 2: Faculty Scholar II
     const scholar2 = await UserModel.create({
-      username: 'fatima_zahra',
-      email: 'fatima@sanad.app',
-      displayName: 'Dr. Fatima al-Zahra',
+      username: 'scholar_faculty_2',
+      email: 'scholar2@sanad.app',
+      displayName: 'Faculty Scholar II',
       passwordHash,
       roles: ['scholar', 'member'],
       bio: 'Senior researcher in Islamic Jurisprudence and contemporary financial ethics. PhD from Al-Qarawiyyin.',
@@ -95,11 +95,11 @@ export async function seedDatabase() {
       status: 'active',
     });
 
-    // 5. Create General Member: Tariq Ibn Ziyad
+    // 5. Create General Member: Verified Learner I
     const member1 = await UserModel.create({
-      username: 'tariq_learner',
-      email: 'tariq@sanad.app',
-      displayName: 'Tariq Ibn Ziyad',
+      username: 'verified_learner_1',
+      email: 'learner1@sanad.app',
+      displayName: 'Verified Learner I',
       passwordHash,
       roles: ['member'],
       bio: 'Student of sacred knowledge and classical Arabic grammar.',
@@ -116,8 +116,8 @@ export async function seedDatabase() {
       authorId: scholar1._id,
       type: 'reel',
       caption:
-        'Foundations of Isnad Methodology: How classical scholars authenticated narrator reliability in Sahih al-Bukhari. Every link in the chain represents verified historical auditory transmission.',
-      tags: ['Hadith', 'Isnad', 'Bukhari', 'Methodology'],
+        'Foundations of Isnad Methodology: How classical scholars authenticated narrator reliability in canonical hadith collections. Every link in the chain represents verified historical auditory transmission.',
+      tags: ['Hadith', 'Isnad', 'Curriculum', 'Methodology'],
       language: 'en',
       visibility: 'public',
       status: 'live',
@@ -167,7 +167,7 @@ export async function seedDatabase() {
     await CommentModel.create({
       postId: post1._id,
       userId: scholar2._id,
-      text: 'BarakAllahu feekum Shaykh Ahmad. An essential reminder regarding the rigorous conditions of continuous audition (ittisal al-sanad).',
+      text: 'BarakAllahu feekum. An essential reminder regarding the rigorous conditions of continuous audition (ittisal al-sanad).',
       status: 'active',
     });
 
@@ -182,7 +182,7 @@ export async function seedDatabase() {
     await ScholarApplicationModel.create({
       userId: member1._id,
       statement:
-        'Graduate of Darul Uloom with Ijazah in the Six Canonical Books of Hadith under Mufti Muhammad Ibrahim.',
+        'Graduate of Darul Uloom with Ijazah in the Six Canonical Books of Hadith under accredited seminary faculty.',
       institution: 'Darul Uloom Classical Studies',
       credentials: [
         {

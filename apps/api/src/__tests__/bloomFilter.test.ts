@@ -11,7 +11,7 @@ describe('Username Bloom Filter Availability Engine', () => {
   describe('Bloom Filter Core Properties', () => {
     it('guarantees zero false negatives and recognizes added items', () => {
       const filter = new BloomFilter(1024, 5);
-      const testUsernames = ['scholar_tariq', 'learner_zayd', 'ustadh_ahmad'];
+      const testUsernames = ['scholar_alpha', 'learner_beta', 'faculty_gamma'];
 
       for (const username of testUsernames) {
         expect(filter.has(username)).toBe(false);
@@ -54,7 +54,7 @@ describe('Username Bloom Filter Availability Engine', () => {
     });
 
     it('registers a username and subsequently flags it as unavailable', async () => {
-      const name = 'scholar_hasan';
+      const name = 'scholar_member';
       usernameService.registerUsername(name);
       const check = await usernameService.checkAvailability(name);
       expect(check.available).toBe(false);

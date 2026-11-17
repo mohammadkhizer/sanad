@@ -53,37 +53,37 @@ export default function HomePage() {
 
               <div className="isnad-chain-flow">
                 <div className="isnad-node">
-                  <div className="isnad-node-seal">م</div>
-                  <div className="isnad-node-arabic">سيدنا رسول الله</div>
-                  <div className="isnad-node-name">Sayyiduna Rasulullah</div>
-                  <div className="isnad-node-role">Prophet and Messenger</div>
+                  <div className="isnad-node-seal">ر</div>
+                  <div className="isnad-node-arabic">المصدر النبوي الشريف</div>
+                  <div className="isnad-node-name">Prophetic Revelation</div>
+                  <div className="isnad-node-role">Primary Sacred Source</div>
                 </div>
 
                 <div className="isnad-arrow">→</div>
 
                 <div className="isnad-node">
-                  <div className="isnad-node-seal">ع</div>
-                  <div className="isnad-node-arabic">عبد الله بن عمر</div>
-                  <div className="isnad-node-name">Abdullah ibn Umar</div>
-                  <div className="isnad-node-role">Sahabi and Jurist</div>
+                  <div className="isnad-node-seal">ص</div>
+                  <div className="isnad-node-arabic">الجيل الصحابي الأول</div>
+                  <div className="isnad-node-name">First Generation Companions</div>
+                  <div className="isnad-node-role">Auditory Reception & Transmission</div>
                 </div>
 
                 <div className="isnad-arrow">→</div>
 
                 <div className="isnad-node">
-                  <div className="isnad-node-seal">ن</div>
-                  <div className="isnad-node-arabic">نافع مولى ابن عمر</div>
-                  <div className="isnad-node-name">Nafi Mawla Ibn Umar</div>
-                  <div className="isnad-node-role">Tabii and Hadith Master</div>
+                  <div className="isnad-node-seal">ت</div>
+                  <div className="isnad-node-arabic">طبقة التابعين المتقنين</div>
+                  <div className="isnad-node-name">Master Successors (Tabi'un)</div>
+                  <div className="isnad-node-role">Preservation & Transcription</div>
                 </div>
 
                 <div className="isnad-arrow">→</div>
 
                 <div className="isnad-node">
-                  <div className="isnad-node-seal">م</div>
-                  <div className="isnad-node-arabic">الإمام مالك بن أنس</div>
-                  <div className="isnad-node-name">Imam Malik ibn Anas</div>
-                  <div className="isnad-node-role">Founder of Maliki School</div>
+                  <div className="isnad-node-seal">أ</div>
+                  <div className="isnad-node-arabic">أئمة المذاهب الفقهية</div>
+                  <div className="isnad-node-name">Founding Jurists & Masters</div>
+                  <div className="isnad-node-role">Systematization & Codification</div>
                 </div>
 
                 <div className="isnad-arrow">→</div>
@@ -198,9 +198,9 @@ export default function HomePage() {
             <div className="scholar-grid">
               <div className="scholar-card">
                 <div className="scholar-avatar-ring">
-                  <div className="scholar-initials">أز</div>
+                  <div className="scholar-initials">ح</div>
                 </div>
-                <h3 className="scholar-name">Dr. Ahmad Al-Azhari</h3>
+                <h3 className="scholar-name">Faculty Scholar - Hadith Studies</h3>
                 <div className="scholar-origin">Cairo, Egypt • Al-Azhar University</div>
                 <div className="scholar-tag">Hadith Sciences and Usul</div>
                 <div className="scholar-seal-badge">
@@ -210,9 +210,9 @@ export default function HomePage() {
 
               <div className="scholar-card">
                 <div className="scholar-avatar-ring">
-                  <div className="scholar-initials">دم</div>
+                  <div className="scholar-initials">ق</div>
                 </div>
-                <h3 className="scholar-name">Fatima Al-Dimashqiyya</h3>
+                <h3 className="scholar-name">Faculty Scholar - Recitation &amp; Tajwid</h3>
                 <div className="scholar-origin">Damascus, Syria • Bilad al-Sham</div>
                 <div className="scholar-tag">Ten Qiraat and Tajwid</div>
                 <div className="scholar-seal-badge">
@@ -222,9 +222,9 @@ export default function HomePage() {
 
               <div className="scholar-card">
                 <div className="scholar-avatar-ring">
-                  <div className="scholar-initials">شن</div>
+                  <div className="scholar-initials">ف</div>
                 </div>
-                <h3 className="scholar-name">Muhammad Al-Shinqiti</h3>
+                <h3 className="scholar-name">Faculty Scholar - Jurisprudence</h3>
                 <div className="scholar-origin">Nouakchott, Mauritania • Mahdharah</div>
                 <div className="scholar-tag">Maliki Fiqh and Grammar</div>
                 <div className="scholar-seal-badge">
@@ -234,9 +234,9 @@ export default function HomePage() {
 
               <div className="scholar-card">
                 <div className="scholar-avatar-ring">
-                  <div className="scholar-initials">بخ</div>
+                  <div className="scholar-initials">م</div>
                 </div>
-                <h3 className="scholar-name">Dr. Bilal Al-Bukhari</h3>
+                <h3 className="scholar-name">Faculty Scholar - Legal Philosophy</h3>
                 <div className="scholar-origin">Istanbul, Turkey • Marmara Faculty</div>
                 <div className="scholar-tag">Hanafi Jurisprudence and Mantiq</div>
                 <div className="scholar-seal-badge">

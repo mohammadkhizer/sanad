@@ -135,11 +135,11 @@ const authMock: AuthModule = {
       currentUser = { ...mockUsers.admin1 };
     } else if (input.identifier.includes('mod')) {
       currentUser = { ...mockUsers.moderator1 };
-    } else if (input.identifier.includes('scholar2') || input.identifier.includes('taha')) {
+    } else if (input.identifier.includes('scholar2')) {
       currentUser = { ...mockUsers.scholar2 };
-    } else if (input.identifier.includes('member') || input.identifier.includes('zayd')) {
+    } else if (input.identifier.includes('member')) {
       currentUser = { ...mockUsers.member1 };
-    } else if (input.identifier.includes('scholar1') || input.identifier.includes('omar')) {
+    } else if (input.identifier.includes('scholar1')) {
       currentUser = { ...mockUsers.scholar1 };
     } else {
       currentUser = { ...mockUsers.admin1 };
@@ -674,10 +674,10 @@ const callsMock: CallsModule = {
     await simulateLatency();
     const session: CallSessionEntity = {
       _id: id,
-      callerId: mockUsers.scholar1._id,
+      callerId: mockUsers.scholar1?._id || 'scholar_faculty_1',
       calleeId: currentUser._id,
-      callerName: mockUsers.scholar1.displayName,
-      callerAvatar: mockUsers.scholar1.avatarUrl,
+      callerName: mockUsers.scholar1?.displayName || 'Faculty Scholar',
+      callerAvatar: mockUsers.scholar1?.avatarUrl,
       roomName: `sanad-call-room-${id}`,
       status: 'connected',
       startedAt: new Date().toISOString(),
@@ -690,10 +690,10 @@ const callsMock: CallsModule = {
     await simulateLatency();
     const session: CallSessionEntity = {
       _id: id,
-      callerId: mockUsers.scholar1._id,
+      callerId: mockUsers.scholar1?._id || 'scholar_faculty_1',
       calleeId: currentUser._id,
-      callerName: mockUsers.scholar1.displayName,
-      callerAvatar: mockUsers.scholar1.avatarUrl,
+      callerName: mockUsers.scholar1?.displayName || 'Faculty Scholar',
+      callerAvatar: mockUsers.scholar1?.avatarUrl,
       roomName: `sanad-call-room-${id}`,
       status: decision === 'accepted' ? 'connected' : 'declined',
       startedAt: decision === 'accepted' ? new Date().toISOString() : undefined,

@@ -141,7 +141,7 @@ export default function RegisterPage() {
                   required
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="e.g. Mohammed Khizer Shaikh"
+                  placeholder="Enter your full name"
                   style={{
                     width: '100%',
                     height: '42px',
@@ -162,7 +162,7 @@ export default function RegisterPage() {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="e.g. khizer"
+                  placeholder="e.g. username"
                   autoCapitalize="none"
                   style={{
                     width: '100%',
