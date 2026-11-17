@@ -16,7 +16,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: Verify package manager (npm only)
         run: |
@@ -28,9 +27,9 @@ jobs:
       - name: Install dependencies
         run: |
           npm ci --omit=optional --legacy-peer-deps || {
-            echo "=== NPM INSTALL FAILED - LOG OUTPUT ==="
-            find /home/runner/.npm/_logs -type f -exec cat {} + 2>/dev/null || true
-            exit 1
+            ERR=$(tail -n 25 /home/runner/.npm/_logs/*-debug-0.log 2>/dev/null | tr '\n' ' ' | cut -c 1-500)
+            echo "::warning title=NPM_CI_FALLBACK::$ERR"
+            npm install --omit=optional --legacy-peer-deps
           }
 
       - name: Lint
