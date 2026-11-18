@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import PasswordInput from '../../components/PasswordInput';
 import { webApi } from '../../lib/api';
 
 export default function ForgotPasswordPage() {
@@ -228,21 +229,13 @@ export default function ForgotPasswordPage() {
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
                     New Password (min 10 chars)
                   </label>
-                  <input
-                    type="password"
+                  <PasswordInput
                     required
                     minLength={10}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Enter new password"
-                    style={{
-                      width: '100%',
-                      height: '44px',
-                      padding: '0 12px',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--color-border)',
-                      fontSize: '14px',
-                    }}
+                    autoComplete="new-password"
                   />
                 </div>
 
@@ -250,21 +243,13 @@ export default function ForgotPasswordPage() {
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
                     Confirm New Password
                   </label>
-                  <input
-                    type="password"
+                  <PasswordInput
                     required
                     minLength={10}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Re-enter new password"
-                    style={{
-                      width: '100%',
-                      height: '44px',
-                      padding: '0 12px',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--color-border)',
-                      fontSize: '14px',
-                    }}
+                    autoComplete="new-password"
                   />
                 </div>
 

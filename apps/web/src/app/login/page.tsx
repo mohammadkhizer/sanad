@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import PasswordInput from '../../components/PasswordInput';
 import { webApi } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 
@@ -186,22 +187,11 @@ export default function LoginPage() {
                     Forgot Password?
                   </Link>
                 </div>
-                <input
-                  type="password"
+                <PasswordInput
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter administrator password"
-                  style={{
-                    width: '100%',
-                    height: '44px',
-                    padding: '0 12px',
-                    borderRadius: 'var(--radius-sm)',
-                    border: '1px solid var(--color-border)',
-                    fontSize: '14px',
-                    color: 'var(--color-charcoal)',
-                    backgroundColor: 'var(--color-white)',
-                  }}
                 />
               </div>
 
