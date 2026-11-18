@@ -11,16 +11,74 @@ export default function Header() {
   return (
     <header className="header">
       <div className="container header-inner">
-        <Link href="/admin" className="brand-group">
-          <div className="brand-crest">
-            <span className="brand-crest-arabic">سند</span>
+        <Link href="/admin" className="brand-group" title="Sanad Admin - Platform Governance Suite">
+          <div
+            style={{
+              position: 'relative',
+              width: '44px',
+              height: '44px',
+              borderRadius: '12px',
+              border: '1.5px solid var(--color-gold)',
+              boxShadow: 'var(--shadow-sm)',
+              overflow: 'hidden',
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'linear-gradient(135deg, var(--color-emerald) 0%, var(--color-emerald-deep) 100%)',
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/assets/splash-mark.png"
+              alt="Sanad Crest"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
           </div>
-          <div>
-            <div className="brand-title">
-              <span>Sanad Admin</span>
-              <span style={{ fontSize: '12px', color: 'var(--color-gold)' }}>&#9670;</span>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: 1.15 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span
+                style={{
+                  fontFamily: 'var(--font-serif)',
+                  fontSize: '22px',
+                  fontWeight: 800,
+                  color: 'var(--color-emerald)',
+                  letterSpacing: '0.06em',
+                  lineHeight: 1.1,
+                }}
+              >
+                SANAD
+              </span>
+              <span
+                style={{
+                  backgroundColor: 'var(--color-gold-subtle)',
+                  color: 'var(--color-gold-dark)',
+                  border: '1px solid var(--color-gold)',
+                  fontSize: '10px',
+                  fontWeight: 800,
+                  padding: '2px 7px',
+                  borderRadius: '4px',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  lineHeight: 1.2,
+                }}
+              >
+                ADMIN
+              </span>
             </div>
-            <div className="brand-subtitle">Platform Governance Suite</div>
+            <div
+              style={{
+                fontSize: '10px',
+                fontWeight: 700,
+                color: 'var(--color-gold-dark)',
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                marginTop: '4px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Platform Governance Suite
+            </div>
           </div>
         </Link>
 
