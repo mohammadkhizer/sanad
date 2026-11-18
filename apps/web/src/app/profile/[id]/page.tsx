@@ -88,32 +88,20 @@ export default function PublicUserProfilePage() {
           transition={{ duration: 0.3 }}
         >
           <Card className="border-sanad-border bg-white shadow-sm overflow-hidden mb-8">
-            <div className="h-28 bg-gradient-to-r from-sanad-emerald via-sanad-emerald-deep to-[#0A332E] relative border-b border-sanad-gold/40">
-              <div className="absolute right-6 bottom-3 opacity-15 font-arabic text-5xl text-sanad-gold font-bold select-none">
+            <div className="h-32 sm:h-36 bg-gradient-to-r from-sanad-emerald via-sanad-emerald-deep to-[#0A332E] relative border-b border-sanad-gold/40">
+              <div className="absolute right-6 bottom-3 opacity-15 font-arabic text-5xl sm:text-6xl text-sanad-gold font-bold select-none">
                 سند
               </div>
             </div>
 
             <div className="px-6 sm:px-8 pb-8 pt-0 relative">
-              <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 -mt-10 mb-6">
-                <div className="flex items-end gap-4">
-                  <div className="w-20 h-20 rounded-2xl border-4 border-white bg-gradient-to-br from-sanad-emerald to-sanad-emerald-deep text-white font-serif text-2xl font-bold flex items-center justify-center shadow-md">
-                    {profile.displayName ? profile.displayName.charAt(0) : 'U'}
-                  </div>
-                  <div className="mb-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h1 className="font-serif text-2xl font-bold text-sanad-emerald">
-                        {profile.displayName}
-                      </h1>
-                      {isScholar && <ShieldCheck className="w-5 h-5 text-sanad-gold" />}
-                    </div>
-                    <span className="text-xs font-semibold text-sanad-emerald/80">
-                      @{profile.username}
-                    </span>
-                  </div>
+              {/* Avatar and Action Controls: Avatar overlaps banner safely while actions align in card area */}
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-12 sm:-mt-14 mb-4">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-4 border-white bg-gradient-to-br from-sanad-emerald to-sanad-emerald-deep text-white font-serif text-3xl font-bold flex items-center justify-center shadow-lg ring-1 ring-sanad-border/30 shrink-0 select-none">
+                  {profile.displayName ? profile.displayName.charAt(0) : 'U'}
                 </div>
 
-                <div className="flex items-center gap-2 self-stretch sm:self-auto">
+                <div className="flex items-center gap-2 pb-1 self-start sm:self-auto">
                   <Button
                     onClick={() => setIsFollowing(!isFollowing)}
                     variant={isFollowing ? 'outline' : 'default'}
@@ -129,6 +117,24 @@ export default function PublicUserProfilePage() {
                     </Button>
                   </Link>
                 </div>
+              </div>
+
+              {/* User Identity Block: Positioned 100% on crisp white card background for maximum contrast */}
+              <div className="mb-4">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="font-serif text-2xl sm:text-3xl font-bold text-sanad-emerald tracking-tight">
+                    {profile.displayName}
+                  </h1>
+                  {isScholar && (
+                    <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-sanad-gold/15 text-sanad-gold-dark text-xs font-semibold border border-sanad-gold/30">
+                      <ShieldCheck className="w-3.5 h-3.5 text-sanad-gold-dark shrink-0" />
+                      <span>Verified Faculty</span>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs font-semibold text-sanad-slate mt-1">
+                  @{profile.username}
+                </p>
               </div>
 
               {/* Bio */}

@@ -108,52 +108,57 @@ export default function ScholarDossierPage() {
           transition={{ duration: 0.3 }}
         >
           <Card className="border-sanad-border bg-white shadow-sm overflow-hidden mb-8">
-            <div className="h-32 bg-gradient-to-r from-sanad-emerald via-sanad-emerald-deep to-[#0A332E] relative border-b border-sanad-gold/40">
+            <div className="h-32 sm:h-36 bg-gradient-to-r from-sanad-emerald via-sanad-emerald-deep to-[#0A332E] relative border-b border-sanad-gold/40">
               <div className="absolute right-6 bottom-4 opacity-15 font-arabic text-6xl text-sanad-gold font-bold select-none">
                 سند
               </div>
             </div>
 
             <div className="px-6 sm:px-8 pb-8 pt-0 relative">
-              <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 -mt-12 mb-6">
-                <div className="flex items-end gap-4">
-                  <div className="w-24 h-24 rounded-2xl border-4 border-white bg-gradient-to-br from-sanad-emerald to-sanad-emerald-deep text-white font-serif text-3xl font-bold flex items-center justify-center shadow-md">
-                    {scholar.name.charAt(0)}
-                  </div>
-                  <div className="mb-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h1 className="font-serif text-2xl font-bold text-sanad-emerald">
-                        {scholar.name}
-                      </h1>
-                      <ShieldCheck className="w-5 h-5 text-sanad-gold" />
-                    </div>
-                    <span className="font-arabic text-sm text-sanad-gold-dark font-medium block">
-                      {scholar.arabicTitle}
-                    </span>
-                  </div>
+              {/* Avatar and Action Controls: Avatar overlaps banner safely while actions align in card area */}
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-12 sm:-mt-14 mb-4">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-4 border-white bg-gradient-to-br from-sanad-emerald to-sanad-emerald-deep text-white font-serif text-3xl font-bold flex items-center justify-center shadow-lg ring-1 ring-sanad-border/30 shrink-0 select-none">
+                  {scholar.name.charAt(0)}
                 </div>
 
-                <div className="flex items-center gap-2 self-stretch sm:self-auto">
+                <div className="flex flex-wrap items-center gap-2 pb-1 self-start sm:self-auto">
                   <Button
                     onClick={() => setIsFollowing(!isFollowing)}
                     variant={isFollowing ? 'outline' : 'default'}
-                    className="flex-1 sm:flex-none text-xs"
+                    size="sm"
+                    className="text-xs"
                   >
                     {isFollowing ? 'Following Scholar' : 'Follow Faculty'}
                   </Button>
                   <Link href="/inbox">
-                    <Button variant="secondary" className="text-xs">
-                      <MessageSquare className="w-4 h-4 mr-1.5 text-sanad-gold-dark" />
+                    <Button variant="secondary" size="sm" className="text-xs">
+                      <MessageSquare className="w-3.5 h-3.5 mr-1 text-sanad-gold-dark" />
                       Consultation
                     </Button>
                   </Link>
                   <Link href={`/call/${scholar.id}`}>
-                    <Button variant="gold" className="text-xs">
-                      <Video className="w-4 h-4 mr-1.5" />
+                    <Button variant="gold" size="sm" className="text-xs">
+                      <Video className="w-3.5 h-3.5 mr-1" />
                       Video Halaqah
                     </Button>
                   </Link>
                 </div>
+              </div>
+
+              {/* Scholar Identity Block: Positioned 100% on crisp white card background for maximum contrast */}
+              <div className="mb-4">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="font-serif text-2xl sm:text-3xl font-bold text-sanad-emerald tracking-tight">
+                    {scholar.name}
+                  </h1>
+                  <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-sanad-gold/15 text-sanad-gold-dark text-xs font-semibold border border-sanad-gold/30">
+                    <ShieldCheck className="w-3.5 h-3.5 text-sanad-gold-dark shrink-0" />
+                    <span>Verified Faculty</span>
+                  </div>
+                </div>
+                <span className="font-arabic text-sm sm:text-base text-sanad-gold-dark font-medium block mt-1">
+                  {scholar.arabicTitle}
+                </span>
               </div>
 
               {/* Bio & Meta */}
