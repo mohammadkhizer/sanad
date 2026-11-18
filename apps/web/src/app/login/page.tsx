@@ -3,12 +3,17 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { ShieldCheck, BookOpen, KeyRound, AlertCircle } from 'lucide-react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import PasswordInput from '../../components/PasswordInput';
 import { Spinner } from '../../components/Preloader';
 import { webApi } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
+import { Button } from '../../components/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../../components/ui/card';
+import { Input } from '../../components/ui/input';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -43,7 +48,7 @@ export default function LoginPage() {
         const userObj = {
           id: res.user._id || res.user.id,
           _id: res.user._id || res.user.id,
-          publicId: res.user.publicId,
+          publicId: res.user.publicId || 'usr-sanad',
           displayName: res.user.displayName,
           username: res.user.username,
           email: res.user.email,
@@ -55,228 +60,190 @@ export default function LoginPage() {
           scholarProfile: res.user.scholarProfile,
         };
 
-        const hasAdminAccess = userObj.roles.includes('admin') || userObj.roles.includes('moderator');
-        if (!hasAdminAccess) {
-          setError('Access Denied: Your account does not possess administrator permissions for this governance portal.');
-          setLoading(false);
-          return;
-        }
-
         login(res.accessToken, userObj, res.refreshToken);
-        router.push('/admin');
+        router.push('/feed');
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Invalid credentials. Please try again.';
+      const msg = err instanceof Error ? err.message : 'Invalid credentials. Please verify your details.';
       setError(msg);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleDemoLogin = (role: 'scholar' | 'seeker') => {
+    if (role === 'scholar') {
+      setIdentifier('scholar.hadith@sanad.app');
+      setPassword('SanadFaithSecure10#');
+    } else {
+      setIdentifier('student.ilm@sanad.app');
+      setPassword('SanadLearner2026!');
+    }
+  };
+
   return (
     <>
       <Header />
-      <main style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', padding: '40px 0' }}>
-        <div className="container">
-          <div
-            style={{
-              maxWidth: '440px',
-              margin: '0 auto',
-              backgroundColor: 'var(--color-white)',
-              borderRadius: 'var(--radius-lg)',
-              border: '1px solid var(--color-border)',
-              padding: '36px',
-              boxShadow: 'var(--shadow-md)',
-            }}
-          >
-            <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/assets/splash-mark.png"
-                alt="Sanad Brand"
-                style={{ width: '48px', height: '48px', margin: '0 auto 12px', display: 'block' }}
-              />
-              <div
-                style={{
-                  display: 'inline-block',
-                  backgroundColor: 'var(--color-gold-subtle)',
-                  color: 'var(--color-gold-hover)',
-                  border: '1px solid var(--color-gold)',
-                  fontSize: '11px',
-                  fontWeight: 800,
-                  padding: '3px 10px',
-                  borderRadius: '12px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.8px',
-                  marginBottom: '10px',
-                }}
-              >
-                Governance Console
-              </div>
-              <h1 style={{ fontSize: '24px', color: 'var(--color-emerald)', fontWeight: 700 }}>
-                Administrator Sign In
-              </h1>
-              <p style={{ fontSize: '13px', color: 'var(--color-muted)', marginTop: '4px' }}>
-                Sanad Platform Governance &amp; Security Command Center
-              </p>
-            </div>
-
-            {error && (
-              <div
-                style={{
-                  backgroundColor: '#FDE8E8',
-                  border: '1px solid #F8B4B4',
-                  color: '#9B1C1C',
-                  padding: '10px 14px',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: '13px',
-                  marginBottom: '20px',
-                  lineHeight: 1.45,
-                }}
-              >
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit}>
-              <div style={{ marginBottom: '16px' }}>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    marginBottom: '6px',
-                    color: 'var(--color-charcoal)',
-                  }}
-                >
-                  Admin Username, Email, or Handle
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder="e.g. admin@sanad.app or admin"
-                  style={{
-                    width: '100%',
-                    height: '44px',
-                    padding: '0 12px',
-                    borderRadius: 'var(--radius-sm)',
-                    border: '1px solid var(--color-border)',
-                    fontSize: '14px',
-                    color: 'var(--color-charcoal)',
-                    backgroundColor: 'var(--color-white)',
-                  }}
+      <main className="min-h-[82vh] flex items-center justify-center py-12 px-4 sm:px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
+          className="w-full max-w-md"
+        >
+          <Card className="border-sanad-border bg-white shadow-md">
+            <CardHeader className="text-center pb-6">
+              <div className="w-12 h-12 rounded-xl border border-sanad-gold bg-gradient-to-br from-sanad-emerald to-sanad-emerald-deep flex items-center justify-center mx-auto mb-3 shadow-sm overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/assets/splash-mark.png"
+                  alt="Sanad Crest"
+                  className="w-full h-full object-cover block"
                 />
               </div>
+              <CardTitle className="font-serif text-2xl font-bold text-sanad-emerald">
+                {requires2FA ? 'Two-Factor Verification' : 'Sign in to Sanad'}
+              </CardTitle>
+              <CardDescription className="text-xs text-sanad-slate">
+                {requires2FA
+                  ? 'Enter the 6-digit verification code from your authenticator'
+                  : 'Access verified Hadith transmissions, scholarly halaqat, and direct consultations'}
+              </CardDescription>
+            </CardHeader>
 
-              <div style={{ marginBottom: '20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <label
-                    style={{
-                      fontSize: '13px',
-                      fontWeight: 600,
-                      color: 'var(--color-charcoal)',
-                    }}
-                  >
-                    Password
-                  </label>
-                  <Link
-                    href="/forgot-password"
-                    style={{ fontSize: '12px', color: 'var(--color-emerald)', fontWeight: 600 }}
-                  >
-                    Forgot Password?
-                  </Link>
-                </div>
-                <PasswordInput
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter administrator password"
-                />
-              </div>
-
-              {requires2FA && (
-                <div style={{ marginBottom: '20px' }}>
-                  <label
-                    style={{
-                      display: 'block',
-                      fontSize: '13px',
-                      fontWeight: 600,
-                      marginBottom: '6px',
-                      color: 'var(--color-charcoal)',
-                    }}
-                  >
-                    Two-Factor Authentication Code (TOTP)
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={twoFactorCode}
-                    onChange={(e) => setTwoFactorCode(e.target.value)}
-                    placeholder="6-digit authenticator code"
-                    maxLength={6}
-                    style={{
-                      width: '100%',
-                      height: '44px',
-                      padding: '0 12px',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--color-border)',
-                      fontSize: '16px',
-                      letterSpacing: '4px',
-                      textAlign: 'center',
-                      fontFamily: 'monospace',
-                    }}
-                  />
-                  <span style={{ fontSize: '11px', color: 'var(--color-muted)', display: 'block', marginTop: '4px' }}>
-                    Enter the code from your authenticator app
-                  </span>
+            <CardContent>
+              {error && (
+                <div className="mb-5 p-3 rounded-lg bg-red-50 border border-red-200 flex items-start gap-2.5 text-xs text-red-800">
+                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                  <span>{error}</span>
                 </div>
               )}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn btn-primary"
-                style={{
-                  width: '100%',
-                  height: '46px',
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  opacity: loading ? 0.75 : 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '10px',
-                }}
-              >
-                {loading ? (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {!requires2FA ? (
                   <>
-                    <Spinner size={16} color="#FFFFFF" strokeWidth={2.5} />
-                    <span>Authenticating Administrator...</span>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-sanad-emerald uppercase tracking-wider block">
+                        Email Address or Username
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder="scholar@institution.edu"
+                        value={identifier}
+                        onChange={(e) => setIdentifier(e.target.value)}
+                        required
+                        disabled={loading}
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-sanad-emerald uppercase tracking-wider">
+                          Password
+                        </label>
+                        <Link
+                          href="/forgot-password"
+                          className="text-xs font-semibold text-sanad-gold-dark hover:underline"
+                        >
+                          Forgot password?
+                        </Link>
+                      </div>
+                      <PasswordInput
+                        id="login-password"
+                        name="password"
+                        placeholder="Enter account password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        disabled={loading}
+                      />
+                    </div>
                   </>
                 ) : (
-                  'Sign In as Administrator'
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-sanad-emerald uppercase tracking-wider flex items-center gap-1.5">
+                      <KeyRound className="w-3.5 h-3.5 text-sanad-gold" />
+                      Authenticator Code
+                    </label>
+                    <Input
+                      type="text"
+                      placeholder="000000"
+                      maxLength={6}
+                      value={twoFactorCode}
+                      onChange={(e) => setTwoFactorCode(e.target.value)}
+                      className="text-center tracking-[0.3em] font-mono text-lg font-bold"
+                      required
+                      autoFocus
+                    />
+                  </div>
                 )}
-              </button>
-            </form>
 
-            <div
-              style={{
-                textAlign: 'center',
-                marginTop: '24px',
-                paddingTop: '20px',
-                borderTop: '1px solid var(--color-border)',
-                fontSize: '12px',
-                color: 'var(--color-muted)',
-                lineHeight: 1.5,
-              }}
-            >
-              Strictly restricted to authorized platform administrators and governance staff. All authentication attempts are logged.
-            </div>
-          </div>
-        </div>
+                <Button
+                  type="submit"
+                  className="w-full mt-2"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <Spinner size={16} />
+                      Authenticating...
+                    </span>
+                  ) : requires2FA ? (
+                    'Confirm Code'
+                  ) : (
+                    'Sign In'
+                  )}
+                </Button>
+              </form>
+
+              {/* Fast Demo Credentials Picker */}
+              <div className="mt-6 pt-5 border-t border-sanad-border/60">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-sanad-slate block text-center mb-2.5">
+                  Demo Credentials
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin('scholar')}
+                    className="p-2 rounded-lg border border-sanad-border bg-sanad-ivory-warm/60 hover:bg-sanad-ivory-warm text-left transition-colors"
+                  >
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-sanad-emerald">
+                      <ShieldCheck className="w-3.5 h-3.5 text-sanad-gold" />
+                      Scholar
+                    </div>
+                    <span className="text-[10px] text-sanad-slate block mt-0.5">Verified Faculty</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin('seeker')}
+                    className="p-2 rounded-lg border border-sanad-border bg-sanad-ivory-warm/60 hover:bg-sanad-ivory-warm text-left transition-colors"
+                  >
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-sanad-emerald">
+                      <BookOpen className="w-3.5 h-3.5 text-sanad-emerald" />
+                      Student
+                    </div>
+                    <span className="text-[10px] text-sanad-slate block mt-0.5">Learner / Seeker</span>
+                  </button>
+                </div>
+              </div>
+            </CardContent>
+
+            <CardFooter className="flex flex-col gap-2 pt-0 pb-6 text-center text-xs text-sanad-slate">
+              <div>
+                Don&apos;t have an account yet?{' '}
+                <Link href="/register" className="font-bold text-sanad-emerald hover:underline">
+                  Join Sanad
+                </Link>
+              </div>
+              <div>
+                Are you an accredited scholar?{' '}
+                <Link href="/scholar/apply" className="font-bold text-sanad-gold-dark hover:underline">
+                  Submit Faculty Accreditation
+                </Link>
+              </div>
+            </CardFooter>
+          </Card>
+        </motion.div>
       </main>
       <Footer />
     </>

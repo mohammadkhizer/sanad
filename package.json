@@ -20,6 +20,8 @@
     "dev:mobile": "npx expo start apps/mobile",
     "dev:web": "npm --workspace=apps/web run dev",
     "build:web": "npm --workspace=packages/shared run build && npm --workspace=apps/web run build",
+    "dev:admin": "npm --workspace=apps/admin-portal run dev",
+    "build:admin": "npm --workspace=packages/shared run build && npm --workspace=apps/admin-portal run build",
     "test": "npm run test --workspace=packages/shared && npm run test --workspace=apps/api && npm run test --workspace=apps/mobile",
     "lint": "npm run lint --workspace=packages/shared && npm run lint --workspace=apps/api && npm run lint --workspace=apps/mobile",
     "typecheck": "npm run typecheck --workspace=packages/shared && npm run typecheck --workspace=apps/api && npm run typecheck --workspace=apps/mobile"

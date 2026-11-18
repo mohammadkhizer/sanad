@@ -1,54 +1,15 @@
 import type { Metadata } from 'next';
-import { AuthProvider } from '../context/AuthContext';
 import './globals.css';
+import { AuthProvider } from '../context/AuthContext';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 export const metadata: Metadata = {
-  title: 'Sanad Admin Console | Platform Governance Suite',
+  title: 'Sanad - The Classical Islamic Scholarship & Knowledge Platform',
   description:
-    'The dedicated administration and governance platform for Sanad verified scholarship, security monitoring, and isnad registry review.',
-  keywords: [
-    'Islamic scholarship',
-    'verified scholars',
-    'Hadith',
-    'Fiqh',
-    'Isnad',
-    'Usul al-Fiqh',
-    'Halaqah',
-    'Sanad',
-  ],
-  authors: [{ name: 'Mohammed Khizer Shaikh', url: 'https://mohammedkhizershaikh.netlify.app' }],
-  creator: 'Mohammed Khizer Shaikh',
-  metadataBase: new URL('https://sanad.app'),
-  alternates: {
-    canonical: 'https://sanad.app',
-  },
+    'Dedicated social and educational platform reserved exclusively for verified classical Islamic scholars and students of sacred knowledge. Rigorous Isnad verification and peer review.',
   icons: {
-    icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-      { url: '/favicon.png', type: 'image/png' },
-    ],
-    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
-  },
-  openGraph: {
-    title: 'Sanad | Authentic Verified-Scholars Platform',
-    description:
-      'Verified-scholars-only social and learning platform preserving authentic isnad tradition.',
-    url: 'https://sanad.app',
-    siteName: 'Sanad',
-    images: [
-      {
-        url: '/assets/splash-mark.png',
-        width: 512,
-        height: 512,
-        alt: 'Sanad Platform Brand Mark',
-      },
-    ],
-    locale: 'en_US',
-    type: 'website',
-  },
-  other: {
-    'geo.region': 'GLOBAL',
-    'geo.placename': 'Global Islamic Scholarship Network',
+    icon: '/favicon.ico',
   },
 };
 
@@ -59,16 +20,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body>
-        <AuthProvider>{children}</AuthProvider>
+      <body className="min-h-screen flex flex-col justify-between selection:bg-sanad-gold-subtle selection:text-sanad-emerald">
+        <AuthProvider>
+          <Header />
+          <main className="flex-1">
+            {children}
+          </main>
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,148 +1,144 @@
+import React from 'react';
 import Link from 'next/link';
 
 export default function Footer() {
   return (
-    <footer className="footer">
-      <div className="container">
-        {/* Classical Scholarship Quotation */}
-        <div className="footer-quote-box">
-          <div className="footer-quote-arabic">
+    <footer className="border-t border-sanad-border bg-[#072924] text-white pt-14 pb-12 mt-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        {/* Classical Epistemology Inscription */}
+        <div className="border border-sanad-gold/30 bg-white/5 rounded-2xl p-6 sm:p-8 text-center mb-12 backdrop-blur-sm">
+          <div className="font-arabic text-xl sm:text-2xl text-sanad-gold font-bold mb-3 tracking-wide leading-relaxed">
             &ldquo;إِنَّ الْإِسْنَادَ مِنَ الدِّينِ، وَلَوْلَا الْإِسْنَادُ لَقَالَ مَنْ شَاءَ مَا شَاءَ&rdquo;
           </div>
-          <div className="footer-quote-trans">
-            &mdash; Classical Hadith Methodology Principle &bull; Sahih Muslim, Introduction
+          <div className="text-xs uppercase tracking-[0.16em] text-white/70 font-semibold">
+            Classical Hadith Methodology Principle &bull; Sahih Muslim, Introduction
           </div>
         </div>
 
-        <div className="footer-inner">
-          <div>
-            <div
-              style={{
-                fontFamily: 'var(--font-serif)',
-                fontSize: '24px',
-                fontWeight: 700,
-                color: 'var(--color-ivory)',
-                marginBottom: '10px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-              }}
-            >
-              <span>Sanad Admin</span>
-              <span style={{ fontSize: '12px', color: 'var(--color-gold)' }}>&#9670;</span>
-              <span style={{ fontFamily: 'var(--font-arabic)', fontSize: '20px', color: 'var(--color-gold)' }}>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12 border-b border-white/10">
+          {/* Brand Info */}
+          <div className="md:col-span-1">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-9 h-9 rounded-lg border border-sanad-gold bg-sanad-emerald flex items-center justify-center font-arabic text-lg font-bold text-sanad-gold">
                 سند
+              </div>
+              <span className="font-serif text-2xl font-bold tracking-wider text-white">
+                SANAD
               </span>
             </div>
-            <p
-              style={{
-                fontSize: '14px',
-                color: '#A3B2AF',
-                lineHeight: 1.65,
-                maxWidth: '340px',
-                marginBottom: '18px',
-              }}
-            >
-              Sanad Administrative Command Center &amp; Platform Governance Suite. Restricted strictly to authorized platform staff and verified governance councils.
+            <p className="text-xs text-white/70 leading-relaxed">
+              The premier social and pedagogical platform reserved exclusively for verified classical Islamic scholars and serious students of sacred knowledge.
             </p>
           </div>
 
+          {/* Platform Exploration */}
           <div>
-            <div className="footer-col-title">Admin Suite</div>
-            <ul className="footer-links">
+            <h4 className="text-xs uppercase tracking-widest text-sanad-gold font-extrabold mb-4">
+              Knowledge Hub
+            </h4>
+            <ul className="space-y-2.5 text-xs text-white/80 font-medium">
               <li>
-                <Link href="/admin" className="footer-link">
-                  Platform Overview
+                <Link href="/" className="hover:text-sanad-gold transition-colors">
+                  Scholarly Feed
                 </Link>
               </li>
               <li>
-                <Link href="/admin/users" className="footer-link">
-                  User Governance
+                <Link href="/explore" className="hover:text-sanad-gold transition-colors">
+                  Verified Scholars Directory
                 </Link>
               </li>
               <li>
-                <Link href="/admin/review-queue" className="footer-link">
-                  Scholar Review Queue
+                <Link href="/reels" className="hover:text-sanad-gold transition-colors">
+                  Video Lessons &amp; Exegesis
                 </Link>
               </li>
               <li>
-                <Link href="/admin/activity" className="footer-link">
-                  Security Activity Monitor
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin/reports" className="footer-link">
-                  Trust &amp; Safety Queue
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin/audit-logs" className="footer-link">
-                  Audit Trail
+                <Link href="/how-verification-works" className="hover:text-sanad-gold transition-colors">
+                  Isnad Verification Methodology
                 </Link>
               </li>
             </ul>
           </div>
 
+          {/* Scholarship & Academy */}
           <div>
-            <div className="footer-col-title">Trust &amp; Legal</div>
-            <ul className="footer-links">
+            <h4 className="text-xs uppercase tracking-widest text-sanad-gold font-extrabold mb-4">
+              Academic Faculty
+            </h4>
+            <ul className="space-y-2.5 text-xs text-white/80 font-medium">
               <li>
-                <Link href="/terms" className="footer-link">
-                  Terms of Service
+                <Link href="/scholar/apply" className="hover:text-sanad-gold transition-colors">
+                  Apply for Accreditation
                 </Link>
               </li>
               <li>
-                <Link href="/privacy" className="footer-link">
-                  Privacy Policy
+                <Link href="/scholar/status" className="hover:text-sanad-gold transition-colors">
+                  Check Review Status
                 </Link>
               </li>
               <li>
-                <Link href="/conduct" className="footer-link">
-                  Code of Conduct
+                <Link href="/conduct" className="hover:text-sanad-gold transition-colors">
+                  Code of Academic Conduct
                 </Link>
               </li>
               <li>
-                <Link href="/delete-account" className="footer-link">
-                  Account Deletion
+                <Link href="/settings" className="hover:text-sanad-gold transition-colors">
+                  Account Governance
                 </Link>
               </li>
             </ul>
           </div>
 
+          {/* Architectural Attribution & Legal */}
           <div>
-            <div className="footer-col-title">Engineering</div>
-            <ul className="footer-links">
-              <li>
+            <h4 className="text-xs uppercase tracking-widest text-sanad-gold font-extrabold mb-4">
+              Architectural Credits
+            </h4>
+            <div className="text-xs text-white/70 space-y-2 leading-relaxed">
+              <div>
+                Designed &amp; Architected by{' '}
                 <a
                   href="https://mohammedkhizershaikh.netlify.app"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="footer-link"
-                  style={{ color: 'var(--color-gold-bright)', fontWeight: 600 }}
+                  className="text-sanad-gold font-bold hover:underline"
                 >
-                  Mohammed Khizer Shaikh (Portfolio)
+                  Mohammed Khizer Shaikh
                 </a>
-              </li>
-              <li>
+              </div>
+              <div>
                 <a
                   href="https://www.linkedin.com/in/mohammed-khizer-shaikh"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="footer-link"
+                  className="text-white/60 hover:text-white transition-colors"
                 >
-                  Lead Architect LinkedIn
+                  Professional Profile on LinkedIn
                 </a>
-              </li>
-              <li style={{ fontSize: '12px', color: '#7A8E8A', marginTop: '6px' }}>
-                Engineered with Next.js, Express &amp; MongoDB Atlas
-              </li>
-            </ul>
+              </div>
+              <div className="pt-2 text-[11px] text-white/50">
+                Rigorous cryptographic verification &bull; Zero advertising &bull; Pure transmission.
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="footer-bottom">
-          <div>&copy; 2026 Sanad Platform. All rights reserved. Authentic Isnad Network.</div>
-          <div>Architected and Developed by Mohammed Khizer Shaikh</div>
+        {/* Bottom Bar */}
+        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-white/50 gap-4">
+          <div>
+            &copy; 2026 Sanad Academic Foundation. All rights reserved.
+          </div>
+          <div className="flex gap-6">
+            <Link href="/privacy" className="hover:text-white transition-colors">
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="hover:text-white transition-colors">
+              Terms of Service
+            </Link>
+            <Link href="/delete-account" className="hover:text-white transition-colors">
+              Delete Account
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

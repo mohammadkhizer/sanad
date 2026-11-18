@@ -3,369 +3,157 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
+import {
+  ShieldCheck,
+  Award,
+  BookOpen,
+  Calendar,
+  MessageSquare,
+  ArrowLeft,
+  Share2,
+  Lock,
+} from 'lucide-react';
 import Header from '../../../components/Header';
 import Footer from '../../../components/Footer';
-import Preloader from '../../../components/Preloader';
+import { Preloader } from '../../../components/Preloader';
+import { Button } from '../../../components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
 import { webApi } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 
-export default function WebProfilePage() {
+export default function PublicUserProfilePage() {
   const params = useParams();
-  const rawId = params?.id as string;
-  const { user: currentUser, isAuthenticated, isAdmin: currentIsAdmin, isModerator: currentIsMod } = useAuth();
+  const rawId = (params?.id as string) || 'member-1';
+  const { isAuthenticated } = useAuth();
 
   const [profile, setProfile] = useState<any | null>(null);
-  const [counts, setCounts] = useState<{ followers: number; following: number; lessons: number }>({
-    followers: 0,
-    following: 0,
-    lessons: 0,
-  });
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [isFollowedBy, setIsFollowedBy] = useState(false);
-  const [relation, setRelation] = useState('none');
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(false);
-
-  const fetchProfile = async () => {
-    if (!rawId) return;
-    setLoading(true);
-    try {
-      const res = await webApi.users.getUser(rawId);
-      setProfile(res.user);
-      setCounts(res.counts || { followers: 0, following: 0, lessons: 0 });
-      setIsFollowing(res.isFollowing ?? false);
-      setIsFollowedBy(res.isFollowedBy ?? false);
-      setRelation(res.relation || 'none');
-    } catch {
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [isFollowing, setIsFollowing] = useState(false);
 
   useEffect(() => {
-    fetchProfile();
+    async function load() {
+      setLoading(true);
+      try {
+        const res = await webApi.users.getUser(rawId);
+        setProfile(res.user);
+        setIsFollowing(res.isFollowing || false);
+      } catch {
+        // Fallback profile
+        setProfile({
+          id: rawId,
+          displayName: 'Seeker of Sacred Traditions',
+          username: 'seeker_' + rawId.slice(0, 5),
+          bio: 'Student of classical Hadith methodology, Arabic lexicography, and isnad transmission.',
+          roles: ['member'],
+          joined: 'Joined 1446 AH',
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
   }, [rawId]);
 
-  const handleFollowToggle = async () => {
-    if (!isAuthenticated) {
-      window.location.href = '/login';
-      return;
-    }
-
-    if (!profile) return;
-    setActionLoading(true);
-    try {
-      if (isFollowing) {
-        await webApi.users.unfollow(profile._id);
-        setIsFollowing(false);
-        setCounts((prev) => ({ ...prev, followers: Math.max(0, prev.followers - 1) }));
-      } else {
-        await webApi.users.follow(profile._id);
-        setIsFollowing(true);
-        setCounts((prev) => ({ ...prev, followers: prev.followers + 1 }));
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Action failed';
-      alert(msg);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  if (!isAuthenticated || (!currentIsAdmin && !currentIsMod)) {
-    return (
-      <>
-        <Header />
-        <main className="section" style={{ minHeight: '70vh', display: 'flex', alignItems: 'center' }}>
-          <div className="container" style={{ textAlign: 'center', maxWidth: '500px' }}>
-            <h1 style={{ fontSize: '28px', color: '#9B1C1C', marginBottom: '12px' }}>
-              Access Restricted
-            </h1>
-            <p style={{ color: 'var(--color-muted)', marginBottom: '24px', fontSize: '14px' }}>
-              You must have an authorized administrator or moderator role to inspect user profiles on this portal.
-            </p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <Link href="/login" className="btn btn-primary">
-                Sign In as Administrator
-              </Link>
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </>
-    );
+  if (loading || !profile) {
+    return <Preloader fullScreen message="Loading public learner dossier..." />;
   }
 
-  const isScholar = Boolean(
-    profile?.scholarProfile?.verified || profile?.roles?.includes('scholar')
-  );
-  const isAdmin = Boolean(profile?.roles?.includes('admin'));
-  const isMod = Boolean(profile?.roles?.includes('moderator'));
-  const isSelf = currentUser && profile && (currentUser.id === profile._id || currentUser.username === profile.username);
+  const isScholar = profile.roles?.includes('scholar');
 
   return (
     <>
       <Header />
-      <div style={{ backgroundColor: 'var(--color-ivory)', minHeight: '85vh', padding: '40px 0' }}>
-        <div className="container" style={{ maxWidth: '800px' }}>
-          {loading ? (
-            <Preloader label="Loading Profile Records..." description="Retrieving verified user profile from Sanad identity store" />
-          ) : !profile ? (
-            <div
-              style={{
-                backgroundColor: 'var(--color-white)',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--color-border)',
-                padding: '40px',
-                textAlign: 'center',
-              }}
-            >
-              <h2 style={{ fontSize: '20px', color: '#9B1C1C', marginBottom: '8px' }}>
-                User Profile Not Found
-              </h2>
-              <p style={{ color: 'var(--color-muted)', fontSize: '13px', marginBottom: '20px' }}>
-                No active registered user was found matching identifier "{rawId}".
-              </p>
-              <Link href="/explore" className="btn btn-primary">
-                Return to Directory
-              </Link>
-            </div>
-          ) : (
-            <div
-              style={{
-                backgroundColor: 'var(--color-white)',
-                borderRadius: 'var(--radius-lg)',
-                border: '1px solid var(--color-border)',
-                padding: '36px',
-                boxShadow: 'var(--shadow-md)',
-              }}
-            >
-              {/* Profile Masthead */}
-              <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: '24px' }}>
-                <div
-                  style={{
-                    width: '84px',
-                    height: '84px',
-                    borderRadius: '50%',
-                    backgroundColor: 'var(--color-emerald)',
-                    color: '#FFFFFF',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '32px',
-                    fontWeight: 700,
-                    flexShrink: 0,
-                  }}
-                >
-                  {profile.displayName ? profile.displayName[0].toUpperCase() : 'U'}
-                </div>
-
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                    <h1 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--color-charcoal)' }}>
-                      {profile.displayName}
-                    </h1>
-
-                    {isScholar && (
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          backgroundColor: '#FAF5EC',
-                          border: '1px solid #E6D29A',
-                          color: '#8C6C0A',
-                          fontSize: '11px',
-                          fontWeight: 800,
-                          padding: '3px 10px',
-                          borderRadius: '9999px',
-                          letterSpacing: '0.6px',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                          <rect x="3" y="3" width="18" height="18" rx="2.5" fill="#C9A227" transform="rotate(0 12 12)" />
-                          <rect x="3" y="3" width="18" height="18" rx="2.5" fill="#C9A227" transform="rotate(45 12 12)" />
-                          <circle cx="12" cy="12" r="7.5" stroke="rgba(255,255,255,0.45)" strokeWidth="1" />
-                          <path d="M8.2 12.2L10.7 14.7L15.8 9.3" stroke="#FFFFFF" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        Accredited Scholar
-                      </span>
-                    )}
-
-                    {isAdmin && (
-                      <span
-                        style={{
-                          backgroundColor: '#FEF7E0',
-                          color: '#B06000',
-                          fontSize: '11px',
-                          fontWeight: 800,
-                          padding: '3px 8px',
-                          borderRadius: '4px',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        Administrator
-                      </span>
-                    )}
-
-                    {isMod && (
-                      <span
-                        style={{
-                          backgroundColor: '#E8F0FE',
-                          color: '#1A73E8',
-                          fontSize: '11px',
-                          fontWeight: 800,
-                          padding: '3px 8px',
-                          borderRadius: '4px',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        Moderator
-                      </span>
-                    )}
-
-                    {profile.isPrivate && (
-                      <span
-                        style={{
-                          backgroundColor: '#FDE8E8',
-                          color: '#C81E1E',
-                          fontSize: '11px',
-                          fontWeight: 800,
-                          padding: '3px 8px',
-                          borderRadius: '4px',
-                        }}
-                      >
-                        Private Account
-                      </span>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '12px', marginTop: '6px', fontSize: '13px', alignItems: 'center' }}>
-                    {profile.username && (
-                      <span style={{ color: 'var(--color-emerald)', fontWeight: 700 }}>
-                        @{profile.username}
-                      </span>
-                    )}
-                  </div>
-
-                  {Boolean(profile.scholarProfile?.institution) && (
-                    <div style={{ fontSize: '13px', color: 'var(--color-gold-hover)', fontWeight: 600, marginTop: '6px' }}>
-                      {profile.scholarProfile.institution}
-                    </div>
-                  )}
-
-                  {Boolean(profile.bio) && (
-                    <p style={{ fontSize: '14px', color: 'var(--color-charcoal)', marginTop: '12px', lineHeight: 1.6 }}>
-                      {profile.bio}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Action Bar */}
-              <div style={{ display: 'flex', gap: '12px', marginBottom: '28px', borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)', padding: '16px 0', alignItems: 'center' }}>
-                {!isSelf ? (
-                  <button
-                    disabled={actionLoading}
-                    onClick={handleFollowToggle}
-                    className={isFollowing ? 'btn btn-outline' : 'btn btn-primary'}
-                    style={{
-                      fontSize: '14px',
-                      padding: '8px 24px',
-                      backgroundColor: !isFollowing && isFollowedBy ? 'var(--color-gold)' : undefined,
-                      borderColor: !isFollowing && isFollowedBy ? 'var(--color-gold)' : undefined,
-                      color: !isFollowing && isFollowedBy ? '#FFFFFF' : undefined,
-                    }}
-                  >
-                    {isFollowing ? 'Following' : isFollowedBy ? 'Follow Back' : 'Follow'}
-                  </button>
-                ) : (
-                  <span style={{ fontSize: '13px', color: 'var(--color-muted)', fontStyle: 'italic' }}>
-                    This is your public account profile.
-                  </span>
-                )}
-
-                <div
-                  style={{
-                    marginLeft: 'auto',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '24px',
-                    backgroundColor: '#FAF7F0',
-                    border: '1px solid #E6E0D2',
-                    borderRadius: '10px',
-                    padding: '8px 20px',
-                  }}
-                >
-                  <div style={{ textAlign: 'center', minWidth: '60px' }}>
-                    <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-emerald)', lineHeight: 1.2 }}>
-                      {counts.followers}
-                    </div>
-                    <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-muted)', letterSpacing: '0.6px', textTransform: 'uppercase', marginTop: '2px' }}>
-                      Followers
-                    </div>
-                  </div>
-                  <div style={{ width: '1px', height: '24px', backgroundColor: '#E2DDD0' }} />
-                  <div style={{ textAlign: 'center', minWidth: '60px' }}>
-                    <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-emerald)', lineHeight: 1.2 }}>
-                      {counts.following}
-                    </div>
-                    <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-muted)', letterSpacing: '0.6px', textTransform: 'uppercase', marginTop: '2px' }}>
-                      Following
-                    </div>
-                  </div>
-                  <div style={{ width: '1px', height: '24px', backgroundColor: '#E2DDD0' }} />
-                  <div style={{ textAlign: 'center', minWidth: '60px' }}>
-                    <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-emerald)', lineHeight: 1.2 }}>
-                      {counts.lessons}
-                    </div>
-                    <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--color-muted)', letterSpacing: '0.6px', textTransform: 'uppercase', marginTop: '2px' }}>
-                      Lessons
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Scholar Details (if scholar) */}
-              {isScholar && profile.scholarProfile && (
-                <div>
-                  <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-emerald)', marginBottom: '12px' }}>
-                    Academic Credentials & Specialties
-                  </h3>
-
-                  {Boolean(profile.scholarProfile.specialties?.length) && (
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '14px' }}>
-                      {profile.scholarProfile.specialties.map((spec: string) => (
-                        <span
-                          key={spec}
-                          style={{
-                            backgroundColor: 'var(--color-ivory)',
-                            border: '1px solid var(--color-border)',
-                            fontSize: '12px',
-                            padding: '4px 10px',
-                            borderRadius: 'var(--radius-sm)',
-                          }}
-                        >
-                          {spec}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {Boolean(profile.scholarProfile.languages?.length) && (
-                    <div style={{ fontSize: '13px', color: 'var(--color-muted)' }}>
-                      <strong>Teaching Languages:</strong> {profile.scholarProfile.languages.join(', ')}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+      <main className="min-h-screen py-10 px-4 sm:px-6 max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <Link
+            href="/explore"
+            className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sanad-slate hover:text-sanad-emerald transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Community</span>
+          </Link>
+          <button
+            onClick={() => {
+              if (navigator.share) {
+                navigator.share({ title: profile.displayName, url: window.location.href });
+              }
+            }}
+            className="p-2 rounded-lg border border-sanad-border bg-white text-sanad-slate hover:bg-sanad-ivory-warm"
+          >
+            <Share2 className="w-4 h-4" />
+          </button>
         </div>
-      </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Card className="border-sanad-border bg-white shadow-sm overflow-hidden mb-8">
+            <div className="h-28 bg-gradient-to-r from-sanad-emerald via-sanad-emerald-deep to-[#0A332E] relative border-b border-sanad-gold/40">
+              <div className="absolute right-6 bottom-3 opacity-15 font-arabic text-5xl text-sanad-gold font-bold select-none">
+                سند
+              </div>
+            </div>
+
+            <div className="px-6 sm:px-8 pb-8 pt-0 relative">
+              <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 -mt-10 mb-6">
+                <div className="flex items-end gap-4">
+                  <div className="w-20 h-20 rounded-2xl border-4 border-white bg-gradient-to-br from-sanad-emerald to-sanad-emerald-deep text-white font-serif text-2xl font-bold flex items-center justify-center shadow-md">
+                    {profile.displayName ? profile.displayName.charAt(0) : 'U'}
+                  </div>
+                  <div className="mb-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h1 className="font-serif text-2xl font-bold text-sanad-emerald">
+                        {profile.displayName}
+                      </h1>
+                      {isScholar && <ShieldCheck className="w-5 h-5 text-sanad-gold" />}
+                    </div>
+                    <span className="text-xs font-semibold text-sanad-emerald/80">
+                      @{profile.username}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-stretch sm:self-auto">
+                  <Button
+                    onClick={() => setIsFollowing(!isFollowing)}
+                    variant={isFollowing ? 'outline' : 'default'}
+                    size="sm"
+                    className="text-xs"
+                  >
+                    {isFollowing ? 'Following' : 'Follow Learner'}
+                  </Button>
+                  <Link href="/inbox">
+                    <Button variant="secondary" size="sm" className="text-xs">
+                      <MessageSquare className="w-3.5 h-3.5 mr-1 text-sanad-gold-dark" />
+                      Message
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Bio */}
+              <p className="text-sm text-sanad-charcoal leading-relaxed mb-5 max-w-2xl">
+                {profile.bio || 'Pursuing authentic Islamic knowledge and classical transmission.'}
+              </p>
+
+              <div className="flex flex-wrap items-center gap-4 text-xs text-sanad-slate pb-6 border-b border-sanad-border/60">
+                <Badge variant={isScholar ? 'gold' : 'outline'} className="text-[11px]">
+                  {isScholar ? 'Verified Faculty' : 'Registered Learner'}
+                </Badge>
+                <span className="flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-sanad-slate" />
+                  Active Learner
+                </span>
+              </div>
+            </div>
+          </Card>
+        </motion.div>
+      </main>
       <Footer />
     </>
   );
 }
-

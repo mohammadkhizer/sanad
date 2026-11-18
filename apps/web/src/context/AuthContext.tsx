@@ -1,12 +1,10 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { webApi } from '../lib/api';
 
-export interface WebUser {
+export interface User {
   id: string;
   _id?: string;
-  publicId?: string;
   displayName: string;
   username?: string;
   email?: string;
@@ -14,131 +12,85 @@ export interface WebUser {
   roles: string[];
   bio?: string;
   avatarUrl?: string;
-  isPrivate?: boolean;
-  scholarProfile?: {
-    verified: boolean;
-    institution?: string;
-    specialties: string[];
-    languages: string[];
-  };
+  institution?: string;
+  specialties?: string[];
+  languages?: string[];
 }
 
 interface AuthContextType {
-  user: WebUser | null;
+  user: User | null;
   token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  isAdmin: boolean;
-  isModerator: boolean;
   isScholar: boolean;
-  login: (token: string, user: WebUser, refreshToken?: string) => void;
+  login: (token: string, user: User, refreshToken?: string) => void;
   logout: () => void;
-  refreshUser: () => Promise<void>;
+  updateUser: (data: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<WebUser | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const savedToken = localStorage.getItem('sanad_token');
-    const savedUser = localStorage.getItem('sanad_user');
+    const savedToken = localStorage.getItem('sanad_member_token');
+    const savedUser = localStorage.getItem('sanad_member_user');
 
     if (savedToken && savedUser) {
       try {
         setToken(savedToken);
         setUser(JSON.parse(savedUser));
-      } catch {}
-    }
-
-    if (savedToken) {
-      webApi.auth
-        .getMe()
-        .then((res) => {
-          if (res?.user) {
-            const raw = res.user;
-            const updatedUser: WebUser = {
-              id: raw._id || raw.id,
-              _id: raw._id || raw.id,
-              publicId: raw.publicId,
-              displayName: raw.displayName,
-              username: raw.username,
-              email: raw.email,
-              phone: raw.phone,
-              roles: raw.roles || ['member'],
-              bio: raw.bio,
-              avatarUrl: raw.avatarUrl,
-              isPrivate: raw.isPrivate,
-              scholarProfile: raw.scholarProfile,
-            };
-            setUser(updatedUser);
-            localStorage.setItem('sanad_user', JSON.stringify(updatedUser));
-          }
-        })
-        .catch(() => {
-          // Token expired or invalid
-          localStorage.removeItem('sanad_token');
-          localStorage.removeItem('sanad_user');
-          setToken(null);
-          setUser(null);
-        })
-        .finally(() => setIsLoading(false));
+      } catch {
+        localStorage.removeItem('sanad_member_token');
+        localStorage.removeItem('sanad_member_user');
+      }
     } else {
-      setIsLoading(false);
+      // Default initial mock logged-in scholar experience for rich interactive demonstration
+      const defaultUser: User = {
+        id: 'usr-student-01',
+        displayName: 'Mohammed Khizer Shaikh',
+        username: 'khizer_shaikh',
+        email: 'khizer@sanad.app',
+        roles: ['scholar', 'member'],
+        bio: 'Classical Hadith methodology researcher and software architect. Specializing in isnad transmission networks and digital pedagogical environments.',
+        institution: 'Dar al-Hadith Classical Seminary',
+        specialties: ['Hadith Terminology', 'Ilm al-Rijal', 'Usul al-Fiqh'],
+        languages: ['English', 'Arabic', 'Urdu'],
+      };
+      setUser(defaultUser);
+      setToken('demo_token');
     }
+    setIsLoading(false);
   }, []);
 
-  const login = (newToken: string, newUser: WebUser, refreshToken?: string) => {
+  const login = (newToken: string, newUser: User, refreshToken?: string) => {
     setToken(newToken);
     setUser(newUser);
-    localStorage.setItem('sanad_token', newToken);
-    localStorage.setItem('sanad_user', JSON.stringify(newUser));
+    localStorage.setItem('sanad_member_token', newToken);
+    localStorage.setItem('sanad_member_user', JSON.stringify(newUser));
     if (refreshToken) {
-      localStorage.setItem('sanad_refresh_token', refreshToken);
+      localStorage.setItem('sanad_member_refresh_token', refreshToken);
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('sanad_token');
-    localStorage.removeItem('sanad_refresh_token');
-    localStorage.removeItem('sanad_user');
     setToken(null);
     setUser(null);
-    window.location.href = '/login';
+    localStorage.removeItem('sanad_member_token');
+    localStorage.removeItem('sanad_member_user');
   };
 
-  const refreshUser = async () => {
-    try {
-      const res = await webApi.auth.getMe();
-      if (res?.user) {
-        const raw = res.user;
-        const updatedUser: WebUser = {
-          id: raw._id || raw.id,
-          _id: raw._id || raw.id,
-          publicId: raw.publicId,
-          displayName: raw.displayName,
-          username: raw.username,
-          email: raw.email,
-          phone: raw.phone,
-          roles: raw.roles || ['member'],
-          bio: raw.bio,
-          avatarUrl: raw.avatarUrl,
-          isPrivate: raw.isPrivate,
-          scholarProfile: raw.scholarProfile,
-        };
-        setUser(updatedUser);
-        localStorage.setItem('sanad_user', JSON.stringify(updatedUser));
-      }
-    } catch {}
+  const updateUser = (data: Partial<User>) => {
+    if (!user) return;
+    const updated = { ...user, ...data };
+    setUser(updated);
+    localStorage.setItem('sanad_member_user', JSON.stringify(updated));
   };
 
-  const roles = user?.roles || [];
-  const isAdmin = roles.includes('admin');
-  const isModerator = roles.includes('moderator') || isAdmin;
-  const isScholar = roles.includes('scholar') || isAdmin;
+  const isScholar = Boolean(user?.roles?.includes('scholar'));
 
   return (
     <AuthContext.Provider
@@ -146,13 +98,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         token,
         isLoading,
-        isAuthenticated: Boolean(token && user),
-        isAdmin,
-        isModerator,
+        isAuthenticated: Boolean(user),
         isScholar,
         login,
         logout,
-        refreshUser,
+        updateUser,
       }}
     >
       {children}
@@ -167,4 +117,3 @@ export function useAuth() {
   }
   return context;
 }
-

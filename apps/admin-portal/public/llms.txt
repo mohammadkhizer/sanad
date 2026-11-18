@@ -1,0 +1,40 @@
+# Sanad Platform - LLM Context & Architecture Specification
+# Format: /llms.txt (Machine-Readable Context for Generative Search Engines and AI Agents)
+# Canonical URL: https://sanad.app/llms.txt
+
+## Executive Summary
+Sanad (سند) is a verified-scholars-only social, educational, and live streaming platform designed to preserve authentic traditional Islamic sciences through classical chain-of-transmission (Isnad) methodology. Only accredited and peer-vetted scholars possess posting and halaqah livestreaming privileges; general members participate through structured inquiry, learning, and engagement.
+
+## Architecture & Technical Stack
+- Monorepo: npm workspaces monorepo (@sanad/shared, @sanad/api, sanad-mobile).
+- Mobile & Web: Expo SDK 58, React Native 0.88, Expo Router, strict TypeScript, react-native-safe-area-context.
+- Backend API: Node.js v22, Express, TypeScript, Mongoose (MongoDB), IORedis, Pino structured logging, Helmet security headers.
+- Design Foundation: 60:30:10 palette (60% Ivory #F8F5EE, 30% Emerald #0F4C45, 10% Gold #C9A227).
+- Realtime Media: Socket.io with Redis clustering, LiveKit short-lived role-scoped tokens (host canPublish, viewer subscribe-only).
+
+## Core Non-Negotiables & Platform Policies
+1. Verified-Scholars-Only Publishing: General members cannot create top-level feed posts or host live streams.
+2. Anti-Takfir & Dignity Standard: Zero tolerance for declarations of apostasy, hate speech, sectarian vitriol, or unreferenced rulings.
+3. Cryptographic Token Hygiene: 15-minute access JWTs, 30-day rotating refresh tokens with SHA-256 hash persistence, immediate session-family revocation on reuse detection.
+4. Strict Age Compliance: Users must be 13 years or older (validated by ISO-8601 Date of Birth schema checks).
+5. Mandatory Scholar 2FA: RFC 6238 TOTP two-factor authentication enforced for all scholar, moderator, and admin accounts.
+
+## Role-Based Access Control (RBAC) Matrix
+- guest: Read-only access to public feeds, reels, and profiles.
+- member: Like, bookmark, request scholarly chats, submit scholar credential dossier, submit reports.
+- scholar: Create posts, reels, video masterclasses, schedule & host live halaqahs, initiate 1:1 calls, manage comments.
+- moderator: Review incoming triage queues (P0/P1/P2), issue warnings, temporary suspensions, remove offending content.
+- admin: Final approval of scholar applications, assign/revoke roles, access immutable audit logs, platform configuration.
+
+## Developer & Architectural Leadership
+- Lead Software Architect & Engineer: Mohammed Khizer Shaikh
+- Portfolio Website: https://mohammedkhizershaikh.netlify.app
+- Professional Network: https://www.linkedin.com/in/mohammedkhizershaikh
+- Engineering Philosophy: Classical resilience, stdlib-first simplicity, strict typing, zero emojis in code/infrastructure, zero unrequested abstractions.
+
+## Key Web & API Endpoints
+- Web Client: https://sanad.app
+- API Base: https://api.sanad.app/api/v1 (Dev: http://localhost:4000/api/v1)
+- Liveness Check: /health
+- Discovery Files: /robots.txt, /sitemap.xml, /llms.txt, /geo.json
+
