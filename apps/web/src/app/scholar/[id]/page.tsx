@@ -1,309 +1,307 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   ShieldCheck,
-  Award,
   BookOpen,
   MessageSquare,
   Video,
-  CheckCircle2,
   Calendar,
-  MapPin,
   ArrowLeft,
   Share2,
+  Bookmark,
 } from 'lucide-react';
+import { platformApi, Post } from '../../../lib/api';
 import { Button } from '../../../components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/card';
+import { Card } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
+import Preloader from '../../../components/Preloader';
 
 export default function ScholarDossierPage() {
   const params = useParams();
-  const scholarId = (params?.id as string) || 'scholar-1';
+  const scholarId = params?.id as string;
 
+  const [scholar, setScholar] = useState<any | null>(null);
+  const [counts, setCounts] = useState({ followers: 0, following: 0, lessons: 0 });
   const [isFollowing, setIsFollowing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'lessons' | 'ijazahs' | 'halaqat'>('lessons');
+  const [lessons, setLessons] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'lessons' | 'credentials'>('lessons');
 
-  const scholar = {
-    id: scholarId,
-    name: 'Hadith Studies & Isnad Verification Chair',
-    arabicTitle: 'أستاذ الحديث النبوي وعلوم الرواية',
-    institution: 'Dar al-Hadith Classical Seminary, Cairo',
-    location: 'Cairo, Egypt',
-    joined: 'Sanad Faculty Member since 2024',
-    bio: 'Dedicated researcher of early canonical Hadith manuscripts, rijal evaluation (Jarh wa Ta’dil), and authentic chains of transmission across North Africa and the Levant. Holding unbroken isnad lineages connecting to the Six Books.',
-    stats: {
-      lessons: 48,
-      ijazahs: 6,
-      students: '1,240',
-      rating: '4.98',
-    },
-    ijazahs: [
-      {
-        title: 'Ijazah in the Six Canonical Compilations (al-Kutub al-Sittah)',
-        teacher: 'Traditional Transmission Council of Damascus',
-        year: '2016',
-        chainType: 'Unbroken Continuous Lineage',
-      },
-      {
-        title: 'Certification in Musnad Ahmad ibn Hanbal',
-        teacher: 'Dar al-Hadith Seminary',
-        year: '2019',
-        chainType: 'Direct Auditory Transmission (Sama’)',
-      },
-      {
-        title: 'Licensure in Al-Muwatta of Imam Malik',
-        teacher: 'Faculty of Classical Usul',
-        year: '2021',
-        chainType: 'Recitation and Endorsement (Qira’ah)',
-      },
-    ],
-    lessons: [
-      {
-        id: 'post-1',
-        title: 'Actions and Intentions in Epistemology',
-        reference: 'Sahih al-Bukhari #1',
-        arabicSnippet: 'إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ',
-        grade: 'Sahih',
-      },
-      {
-        id: 'post-2',
-        title: 'The Semantic Depth of Sincere Counsel',
-        reference: 'Sahih Muslim #55',
-        arabicSnippet: 'الدِّينُ النَّصِيحَةُ',
-        grade: 'Sahih',
-      },
-    ],
+  useEffect(() => {
+    if (!scholarId) return;
+
+    async function loadScholar() {
+      setLoading(true);
+      try {
+        const res = await platformApi.users.getUser(scholarId);
+        setScholar(res.user);
+        if (res.counts) setCounts(res.counts);
+        setIsFollowing(Boolean(res.isFollowing));
+      } catch {
+        setScholar(null);
+      }
+
+      try {
+        const feedRes = await platformApi.feed.getPosts(undefined, scholarId);
+        setLessons(feedRes.posts || []);
+      } catch {
+        setLessons([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadScholar();
+  }, [scholarId]);
+
+  const toggleFollow = async () => {
+    if (!scholar) return;
+    const next = !isFollowing;
+    setIsFollowing(next);
+    setCounts((prev) => ({
+      ...prev,
+      followers: next ? prev.followers + 1 : Math.max(0, prev.followers - 1),
+    }));
+
+    try {
+      if (next) {
+        await platformApi.users.follow(scholarId);
+      } else {
+        await platformApi.users.unfollow(scholarId);
+      }
+    } catch {
+      setIsFollowing(!next);
+    }
   };
+
+  if (loading) {
+    return <Preloader fullScreen label="Auditing Scholar Credentials..." description="Retrieving verified accreditation records" />;
+  }
+
+  if (!scholar) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center text-center px-4">
+        <h2 className="text-xl font-serif font-bold text-sanad-emerald mb-2">Scholar Not Found</h2>
+        <p className="text-xs text-sanad-muted mb-6">The requested teacher profile does not exist in the faculty directory.</p>
+        <Link href="/explore">
+          <Button variant="default" size="sm">Back to Faculty Directory</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  const isScholar = Boolean(scholar.scholarProfile?.verified || scholar.roles?.includes('scholar'));
+  const institution = scholar.scholarProfile?.institution || 'Sanad Academic Foundation';
 
   return (
     <div className="min-h-screen py-10 px-4 sm:px-6 max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <Link
-            href="/explore"
-            className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sanad-slate hover:text-sanad-emerald transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Scholar Directory</span>
-          </Link>
-          <button
-            onClick={() => {
-              if (navigator.share) {
-                navigator.share({ title: scholar.name, url: window.location.href });
-              }
-            }}
-            className="p-2 rounded-lg border border-sanad-border bg-white text-sanad-slate hover:bg-sanad-ivory-warm"
-          >
-            <Share2 className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Scholar Master Dossier Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
+      <div className="flex items-center justify-between mb-6">
+        <Link
+          href="/explore"
+          className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sanad-slate hover:text-sanad-emerald transition-colors"
         >
-          <Card className="border-sanad-border bg-white shadow-sm overflow-hidden mb-8">
-            <div className="h-32 sm:h-36 bg-gradient-to-r from-sanad-emerald via-sanad-emerald-deep to-[#0A332E] relative border-b border-sanad-gold/40">
-              <div className="absolute right-6 bottom-4 opacity-15 font-arabic text-6xl text-sanad-gold font-bold select-none">
-                سند
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Scholar Directory</span>
+        </Link>
+        <button
+          onClick={() => {
+            if (navigator.share) {
+              navigator.share({ title: scholar.displayName, url: window.location.href });
+            }
+          }}
+          className="p-2 rounded-lg border border-sanad-border bg-white text-sanad-slate hover:bg-sanad-ivory-warm"
+        >
+          <Share2 className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Scholar Master Dossier Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <Card className="border-sanad-border bg-white shadow-sm overflow-hidden mb-8">
+          <div className="h-32 sm:h-36 bg-gradient-to-r from-sanad-emerald via-sanad-emerald-deep to-[#0A332E] relative border-b border-sanad-gold/40">
+            <div className="absolute right-6 bottom-4 opacity-15 font-arabic text-6xl text-sanad-gold font-bold select-none">
+              سند
+            </div>
+          </div>
+
+          <div className="px-6 sm:px-8 pb-8 pt-0 relative">
+            {/* Avatar and Action Controls */}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-12 sm:-mt-14 mb-4">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-4 border-white bg-gradient-to-br from-sanad-emerald to-sanad-emerald-deep text-white font-serif text-3xl font-bold flex items-center justify-center shadow-lg ring-1 ring-sanad-border/30 shrink-0 select-none">
+                {scholar.displayName ? scholar.displayName.charAt(0) : 'S'}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 pb-1 self-start sm:self-auto">
+                <Button
+                  onClick={toggleFollow}
+                  variant={isFollowing ? 'outline' : 'default'}
+                  size="sm"
+                  className="text-xs"
+                >
+                  {isFollowing ? 'Following Scholar' : '+ Follow Faculty'}
+                </Button>
+                <Link href="/inbox">
+                  <Button variant="secondary" size="sm" className="text-xs">
+                    <MessageSquare className="w-3.5 h-3.5 mr-1 text-sanad-gold-dark" />
+                    Consultation
+                  </Button>
+                </Link>
+                <Link href={`/call/${scholarId}`}>
+                  <Button variant="gold" size="sm" className="text-xs">
+                    <Video className="w-3.5 h-3.5 mr-1" />
+                    Video Halaqah
+                  </Button>
+                </Link>
               </div>
             </div>
 
-            <div className="px-6 sm:px-8 pb-8 pt-0 relative">
-              {/* Avatar and Action Controls: Avatar overlaps banner safely while actions align in card area */}
-              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-12 sm:-mt-14 mb-4">
-                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-4 border-white bg-gradient-to-br from-sanad-emerald to-sanad-emerald-deep text-white font-serif text-3xl font-bold flex items-center justify-center shadow-lg ring-1 ring-sanad-border/30 shrink-0 select-none">
-                  {scholar.name.charAt(0)}
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 pb-1 self-start sm:self-auto">
-                  <Button
-                    onClick={() => setIsFollowing(!isFollowing)}
-                    variant={isFollowing ? 'outline' : 'default'}
-                    size="sm"
-                    className="text-xs"
-                  >
-                    {isFollowing ? 'Following Scholar' : 'Follow Faculty'}
-                  </Button>
-                  <Link href="/inbox">
-                    <Button variant="secondary" size="sm" className="text-xs">
-                      <MessageSquare className="w-3.5 h-3.5 mr-1 text-sanad-gold-dark" />
-                      Consultation
-                    </Button>
-                  </Link>
-                  <Link href={`/call/${scholar.id}`}>
-                    <Button variant="gold" size="sm" className="text-xs">
-                      <Video className="w-3.5 h-3.5 mr-1" />
-                      Video Halaqah
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-
-              {/* Scholar Identity Block: Positioned 100% on crisp white card background for maximum contrast */}
-              <div className="mb-4">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="font-serif text-2xl sm:text-3xl font-bold text-sanad-emerald tracking-tight">
-                    {scholar.name}
-                  </h1>
+            {/* Scholar Identity Block: 100% on white card background */}
+            <div className="mb-4">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="font-serif text-2xl sm:text-3xl font-bold text-sanad-emerald tracking-tight">
+                  {scholar.displayName}
+                </h1>
+                {isScholar && (
                   <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-sanad-gold/15 text-sanad-gold-dark text-xs font-semibold border border-sanad-gold/30">
                     <ShieldCheck className="w-3.5 h-3.5 text-sanad-gold-dark shrink-0" />
                     <span>Verified Faculty</span>
                   </div>
-                </div>
-                <span className="font-arabic text-sm sm:text-base text-sanad-gold-dark font-medium block mt-1">
-                  {scholar.arabicTitle}
-                </span>
+                )}
               </div>
-
-              {/* Bio & Meta */}
-              <p className="text-sm text-sanad-charcoal leading-relaxed mb-6 max-w-3xl">
-                {scholar.bio}
+              <p className="text-xs font-semibold text-sanad-slate mt-1">
+                @{scholar.username || 'scholar'} &bull; {institution}
               </p>
+            </div>
 
-              <div className="flex flex-wrap gap-y-2 gap-x-6 text-xs text-sanad-slate pb-6 border-b border-sanad-border/60">
-                <span className="flex items-center gap-1.5">
-                  <Award className="w-4 h-4 text-sanad-gold" />
-                  {scholar.institution}
+            {/* Bio & Meta */}
+            <p className="text-sm text-sanad-charcoal leading-relaxed mb-6 max-w-3xl">
+              {scholar.bio || 'Accredited teacher of traditional Hadith literature, textual criticism, and unbroken transmission chains.'}
+            </p>
+
+            <div className="flex flex-wrap gap-y-2 gap-x-6 text-xs text-sanad-slate pb-6 border-b border-sanad-border/60">
+              <span className="flex items-center gap-1.5">
+                <Calendar className="w-4 h-4 text-sanad-slate" />
+                Active Sanad Scholar
+              </span>
+            </div>
+
+            {/* Stats directly from database */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-6">
+              <div className="p-4 rounded-xl border border-sanad-border bg-sanad-ivory-warm/40 text-center">
+                <span className="font-serif text-2xl font-bold text-sanad-emerald block">
+                  {counts.lessons}
                 </span>
-                <span className="flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-sanad-emerald" />
-                  {scholar.location}
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4 text-sanad-slate" />
-                  {scholar.joined}
+                <span className="text-[10px] font-bold uppercase tracking-wider text-sanad-slate">
+                  Published Lessons
                 </span>
               </div>
-
-              {/* Statistics Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6">
-                <div className="p-3.5 rounded-xl border border-sanad-border bg-sanad-ivory-warm/40 text-center">
-                  <span className="font-serif text-2xl font-bold text-sanad-emerald block">
-                    {scholar.stats.lessons}
-                  </span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-sanad-slate">
-                    Published Lessons
-                  </span>
-                </div>
-                <div className="p-3.5 rounded-xl border border-sanad-border bg-sanad-ivory-warm/40 text-center">
-                  <span className="font-serif text-2xl font-bold text-sanad-emerald block">
-                    {scholar.stats.ijazahs}
-                  </span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-sanad-slate">
-                    Connected Ijazahs
-                  </span>
-                </div>
-                <div className="p-3.5 rounded-xl border border-sanad-border bg-sanad-ivory-warm/40 text-center">
-                  <span className="font-serif text-2xl font-bold text-sanad-emerald block">
-                    {scholar.stats.students}
-                  </span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-sanad-slate">
-                    Enrolled Learners
-                  </span>
-                </div>
-                <div className="p-3.5 rounded-xl border border-sanad-border bg-sanad-ivory-warm/40 text-center">
-                  <span className="font-serif text-2xl font-bold text-sanad-gold-dark block">
-                    {scholar.stats.rating}
-                  </span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-sanad-slate">
-                    Academic Evaluation
-                  </span>
-                </div>
+              <div className="p-4 rounded-xl border border-sanad-border bg-sanad-ivory-warm/40 text-center">
+                <span className="font-serif text-2xl font-bold text-sanad-emerald block">
+                  {counts.followers}
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-sanad-slate">
+                  Students &amp; Followers
+                </span>
+              </div>
+              <div className="p-4 rounded-xl border border-sanad-border bg-sanad-ivory-warm/40 text-center col-span-2 sm:col-span-1">
+                <span className="font-serif text-2xl font-bold text-sanad-emerald block">
+                  {counts.following}
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-sanad-slate">
+                  Scholars Followed
+                </span>
               </div>
             </div>
+          </div>
+        </Card>
+      </motion.div>
+
+      {/* Tabs */}
+      <div className="flex border-b border-sanad-border mb-6">
+        <button
+          onClick={() => setActiveTab('lessons')}
+          className={`px-5 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
+            activeTab === 'lessons'
+              ? 'border-sanad-emerald text-sanad-emerald'
+              : 'border-transparent text-sanad-slate hover:text-sanad-emerald'
+          }`}
+        >
+          <BookOpen className="w-3.5 h-3.5" />
+          <span>Authored Lessons ({lessons.length})</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('credentials')}
+          className={`px-5 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-2 ${
+            activeTab === 'credentials'
+              ? 'border-sanad-emerald text-sanad-emerald'
+              : 'border-transparent text-sanad-slate hover:text-sanad-emerald'
+          }`}
+        >
+          <ShieldCheck className="w-3.5 h-3.5" />
+          <span>Accreditation &amp; Specialties</span>
+        </button>
+      </div>
+
+      {/* Tab Panels */}
+      {activeTab === 'lessons' ? (
+        lessons.length === 0 ? (
+          <Card className="p-10 text-center border-dashed border-2 border-sanad-border bg-white shadow-sm">
+            <h3 className="font-serif text-base font-bold text-sanad-emerald mb-1">
+              No Lessons Authored Yet
+            </h3>
+            <p className="text-xs text-sanad-muted max-w-sm mx-auto">
+              This scholar has not authored any public Hadith commentaries in the repository yet.
+            </p>
           </Card>
-        </motion.div>
-
-        {/* Tab Navigation */}
-        <div className="flex border-b border-sanad-border mb-6">
-          {[
-            { id: 'lessons', label: 'Published Lessons' },
-            { id: 'ijazahs', label: 'Verified Ijazahs & Sanad' },
-            { id: 'halaqat', label: 'Live Academic Halaqat' },
-          ].map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setActiveTab(t.id as any)}
-              className={`px-5 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all ${
-                activeTab === t.id
-                  ? 'border-sanad-emerald text-sanad-emerald'
-                  : 'border-transparent text-sanad-slate hover:text-sanad-emerald'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Tab Content */}
-        {activeTab === 'lessons' && (
+        ) : (
           <div className="space-y-4">
-            {scholar.lessons.map((lesson) => (
+            {lessons.map((lesson) => (
               <Link key={lesson.id} href={`/post/${lesson.id}`} className="block">
                 <Card className="border-sanad-border bg-white hover:border-sanad-gold transition-colors p-5">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-sanad-gold-dark">
-                      {lesson.reference}
-                    </span>
-                    <Badge variant={lesson.grade === 'Sahih' ? 'sahih' : 'hasan'}>
-                      {lesson.grade}
-                    </Badge>
+                    <span className="text-xs font-bold text-sanad-gold-dark">{lesson.sourceReference}</span>
+                    <Badge variant={lesson.chainVerificationStatus}>{lesson.chainVerificationStatus}</Badge>
                   </div>
-                  <h3 className="font-serif text-lg font-bold text-sanad-emerald mb-1">
-                    {lesson.title}
+                  <h3 className="font-serif text-lg font-bold text-sanad-emerald mb-1.5">
+                    {lesson.body?.slice(0, 90) || 'Authored Treatise'}
                   </h3>
-                  <p className="font-arabic text-lg text-sanad-emerald-deep text-right">
-                    {lesson.arabicSnippet}
-                  </p>
+                  <div className="text-xs text-sanad-slate">
+                    Published on {new Date(lesson.createdAt).toLocaleDateString()}
+                  </div>
                 </Card>
               </Link>
             ))}
           </div>
-        )}
-
-        {activeTab === 'ijazahs' && (
-          <div className="space-y-4">
-            {scholar.ijazahs.map((ij, idx) => (
-              <Card key={idx} className="border-sanad-border bg-white p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h4 className="font-bold text-sm text-sanad-emerald">{ij.title}</h4>
-                    <span className="text-xs text-sanad-slate block mt-0.5">
-                      Issued by: {ij.teacher} &bull; Year: {ij.year}
-                    </span>
-                    <Badge variant="gold" className="text-[10px] mt-2">
-                      {ij.chainType}
-                    </Badge>
-                  </div>
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {activeTab === 'halaqat' && (
-          <Card className="border-sanad-border bg-white p-8 text-center">
-            <Video className="w-8 h-8 text-sanad-gold mx-auto mb-2" />
-            <h4 className="font-serif text-lg font-bold text-sanad-emerald">
-              Upcoming Live Transmission Halaqah
-            </h4>
-            <p className="text-xs text-sanad-slate mt-1 max-w-md mx-auto">
-              Weekly commentary on Kitab al-Iman from Sahih Muslim. Audio and visual transmission available to registered seekers.
-            </p>
-            <div className="mt-4">
-              <Link href={`/call/${scholar.id}`}>
-                <Button size="sm">Enter Seminar Room</Button>
-              </Link>
+        )
+      ) : (
+        <Card className="p-6 border-sanad-border bg-white shadow-sm space-y-4">
+          <h3 className="font-serif text-base font-bold text-sanad-emerald">Specialized Academic Fields</h3>
+          {Array.isArray(scholar.scholarProfile?.specialties) && scholar.scholarProfile.specialties.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {scholar.scholarProfile.specialties.map((s: string) => (
+                <span key={s} className="px-3 py-1 rounded-lg bg-sanad-ivory text-sanad-emerald border border-sanad-border text-xs font-medium">
+                  {s}
+                </span>
+              ))}
             </div>
-          </Card>
-        )}
+          ) : (
+            <p className="text-xs text-sanad-muted">No specific specialties declared.</p>
+          )}
+
+          <div className="pt-4 border-t border-sanad-border">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-sanad-slate mb-1">Institutional Seal</h4>
+            <p className="text-sm font-semibold text-sanad-charcoal">{institution}</p>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }

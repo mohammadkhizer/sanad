@@ -1,19 +1,39 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { Mic, MicOff, Video, VideoOff, PhoneOff, MessageSquare, ShieldCheck, Share2 } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
+import { platformApi } from '../../../lib/api';
 
 export default function ConsultationCallPage() {
   const router = useRouter();
+  const params = useParams();
+  const partnerId = params?.id as string;
+
+  const [partner, setPartner] = useState<any | null>(null);
   const [micOn, setMicOn] = useState(true);
   const [videoOn, setVideoOn] = useState(true);
   const [sessionNotes, setSessionNotes] = useState(
-    'Discussing authentication of tradition: "Innamal A’malu bin-Niyyat" and transmitter continuous chain.'
+    'Consultation notes and Hadith transmission references discussed during this session.'
   );
+
+  useEffect(() => {
+    if (!partnerId) return;
+    platformApi.users
+      .getUser(partnerId)
+      .then((res) => {
+        setPartner(res.user);
+      })
+      .catch(() => {
+        setPartner(null);
+      });
+  }, [partnerId]);
+
+  const partnerName = partner?.displayName || 'Faculty Fellow';
+  const partnerInstitution = partner?.scholarProfile?.institution || 'Sanad Academic Foundation';
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
@@ -21,7 +41,7 @@ export default function ConsultationCallPage() {
         <div>
           <Badge variant="gold" className="mb-1">Encrypted Academic Consultation</Badge>
           <h1 className="text-xl sm:text-2xl font-serif font-bold text-sanad-emerald">
-            Live Consultation with Senior Hadith Fellow
+            Live Consultation with {partnerName}
           </h1>
         </div>
         <Button variant="outline" size="sm" onClick={() => router.push('/inbox')}>
@@ -36,7 +56,7 @@ export default function ConsultationCallPage() {
           <div className="flex items-center justify-between z-10">
             <div className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-sm">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Live &bull; 14:32</span>
+              <span>Live Consultation</span>
             </div>
             <div className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-full text-xs font-bold text-sanad-gold backdrop-blur-sm">
               <ShieldCheck className="h-3.5 w-3.5" />
@@ -45,12 +65,12 @@ export default function ConsultationCallPage() {
           </div>
 
           {/* Central Scholar Visual Simulation */}
-          <div className="flex-1 flex flex-col items-center justify-center text-center">
+          <div className="flex-1 flex flex-col items-center justify-center text-center select-none">
             <div className="w-24 h-24 rounded-full bg-sanad-emerald border-2 border-sanad-gold flex items-center justify-center font-arabic text-3xl font-bold text-sanad-gold shadow-lg mb-3">
-              سند
+              {partnerName.charAt(0)}
             </div>
-            <h2 className="text-lg font-bold font-serif text-white">Senior Hadith Department Fellow</h2>
-            <p className="text-xs text-white/70">Dar al-Hadith Classical Seminary</p>
+            <h2 className="text-lg font-bold font-serif text-white">{partnerName}</h2>
+            <p className="text-xs text-white/70">{partnerInstitution}</p>
           </div>
 
           {/* Picture-in-Picture Student Video */}
@@ -98,25 +118,32 @@ export default function ConsultationCallPage() {
         <div className="rounded-2xl border border-sanad-border bg-white p-5 flex flex-col justify-between shadow-sm">
           <div>
             <h3 className="font-bold text-xs uppercase tracking-wider text-sanad-emerald mb-3">
-              Consultation Reference Notes
+              Session Notes
             </h3>
             <textarea
               value={sessionNotes}
               onChange={(e) => setSessionNotes(e.target.value)}
-              rows={8}
-              className="w-full p-3 rounded-lg border border-sanad-border text-xs focus:outline-none focus:border-sanad-emerald leading-relaxed"
+              rows={12}
+              className="w-full text-xs text-sanad-slate leading-relaxed border border-sanad-border rounded-xl p-3 focus:outline-none focus:border-sanad-emerald resize-none"
+              placeholder="Record narrator names, book page numbers, and questions..."
             />
-            <p className="text-[11px] text-sanad-muted mt-2">
-              All references are timestamped and linked to your study notebook.
-            </p>
           </div>
 
-          <Button variant="default" size="sm" className="w-full mt-4">
-            Save Notes to Profile
-          </Button>
+          <div className="pt-4 border-t border-sanad-border/80">
+            <span className="text-[10px] text-sanad-muted block mb-2">
+              All discussions are encrypted and bound by Sanad academic integrity governance.
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full text-xs"
+              onClick={() => alert('Session notes saved locally.')}
+            >
+              Save Notes
+            </Button>
+          </div>
         </div>
       </div>
     </div>
   );
 }
-

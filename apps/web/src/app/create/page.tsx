@@ -21,6 +21,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../..
 import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
 import { Spinner } from '../../components/Preloader';
+import { platformApi } from '../../lib/api';
 
 interface NarratorInput {
   name: string;
@@ -95,14 +96,23 @@ export default function CreateLessonPage() {
     setLoading(true);
 
     try {
-      // Simulate publication dispatch
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      const captionText = `${sourceReference.trim()}: ${hadithTranslation.trim()}${commentary.trim() ? `\n\n${commentary.trim()}` : ''}`;
+      await platformApi.feed.createPost({
+        type: 'text',
+        caption: captionText,
+        tags: tags.length > 0 ? tags : ['Hadith'],
+        hadithTextArabic: hadithArabic.trim(),
+        hadithTextTranslation: hadithTranslation.trim(),
+        sourceReference: sourceReference.trim(),
+        chainVerificationStatus: grade,
+      });
       setSuccess(true);
       setTimeout(() => {
         router.push('/feed');
-      }, 1500);
-    } catch {
-      setError('Publication failed. Please try again.');
+      }, 1200);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Publication failed. Please try again.';
+      setError(msg);
     } finally {
       setLoading(false);
     }

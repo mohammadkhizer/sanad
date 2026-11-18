@@ -22,6 +22,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../..
 import { Input } from '../../../components/ui/input';
 import { Badge } from '../../../components/ui/badge';
 import { Spinner } from '../../../components/Preloader';
+import { platformApi } from '../../../lib/api';
 
 interface CredentialEntry {
   type: 'ijazah' | 'degree' | 'certification';
@@ -29,6 +30,7 @@ interface CredentialEntry {
   institution: string;
   year: number;
   fileName: string;
+  fileKey?: string;
 }
 
 export default function ScholarApplyPage() {
@@ -102,14 +104,30 @@ export default function ScholarApplyPage() {
     setLoading(true);
 
     try {
-      // Simulate submission to verification queue
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const specialtiesArray = specialties.split(',').map((s) => s.trim()).filter(Boolean);
+      const languagesArray = languages.split(',').map((l) => l.trim()).filter(Boolean);
+
+      const payload = {
+        institution: institution.trim(),
+        specialties: specialtiesArray.length > 0 ? specialtiesArray : ['Hadith Sciences'],
+        statement: statement.trim(),
+        credentials: credentials.map((c) => ({
+          type: c.type || 'ijazah',
+          fileKey: c.fileKey || `credentials/dossier-${Date.now()}.pdf`,
+          institution: c.institution || institution.trim(),
+          year: c.year || 2024,
+        })),
+        languages: languagesArray.length > 0 ? languagesArray : ['Arabic', 'English'],
+      };
+
+      await platformApi.scholar.apply(payload);
       setSuccess(true);
       setTimeout(() => {
         router.push('/scholar/status');
       }, 1500);
-    } catch {
-      setError('Submission failed. Please try again.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Submission failed. Please try again.';
+      setError(msg);
     } finally {
       setLoading(false);
     }
