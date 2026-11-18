@@ -36,8 +36,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const savedToken = localStorage.getItem('sanad_member_token');
-    const savedUser = localStorage.getItem('sanad_member_user');
+    const savedToken = localStorage.getItem('sanad_member_token') || localStorage.getItem('sanad_token');
+    const savedUser = localStorage.getItem('sanad_member_user') || localStorage.getItem('sanad_user');
 
     if (savedToken && savedUser) {
       try {
