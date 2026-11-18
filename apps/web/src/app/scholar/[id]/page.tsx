@@ -16,8 +16,6 @@ import {
   ArrowLeft,
   Share2,
 } from 'lucide-react';
-import Header from '../../../components/Header';
-import Footer from '../../../components/Footer';
 import { Button } from '../../../components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
@@ -82,9 +80,7 @@ export default function ScholarDossierPage() {
   };
 
   return (
-    <>
-      <Header />
-      <main className="min-h-screen py-10 px-4 sm:px-6 max-w-5xl mx-auto">
+    <div className="min-h-screen py-10 px-4 sm:px-6 max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <Link
             href="/explore"
@@ -303,8 +299,6 @@ export default function ScholarDossierPage() {
             </div>
           </Card>
         )}
-      </main>
-      <Footer />
-    </>
+    </div>
   );
 }

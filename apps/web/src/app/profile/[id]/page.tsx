@@ -14,8 +14,6 @@ import {
   Share2,
   Lock,
 } from 'lucide-react';
-import Header from '../../../components/Header';
-import Footer from '../../../components/Footer';
 import { Preloader } from '../../../components/Preloader';
 import { Button } from '../../../components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/card';
@@ -63,9 +61,7 @@ export default function PublicUserProfilePage() {
   const isScholar = profile.roles?.includes('scholar');
 
   return (
-    <>
-      <Header />
-      <main className="min-h-screen py-10 px-4 sm:px-6 max-w-4xl mx-auto">
+    <div className="min-h-screen py-10 px-4 sm:px-6 max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <Link
             href="/explore"
@@ -152,8 +148,6 @@ export default function PublicUserProfilePage() {
             </div>
           </Card>
         </motion.div>
-      </main>
-      <Footer />
-    </>
+    </div>
   );
 }

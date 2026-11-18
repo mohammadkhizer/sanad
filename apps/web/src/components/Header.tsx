@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Compass,
   MessageSquare,
@@ -22,9 +22,15 @@ import { Badge } from './ui/badge';
 import { cn } from '../lib/utils';
 
 export default function Header() {
+  const router = useRouter();
   const pathname = usePathname();
   const { user, isAuthenticated, isScholar, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleSignOut = () => {
+    logout();
+    router.push('/login');
+  };
 
   const navLinks = [
     { href: '/', label: 'Feed', icon: BookOpen },
@@ -137,7 +143,7 @@ export default function Header() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={logout}
+                  onClick={handleSignOut}
                   title="Sign Out"
                   className="text-sanad-muted hover:text-rose-700 hover:bg-rose-50"
                 >

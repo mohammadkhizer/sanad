@@ -46,22 +46,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch {
         localStorage.removeItem('sanad_member_token');
         localStorage.removeItem('sanad_member_user');
+        setToken(null);
+        setUser(null);
       }
     } else {
-      // Default initial mock logged-in scholar experience for rich interactive demonstration
-      const defaultUser: User = {
-        id: 'usr-student-01',
-        displayName: 'Mohammed Khizer Shaikh',
-        username: 'khizer_shaikh',
-        email: 'khizer@sanad.app',
-        roles: ['scholar', 'member'],
-        bio: 'Classical Hadith methodology researcher and software architect. Specializing in isnad transmission networks and digital pedagogical environments.',
-        institution: 'Dar al-Hadith Classical Seminary',
-        specialties: ['Hadith Terminology', 'Ilm al-Rijal', 'Usul al-Fiqh'],
-        languages: ['English', 'Arabic', 'Urdu'],
-      };
-      setUser(defaultUser);
-      setToken('demo_token');
+      setToken(null);
+      setUser(null);
     }
     setIsLoading(false);
   }, []);
@@ -81,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     localStorage.removeItem('sanad_member_token');
     localStorage.removeItem('sanad_member_user');
+    localStorage.removeItem('sanad_member_refresh_token');
   };
 
   const updateUser = (data: Partial<User>) => {

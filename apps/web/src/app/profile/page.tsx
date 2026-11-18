@@ -15,8 +15,6 @@ import {
   GraduationCap,
   ExternalLink,
 } from 'lucide-react';
-import Header from '../../components/Header';
-import Footer from '../../components/Footer';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
@@ -58,9 +56,7 @@ export default function CurrentUserProfilePage() {
   };
 
   return (
-    <>
-      <Header />
-      <main className="min-h-screen py-10 px-4 sm:px-6 max-w-4xl mx-auto">
+    <div className="min-h-screen py-10 px-4 sm:px-6 max-w-4xl mx-auto">
         {/* Profile Card */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -211,8 +207,6 @@ export default function CurrentUserProfilePage() {
             ))}
           </div>
         )}
-      </main>
-      <Footer />
-    </>
+    </div>
   );
 }

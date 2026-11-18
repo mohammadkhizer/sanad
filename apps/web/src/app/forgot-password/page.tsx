@@ -5,8 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Mail, KeyRound, CheckCircle2, AlertCircle, ArrowLeft } from 'lucide-react';
-import Header from '../../components/Header';
-import Footer from '../../components/Footer';
 import PasswordInput from '../../components/PasswordInput';
 import { Spinner } from '../../components/Preloader';
 import { webApi } from '../../lib/api';
@@ -80,15 +78,13 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <>
-      <Header />
-      <main className="min-h-[82vh] flex items-center justify-center py-12 px-4 sm:px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: 'easeOut' }}
-          className="w-full max-w-md"
-        >
+    <div className="min-h-[82vh] flex items-center justify-center py-12 px-4 sm:px-6">
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        className="w-full max-w-md"
+      >
           <Card className="border-sanad-border bg-white shadow-md">
             <CardHeader className="text-center pb-6">
               <div className="w-12 h-12 rounded-xl border border-sanad-gold bg-gradient-to-br from-sanad-emerald to-sanad-emerald-deep flex items-center justify-center mx-auto mb-3 shadow-sm overflow-hidden">
@@ -244,8 +240,6 @@ export default function ForgotPasswordPage() {
             </CardFooter>
           </Card>
         </motion.div>
-      </main>
-      <Footer />
-    </>
+    </div>
   );
 }

@@ -1,6 +1,4 @@
 import Link from 'next/link';
-import Header from '../../components/Header';
-import Footer from '../../components/Footer';
 
 export const metadata = {
   title: 'Privacy Policy | Sanad',
@@ -9,11 +7,8 @@ export const metadata = {
 
 export default function PrivacyPage() {
   return (
-    <>
-      <Header />
-      <main className="section">
-        <div className="container">
-          <div className="legal-content">
+    <div className="py-12 px-4 sm:px-6 max-w-4xl mx-auto">
+      <div className="legal-content">
             <div className="legal-header">
               <h1 className="legal-h1">Privacy Policy</h1>
               <div className="legal-date">Last Updated: November 2026</div>
@@ -65,16 +60,13 @@ export default function PrivacyPage() {
               </p>
             </div>
 
-            <div style={{ marginTop: '40px' }}>
-              <Link href="/" className="btn btn-outline">
-                Back to Home
-              </Link>
-            </div>
-          </div>
+        <div style={{ marginTop: '40px' }}>
+          <Link href="/feed" className="text-xs font-bold text-sanad-emerald hover:underline">
+            &larr; Return to Knowledge Feed
+          </Link>
         </div>
-      </main>
-      <Footer />
-    </>
+      </div>
+    </div>
   );
 }
 

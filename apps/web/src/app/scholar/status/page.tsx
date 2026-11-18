@@ -13,8 +13,6 @@ import {
   ArrowLeft,
   ArrowRight,
 } from 'lucide-react';
-import Header from '../../../components/Header';
-import Footer from '../../../components/Footer';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
 import { Button } from '../../../components/ui/button';
@@ -52,9 +50,7 @@ export default function ScholarStatusPage() {
   ];
 
   return (
-    <>
-      <Header />
-      <main className="min-h-screen py-10 px-4 sm:px-6 max-w-3xl mx-auto">
+    <div className="min-h-screen py-10 px-4 sm:px-6 max-w-3xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <Link
             href="/feed"
@@ -152,8 +148,6 @@ export default function ScholarStatusPage() {
             </CardContent>
           </Card>
         </motion.div>
-      </main>
-      <Footer />
-    </>
+    </div>
   );
 }

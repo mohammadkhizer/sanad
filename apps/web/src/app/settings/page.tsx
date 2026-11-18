@@ -18,8 +18,6 @@ import {
   Bell,
   Lock,
 } from 'lucide-react';
-import Header from '../../components/Header';
-import Footer from '../../components/Footer';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../components/ui/card';
@@ -57,9 +55,7 @@ export default function SettingsPage() {
   ];
 
   return (
-    <>
-      <Header />
-      <main className="min-h-screen py-10 px-4 sm:px-6 max-w-5xl mx-auto">
+    <div className="min-h-screen py-10 px-4 sm:px-6 max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <Link
             href="/feed"
@@ -370,8 +366,6 @@ export default function SettingsPage() {
             </motion.div>
           </div>
         </div>
-      </main>
-      <Footer />
-    </>
+    </div>
   );
 }

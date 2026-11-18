@@ -17,8 +17,6 @@ import {
   Send,
   Sparkles,
 } from 'lucide-react';
-import Header from '../../../components/Header';
-import Footer from '../../../components/Footer';
 import { webApi, HadithPost } from '../../../lib/api';
 import { Badge } from '../../../components/ui/badge';
 import { Button } from '../../../components/ui/button';
@@ -180,9 +178,7 @@ export default function PostDetailPage() {
   }
 
   return (
-    <>
-      <Header />
-      <main className="min-h-screen py-8 px-4 sm:px-6 max-w-5xl mx-auto">
+    <div className="min-h-screen py-8 px-4 sm:px-6 max-w-5xl mx-auto">
         {/* Navigation Breadcrumb */}
         <div className="flex items-center justify-between mb-6">
           <Link
@@ -447,8 +443,6 @@ export default function PostDetailPage() {
             ))}
           </div>
         </section>
-      </main>
-      <Footer />
-    </>
+    </div>
   );
 }

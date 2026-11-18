@@ -5,8 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Save, CheckCircle2, User as UserIcon } from 'lucide-react';
-import Header from '../../../components/Header';
-import Footer from '../../../components/Footer';
 import { useAuth } from '../../../context/AuthContext';
 import { Button } from '../../../components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../../components/ui/card';
@@ -43,9 +41,7 @@ export default function EditProfilePage() {
   };
 
   return (
-    <>
-      <Header />
-      <main className="min-h-screen py-10 px-4 sm:px-6 max-w-2xl mx-auto">
+    <div className="min-h-screen py-10 px-4 sm:px-6 max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <Link
             href="/profile"
@@ -156,8 +152,6 @@ export default function EditProfilePage() {
             </CardContent>
           </Card>
         </motion.div>
-      </main>
-      <Footer />
-    </>
+    </div>
   );
 }

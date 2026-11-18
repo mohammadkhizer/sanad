@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '../context/AuthContext';
+import AuthGuard from '../components/AuthGuard';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -22,11 +23,13 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen flex flex-col justify-between selection:bg-sanad-gold-subtle selection:text-sanad-emerald">
         <AuthProvider>
-          <Header />
-          <main className="flex-1">
-            {children}
-          </main>
-          <Footer />
+          <AuthGuard>
+            <Header />
+            <main className="flex-1">
+              {children}
+            </main>
+            <Footer />
+          </AuthGuard>
         </AuthProvider>
       </body>
     </html>

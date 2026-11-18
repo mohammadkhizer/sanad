@@ -1,6 +1,4 @@
 import Link from 'next/link';
-import Header from '../../components/Header';
-import Footer from '../../components/Footer';
 
 export const metadata = {
   title: 'Isnad Verification Protocol | Sanad',
@@ -10,11 +8,8 @@ export const metadata = {
 
 export default function VerificationPage() {
   return (
-    <>
-      <Header />
-      <main className="section">
-        <div className="container">
-          <div className="legal-content">
+    <div className="py-12 px-4 sm:px-6 max-w-4xl mx-auto">
+      <div className="legal-content">
             <div className="legal-header">
               <h1 className="legal-h1">How Verification Works</h1>
               <div className="legal-date">The 4-Stage Scholarly Authentication Protocol</div>
@@ -92,19 +87,16 @@ export default function VerificationPage() {
               </p>
             </div>
 
-            <div style={{ marginTop: '40px', display: 'flex', gap: '16px' }}>
-              <Link href="/app" className="btn btn-primary">
-                Launch App to Apply
-              </Link>
-              <Link href="/" className="btn btn-outline">
-                Back to Home
-              </Link>
-            </div>
-          </div>
+        <div style={{ marginTop: '40px', display: 'flex', gap: '16px' }}>
+          <Link href="/scholar/apply" className="px-4 py-2 rounded-lg bg-sanad-emerald text-white text-xs font-bold hover:bg-sanad-emerald-deep">
+            Apply for Scholar Accreditation
+          </Link>
+          <Link href="/feed" className="px-4 py-2 rounded-lg border border-sanad-border text-xs font-bold text-sanad-slate hover:bg-sanad-ivory-warm">
+            Return to Feed
+          </Link>
         </div>
-      </main>
-      <Footer />
-    </>
+      </div>
+    </div>
   );
 }
 
