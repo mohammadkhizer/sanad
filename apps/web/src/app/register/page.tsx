@@ -70,15 +70,16 @@ export default function RegisterPage() {
 
     try {
       setLoading(true);
-      const res = await webApi.auth.register({
-        displayName: displayName.trim(),
-        email: email.trim() || undefined,
-        phone: phone.trim() || undefined,
-        dateOfBirth: dateOfBirth.trim(),
-        password,
-      });
+      const res: { message?: string; identifier?: string; accessToken?: string; user?: any } =
+        await webApi.auth.register({
+          displayName: displayName.trim(),
+          email: email.trim() || undefined,
+          phone: phone.trim() || undefined,
+          dateOfBirth: dateOfBirth.trim(),
+          password,
+        });
 
-      if (res.accessToken && res.user) {
+      if (res?.accessToken && res?.user) {
         login(res.accessToken, res.user);
         router.push('/feed');
       } else {
