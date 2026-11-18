@@ -148,7 +148,7 @@ export default function ScholarDossierPage() {
                 >
                   {isFollowing ? 'Following Scholar' : '+ Follow Faculty'}
                 </Button>
-                <Link href="/inbox">
+                <Link href={`/inbox?userId=${scholarId}`}>
                   <Button variant="secondary" size="sm" className="text-xs">
                     <MessageSquare className="w-3.5 h-3.5 mr-1 text-sanad-gold-dark" />
                     Consultation

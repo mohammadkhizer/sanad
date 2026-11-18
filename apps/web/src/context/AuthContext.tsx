@@ -5,6 +5,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 export interface User {
   id: string;
   _id?: string;
+  publicId?: string;
   displayName: string;
   username?: string;
   email?: string;
@@ -12,6 +13,7 @@ export interface User {
   roles: string[];
   bio?: string;
   avatarUrl?: string;
+  isPrivate?: boolean;
   institution?: string;
   specialties?: string[];
   languages?: string[];

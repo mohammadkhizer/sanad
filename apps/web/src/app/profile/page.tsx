@@ -21,7 +21,7 @@ import { Badge } from '../../components/ui/badge';
 import Preloader from '../../components/Preloader';
 
 export default function CurrentUserProfilePage() {
-  const { user, isScholar } = useAuth();
+  const { user, updateUser, isScholar } = useAuth();
   const [activeTab, setActiveTab] = useState<'lessons' | 'bookmarks'>('bookmarks');
   const [counts, setCounts] = useState({ followers: 0, following: 0, lessons: 0 });
   const [authoredPosts, setAuthoredPosts] = useState<Post[]>([]);
@@ -32,6 +32,9 @@ export default function CurrentUserProfilePage() {
       setLoading(true);
       try {
         const meRes = await platformApi.users.getMe();
+        if (meRes.user) {
+          updateUser(meRes.user);
+        }
         if (meRes.counts) {
           setCounts(meRes.counts);
         }

@@ -150,7 +150,7 @@ export default function SettingsPage() {
                         Public Username
                       </label>
                       <Input
-                        defaultValue={`@${user?.username || 'ilm_seeker'}`}
+                        value={user?.username ? `@${user.username}` : '@member'}
                         readOnly
                       />
                     </div>

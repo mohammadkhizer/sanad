@@ -16,6 +16,7 @@ import {
   GraduationCap,
   ArrowRight,
   PlusCircle,
+  MessageSquare,
 } from 'lucide-react';
 import { platformApi, Post, CommentItem } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
@@ -372,6 +373,17 @@ export default function FeedPage() {
                             <BookOpen className="h-4 w-4" />
                             <span>Sanad Breakdown</span>
                           </Link>
+
+                          {post.author.id && (
+                            <Link
+                              href={`/inbox?userId=${post.author.id}`}
+                              className="flex items-center gap-1 hover:text-sanad-emerald transition-colors text-sanad-gold-dark font-medium"
+                              title="Start consultation"
+                            >
+                              <MessageSquare className="h-4 w-4" />
+                              <span>Consult</span>
+                            </Link>
+                          )}
                         </div>
 
                         <button

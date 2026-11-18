@@ -132,7 +132,7 @@ export default function PublicUserProfilePage() {
                 >
                   {isFollowing ? 'Following' : '+ Follow Learner'}
                 </Button>
-                <Link href="/inbox">
+                <Link href={`/inbox?userId=${profile.id || profile._id}`}>
                   <Button variant="secondary" size="sm" className="text-xs">
                     <MessageSquare className="w-3.5 h-3.5 mr-1 text-sanad-gold-dark" />
                     Message

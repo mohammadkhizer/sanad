@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Search, CheckCircle2, BookOpen, Compass, Award } from 'lucide-react';
+import { Search, CheckCircle2, BookOpen, Compass, Award, MessageSquare } from 'lucide-react';
 import { platformApi } from '../../lib/api';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -155,14 +155,22 @@ export default function ExplorePage() {
                           </div>
                         </div>
 
-                        <Button
-                          variant={isFollowing ? 'outline' : 'default'}
-                          size="sm"
-                          onClick={() => toggleFollow(uId)}
-                          className="shrink-0 text-xs"
-                        >
-                          {isFollowing ? 'Following' : '+ Follow'}
-                        </Button>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Link href={`/inbox?userId=${uId}`}>
+                            <Button variant="secondary" size="sm" className="text-xs">
+                              <MessageSquare className="h-3.5 w-3.5 mr-1 text-sanad-gold-dark" />
+                              Message
+                            </Button>
+                          </Link>
+                          <Button
+                            variant={isFollowing ? 'outline' : 'default'}
+                            size="sm"
+                            onClick={() => toggleFollow(uId)}
+                            className="text-xs"
+                          >
+                            {isFollowing ? 'Following' : '+ Follow'}
+                          </Button>
+                        </div>
                       </div>
 
                       <div className="text-xs font-semibold text-sanad-gold-dark mb-3">

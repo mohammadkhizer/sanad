@@ -123,6 +123,18 @@ export function normalizePost(raw: any): Post {
   };
 }
 
+function getCurrentUserId(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem('sanad_member_user') || localStorage.getItem('sanad_user');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return (parsed.id || parsed._id)?.toString() || null;
+  } catch {
+    return null;
+  }
+}
+
 export const platformApi = {
   feed: {
     getPosts: async (category?: string, scholarId?: string): Promise<{ posts: Post[] }> => {
@@ -230,40 +242,61 @@ export const platformApi = {
     getConversations: async (): Promise<{ conversations: Conversation[] }> => {
       const res = await apiFetch<{ conversations?: any[] }>('/conversations');
       const raw = res.conversations || [];
+      const myId = getCurrentUserId();
       const list: Conversation[] = raw.map((c) => {
-        const participant = c.participants?.find((p: any) => p._id) || c.participant || {};
+        const participant =
+          c.participants?.find((p: any) => {
+            const pid = (p._id || p.id)?.toString();
+            return myId ? pid !== myId : true;
+          }) ||
+          c.participants?.[0] ||
+          c.participant ||
+          {};
+        const pid = (participant._id || participant.id || '').toString();
         return {
           id: c._id?.toString() || c.id,
           participant: {
-            id: participant._id?.toString() || participant.id || '',
-            displayName: participant.displayName || 'Faculty Member',
-            username: participant.username || 'scholar',
+            id: pid,
+            displayName: participant.displayName || 'Academic Seeker',
+            username: participant.username || 'member',
             avatarUrl: participant.avatarUrl,
-            isScholar: Boolean(participant.scholarProfile?.verified || participant.roles?.includes('scholar')),
+            isScholar: Boolean(
+              participant.scholarProfile?.verified || participant.roles?.includes('scholar')
+            ),
           },
-          lastMessage: c.lastMessageText || c.lastMessage || 'Consultation channel opened.',
-          lastMessageAt: c.lastMessageAt ? new Date(c.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently',
+          lastMessage: c.lastMessageText || c.lastMessage?.body || 'Consultation channel opened.',
+          lastMessageAt: c.lastMessageAt
+            ? new Date(c.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : 'Recently',
           unreadCount: c.unreadCount || 0,
         };
       });
       return { conversations: list };
     },
 
-    getMessages: async (convId: string): Promise<{ messages: any[] }> => {
-      const res = await apiFetch<{ messages?: any[] }>(`/conversations/${convId}/messages`);
+    getMessages: async (
+      convOrUserId: string
+    ): Promise<{ messages: any[]; conversationId?: string; recipient?: any }> => {
+      const res = await apiFetch<{ messages?: any[]; conversationId?: string; recipient?: any }>(
+        `/conversations/${convOrUserId}/messages`
+      );
       const raw = res.messages || [];
       return {
-        messages: raw.map((m) => ({
+        messages: raw.map((m: any) => ({
           id: m._id?.toString() || m.id,
-          senderId: m.senderId?.toString() || m.senderId,
+          senderId: (m.senderId?._id || m.senderId)?.toString(),
           text: m.body || m.text,
-          createdAt: m.createdAt ? new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now',
+          createdAt: m.createdAt
+            ? new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : 'Just now',
         })),
+        conversationId: res.conversationId,
+        recipient: res.recipient,
       };
     },
 
-    sendMessage: async (convId: string, text: string): Promise<any> => {
-      return await apiFetch(`/conversations/${convId}/messages`, {
+    sendMessage: async (convOrUserId: string, text: string): Promise<any> => {
+      return await apiFetch(`/conversations/${convOrUserId}/messages`, {
         method: 'POST',
         body: JSON.stringify({ body: text }),
       });
@@ -298,6 +331,21 @@ export const platformApi = {
   users: {
     getMe: async (): Promise<{ user: any; counts: { followers: number; following: number; lessons: number } }> => {
       return await apiFetch<{ user: any; counts: { followers: number; following: number; lessons: number } }>('/users/me');
+    },
+
+    updateMe: async (data: {
+      username?: string;
+      displayName?: string;
+      bio?: string;
+      avatarUrl?: string;
+      isPrivate?: boolean;
+      specialties?: string[];
+      languages?: string[];
+    }): Promise<{ user: any }> => {
+      return await apiFetch<{ user: any }>('/users/me', {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      });
     },
 
     getUser: async (id: string): Promise<{
