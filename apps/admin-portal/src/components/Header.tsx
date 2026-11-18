@@ -148,6 +148,30 @@ export default function Header() {
                   {user.displayName}
                 </span>
               </Link>
+              <a
+                href={process.env.NEXT_PUBLIC_WEB_URL || 'http://localhost:3001'}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Go to Sanad Member & Scholar Web Application"
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: 'var(--color-emerald)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: 'white',
+                  border: '1px solid var(--color-border)',
+                  textDecoration: 'none',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <span>Member Web</span>
+                <span style={{ fontSize: '11px', color: 'var(--color-gold-dark)' }}>&#8599;</span>
+              </a>
+
               <button
                 onClick={logout}
                 className="btn btn-outline"

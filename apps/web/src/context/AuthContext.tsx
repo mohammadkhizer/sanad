@@ -24,6 +24,8 @@ interface AuthContextType {
   token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  isAdmin: boolean;
+  isModerator: boolean;
   isScholar: boolean;
   login: (token: string, user: User, refreshToken?: string) => void;
   logout: () => void;
@@ -83,7 +85,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('sanad_member_user', JSON.stringify(updated));
   };
 
-  const isScholar = Boolean(user?.roles?.includes('scholar'));
+  const isAdmin = Boolean(user?.roles?.includes('admin'));
+  const isModerator = Boolean(user?.roles?.includes('moderator'));
+  const isScholar = Boolean(user?.roles?.includes('scholar') || isAdmin);
 
   return (
     <AuthContext.Provider
@@ -92,6 +96,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         token,
         isLoading,
         isAuthenticated: Boolean(user),
+        isAdmin,
+        isModerator,
         isScholar,
         login,
         logout,

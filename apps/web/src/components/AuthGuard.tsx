@@ -24,7 +24,7 @@ const PUBLIC_PATHS = [
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAuthenticated, isLoading, isScholar } = useAuth();
+  const { user, isAuthenticated, isLoading, isScholar, isAdmin } = useAuth();
 
   const isPublicPath = PUBLIC_PATHS.some((p) => pathname === p || pathname?.startsWith(p + '/'));
 

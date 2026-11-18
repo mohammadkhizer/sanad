@@ -12,6 +12,7 @@ import {
   Settings,
   GraduationCap,
   PlusSquare,
+  Shield,
   Menu,
   X,
   LogOut,
@@ -24,7 +25,7 @@ import { cn } from '../lib/utils';
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, isAuthenticated, isScholar, logout } = useAuth();
+  const { user, isAuthenticated, isScholar, isAdmin, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSignOut = () => {
@@ -115,6 +116,19 @@ export default function Header() {
           <div className="flex items-center gap-3">
             {isAuthenticated && user ? (
               <div className="flex items-center gap-2">
+                {isAdmin && (
+                  <a
+                    href="https://app-admin-sanad.netlify.app"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-amber-900 bg-amber-100 border border-amber-300 hover:bg-amber-200 transition-colors shadow-sm"
+                    title="Open Platform Governance & Admin Portal"
+                  >
+                    <Shield className="w-3.5 h-3.5 text-amber-700" />
+                    <span className="hidden sm:inline">Admin Portal</span>
+                  </a>
+                )}
+
                 <Link
                   href="/settings"
                   className="p-2 text-sanad-muted hover:text-sanad-emerald hover:bg-sanad-ivory-warm rounded-lg transition-colors hidden sm:flex"
@@ -199,6 +213,18 @@ export default function Header() {
                 </Link>
               );
             })}
+            {isAdmin && (
+              <a
+                href="https://app-admin-sanad.netlify.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-amber-900 bg-amber-100 border border-amber-300"
+              >
+                <Shield className="h-5 w-5 text-amber-700" />
+                <span>Admin Governance Portal</span>
+              </a>
+            )}
             <Link
               href="/scholar/apply"
               onClick={() => setMobileMenuOpen(false)}
