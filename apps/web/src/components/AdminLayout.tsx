@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import Header from './Header';
 import Footer from './Footer';
+import Preloader from './Preloader';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -26,8 +27,8 @@ export default function AdminLayout({ children, title, subtitle }: AdminLayoutPr
 
   if (isLoading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ color: 'var(--color-emerald)', fontWeight: 600 }}>Loading administration dashboard...</div>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--color-ivory)' }}>
+        <Preloader label="Loading Administration Dashboard..." description="Verifying security credentials and access permissions" />
       </div>
     );
   }
@@ -111,11 +112,27 @@ export default function AdminLayout({ children, title, subtitle }: AdminLayoutPr
               )}
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <Link
+              href={`/profile/${user?.id || user?._id || 'me'}`}
+              title="View Administrator Profile"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                textDecoration: 'none',
+                padding: '6px 14px',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: 'var(--color-white)',
+                border: '1px solid var(--color-border)',
+                transition: 'all 0.15s ease',
+              }}
+            >
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '13px', fontWeight: 700 }}>{user?.displayName}</div>
-                <div style={{ fontSize: '11px', color: 'var(--color-muted)' }}>
-                  {isAdmin ? 'System Administrator' : 'Platform Moderator'}
+                <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-charcoal)' }}>
+                  {user?.displayName}
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--color-emerald)', fontWeight: 600 }}>
+                  {isAdmin ? 'System Administrator' : 'Platform Moderator'} &bull; View Profile
                 </div>
               </div>
               <span
@@ -125,9 +142,10 @@ export default function AdminLayout({ children, title, subtitle }: AdminLayoutPr
                   height: '10px',
                   borderRadius: '50%',
                   backgroundColor: '#31C48D',
+                  boxShadow: '0 0 0 3px rgba(49, 196, 141, 0.25)',
                 }}
               />
-            </div>
+            </Link>
           </div>
 
           {/* Admin Subnav Tabs */}

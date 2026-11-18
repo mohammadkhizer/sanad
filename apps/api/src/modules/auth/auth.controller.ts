@@ -108,7 +108,10 @@ export class AuthController {
     try {
       const { identifier } = req.body;
       const result = await authService.forgotPassword(identifier);
-      res.status(200).json(result);
+      res.status(200).json({
+        success: result.success,
+        message: 'If an account exists with this identifier, recovery instructions have been dispatched to the registered email address.',
+      });
     } catch (error) {
       next(error);
     }

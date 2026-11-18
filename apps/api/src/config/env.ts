@@ -21,6 +21,12 @@ const envSchema = z.object({
   R2_SECRET_ACCESS_KEY: z.string().optional(),
   R2_BUCKET_NAME: z.string().default('sanad-uploads'),
   ADMIN_SIGNUP_SECRET: z.string().default('SanadAdminSetup2026!'),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().default(587),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM: z.string().default('noreply@sanad.app'),
+  SMTP_SECURE: z.coerce.boolean().default(false),
 });
 
 const parsed = envSchema.safeParse(process.env);

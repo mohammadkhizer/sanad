@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/AdminLayout';
+import Preloader from '../../../components/Preloader';
 import { webApi } from '../../../lib/api';
 
 export default function AdminUsersPage() {
@@ -172,9 +173,7 @@ export default function AdminUsersPage() {
         </div>
 
         {loading ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-muted)' }}>
-            Loading users...
-          </div>
+          <Preloader inline label="Loading platform users..." description="Fetching registered profiles from governance database" />
         ) : users.length === 0 ? (
           <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-muted)' }}>
             No users found matching query.

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import AdminLayout from '../../components/AdminLayout';
+import Preloader, { Spinner } from '../../components/Preloader';
 import { webApi } from '../../lib/api';
 
 export default function AdminOverviewPage() {
@@ -77,8 +78,8 @@ export default function AdminOverviewPage() {
           <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase' }}>
             Registered Users
           </div>
-          <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--color-emerald)', margin: '8px 0 4px' }}>
-            {loading ? '...' : stats.totalUsers}
+          <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--color-emerald)', margin: '8px 0 4px', minHeight: '44px', display: 'flex', alignItems: 'center' }}>
+            {loading ? <Spinner size={22} color="var(--color-emerald)" /> : stats.totalUsers}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
             Across all platform roles
@@ -97,8 +98,8 @@ export default function AdminOverviewPage() {
           <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase' }}>
             Accredited Scholars
           </div>
-          <div style={{ fontSize: '32px', fontWeight: 800, color: '#137333', margin: '8px 0 4px' }}>
-            {loading ? '...' : stats.scholarsCount}
+          <div style={{ fontSize: '32px', fontWeight: 800, color: '#137333', margin: '8px 0 4px', minHeight: '44px', display: 'flex', alignItems: 'center' }}>
+            {loading ? <Spinner size={22} color="#137333" /> : stats.scholarsCount}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
             Verified institutional teachers
@@ -117,8 +118,8 @@ export default function AdminOverviewPage() {
           <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase' }}>
             Pending Applications
           </div>
-          <div style={{ fontSize: '32px', fontWeight: 800, color: '#B06000', margin: '8px 0 4px' }}>
-            {loading ? '...' : stats.pendingApps}
+          <div style={{ fontSize: '32px', fontWeight: 800, color: '#B06000', margin: '8px 0 4px', minHeight: '44px', display: 'flex', alignItems: 'center' }}>
+            {loading ? <Spinner size={22} color="#B06000" /> : stats.pendingApps}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
             Awaiting accreditation review
@@ -137,8 +138,8 @@ export default function AdminOverviewPage() {
           <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-muted)', textTransform: 'uppercase' }}>
             Trust & Safety Queue
           </div>
-          <div style={{ fontSize: '32px', fontWeight: 800, color: stats.activeReports > 0 ? '#C81E1E' : 'var(--color-emerald)', margin: '8px 0 4px' }}>
-            {loading ? '...' : stats.activeReports}
+          <div style={{ fontSize: '32px', fontWeight: 800, color: stats.activeReports > 0 ? '#C81E1E' : 'var(--color-emerald)', margin: '8px 0 4px', minHeight: '44px', display: 'flex', alignItems: 'center' }}>
+            {loading ? <Spinner size={22} color="var(--color-emerald)" /> : stats.activeReports}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
             Open moderation cases
@@ -215,8 +216,10 @@ export default function AdminOverviewPage() {
           </Link>
         </div>
 
-        {recentLogs.length === 0 ? (
-          <div style={{ padding: '20px', textAlign: 'center', color: 'var(--color-muted)', fontSize: '13px' }}>
+        {loading ? (
+          <Preloader inline label="Loading platform audit trail..." description="Synchronizing recent administrative actions" />
+        ) : recentLogs.length === 0 ? (
+          <div style={{ padding: '28px', textAlign: 'center', color: 'var(--color-muted)', fontSize: '13px' }}>
             No recent audit records found.
           </div>
         ) : (

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/AdminLayout';
+import Preloader from '../../../components/Preloader';
 import { webApi } from '../../../lib/api';
 
 export default function AdminAuditLogsPage() {
@@ -51,9 +52,7 @@ export default function AdminAuditLogsPage() {
         </div>
 
         {loading ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-muted)' }}>
-            Loading audit records...
-          </div>
+          <Preloader inline label="Loading audit records..." description="Synchronizing immutable administrative audit trail" />
         ) : logs.length === 0 ? (
           <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-muted)' }}>
             No audit records found.

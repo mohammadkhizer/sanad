@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/AdminLayout';
+import Preloader from '../../../components/Preloader';
 import { webApi } from '../../../lib/api';
 
 interface ScholarItem {
@@ -371,9 +372,7 @@ export default function ScholarActivityMonitoringPage() {
         </div>
 
         {loading ? (
-          <div style={{ padding: '48px', textAlign: 'center', color: 'var(--color-muted)', fontSize: '14px' }}>
-            Querying active scholar monitoring telemetry...
-          </div>
+          <Preloader inline label="Loading scholar telemetry..." description="Querying active scholar monitoring and security records" />
         ) : error ? (
           <div style={{ padding: '36px', textAlign: 'center', color: '#9B1C1C', fontSize: '14px' }}>
             {error}
@@ -717,9 +716,7 @@ export default function ScholarActivityMonitoringPage() {
               </div>
 
               {timelineLoading ? (
-                <div style={{ padding: '36px', textAlign: 'center', color: 'var(--color-muted)', fontSize: '13px' }}>
-                  Loading surveillance activity history...
-                </div>
+                <Preloader inline label="Loading activity timeline..." description="Synchronizing surveillance audit events" />
               ) : activities.length === 0 ? (
                 <div style={{ padding: '36px', textAlign: 'center', color: 'var(--color-muted)', fontSize: '13px' }}>
                   No activity events recorded for this scholar profile yet.

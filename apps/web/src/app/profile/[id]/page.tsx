@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '../../../components/Header';
 import Footer from '../../../components/Footer';
+import Preloader from '../../../components/Preloader';
 import { webApi } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -108,9 +109,7 @@ export default function WebProfilePage() {
       <div style={{ backgroundColor: 'var(--color-ivory)', minHeight: '85vh', padding: '40px 0' }}>
         <div className="container" style={{ maxWidth: '800px' }}>
           {loading ? (
-            <div style={{ padding: '60px', textAlign: 'center', color: 'var(--color-muted)' }}>
-              Loading profile details...
-            </div>
+            <Preloader label="Loading Profile Records..." description="Retrieving verified user profile from Sanad identity store" />
           ) : !profile ? (
             <div
               style={{

@@ -28,6 +28,7 @@ import { logger } from '../../config/logger.js';
 import { RegisterInput, LoginInput, AdminRegisterInput, ResetPasswordInput } from '@sanad/shared';
 import { usernameService } from '../../services/bloomFilter.service.js';
 import { SecurityEventModel } from '../security/security-event.model.js';
+import { emailService } from '../email/email.service.js';
 
 export class AuthService {
   async adminRegister(input: AdminRegisterInput, userAgent?: string, ip?: string) {
@@ -365,6 +366,11 @@ export class AuthService {
       ]);
 
       logger.info({ userId: userIdStr, identifier: cleanId }, 'Password reset instructions generated');
+
+      const recipientEmail = user.email || (cleanId.includes('@') ? cleanId : null);
+      if (recipientEmail) {
+        await emailService.sendPasswordResetCode(recipientEmail, code);
+      }
     }
 
     return {

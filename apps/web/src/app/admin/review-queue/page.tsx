@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/AdminLayout';
+import Preloader from '../../../components/Preloader';
 import { webApi } from '../../../lib/api';
 
 export default function AdminReviewQueuePage() {
@@ -87,9 +88,7 @@ export default function AdminReviewQueuePage() {
         </div>
 
         {loading ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-muted)' }}>
-            Loading accreditation queue...
-          </div>
+          <Preloader inline label="Loading accreditation queue..." description="Retrieving scholar credential submissions" />
         ) : applications.length === 0 ? (
           <div style={{ padding: '48px 20px', textAlign: 'center', color: 'var(--color-muted)' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-charcoal)', marginBottom: '6px' }}>

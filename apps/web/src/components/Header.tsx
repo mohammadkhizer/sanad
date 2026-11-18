@@ -50,14 +50,22 @@ export default function Header() {
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
           {isAuthenticated && user ? (
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-              <div
+              <Link
+                href={`/profile/${user.id || user._id || 'me'}`}
+                title="View Administrator Profile"
                 style={{
                   fontSize: '13px',
                   fontWeight: 600,
                   color: 'var(--color-emerald)',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
+                  gap: '8px',
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: 'var(--color-ivory-warm)',
+                  border: '1px solid var(--color-border)',
+                  transition: 'all 0.15s ease',
+                  textDecoration: 'none',
                 }}
               >
                 <span
@@ -74,8 +82,10 @@ export default function Header() {
                 >
                   Admin
                 </span>
-                <span>{user.displayName}</span>
-              </div>
+                <span style={{ fontWeight: 700, color: 'var(--color-charcoal)' }}>
+                  {user.displayName}
+                </span>
+              </Link>
               <button
                 onClick={logout}
                 className="btn btn-outline"
@@ -118,6 +128,13 @@ export default function Header() {
             gap: '14px',
           }}
         >
+          <Link
+            href={`/profile/${user?.id || user?._id || 'me'}`}
+            onClick={() => setMobileMenuOpen(false)}
+            style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-gold-dark)' }}
+          >
+            My Admin Profile ({user?.displayName})
+          </Link>
           <Link
             href="/admin"
             onClick={() => setMobileMenuOpen(false)}

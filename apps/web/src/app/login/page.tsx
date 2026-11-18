@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import PasswordInput from '../../components/PasswordInput';
+import { Spinner } from '../../components/Preloader';
 import { webApi } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 
@@ -239,14 +240,25 @@ export default function LoginPage() {
                 className="btn btn-primary"
                 style={{
                   width: '100%',
-                  height: '44px',
+                  height: '46px',
                   fontSize: '14px',
                   fontWeight: 700,
                   cursor: loading ? 'not-allowed' : 'pointer',
-                  opacity: loading ? 0.7 : 1,
+                  opacity: loading ? 0.75 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
                 }}
               >
-                {loading ? 'Authenticating...' : 'Sign In as Administrator'}
+                {loading ? (
+                  <>
+                    <Spinner size={16} color="#FFFFFF" strokeWidth={2.5} />
+                    <span>Authenticating Administrator...</span>
+                  </>
+                ) : (
+                  'Sign In as Administrator'
+                )}
               </button>
             </form>
 

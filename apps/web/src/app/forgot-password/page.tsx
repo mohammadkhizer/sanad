@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import PasswordInput from '../../components/PasswordInput';
+import { Spinner } from '../../components/Preloader';
 import { webApi } from '../../lib/api';
 
 export default function ForgotPasswordPage() {
@@ -16,7 +17,6 @@ export default function ForgotPasswordPage() {
   const [token, setToken] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [activeCodeHint, setActiveCodeHint] = useState<string | null>(null);
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -28,13 +28,9 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      const res = await webApi.auth.forgotPassword(identifier.trim());
-      if (res.code) {
-        setActiveCodeHint(res.code);
-        setToken(res.code);
-      }
+      await webApi.auth.forgotPassword(identifier.trim());
       setStep('reset');
-      setSuccess('Recovery instructions have been dispatched. Please enter your code and new password.');
+      setSuccess('A 6-digit verification code has been dispatched to your email address. Please check your inbox and enter the code below.');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Password recovery request failed';
       setError(msg);
@@ -172,57 +168,55 @@ export default function ForgotPasswordPage() {
                   className="btn btn-primary"
                   style={{
                     width: '100%',
-                    height: '44px',
+                    height: '46px',
                     fontSize: '15px',
                     fontWeight: 700,
                     cursor: loading ? 'not-allowed' : 'pointer',
-                    opacity: loading ? 0.7 : 1,
+                    opacity: loading ? 0.75 : 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px',
                   }}
                 >
-                  {loading ? 'Dispatching Code...' : 'Send Recovery Code'}
+                  {loading ? (
+                    <>
+                      <Spinner size={16} color="#FFFFFF" strokeWidth={2.5} />
+                      <span>Dispatching Code to Mail...</span>
+                    </>
+                  ) : (
+                    'Send Recovery Code via Email'
+                  )}
                 </button>
               </form>
             ) : (
               <form onSubmit={handleResetPassword}>
-                {activeCodeHint && (
-                  <div
-                    style={{
-                      backgroundColor: '#E6F4EA',
-                      border: '1px solid #CEEAD6',
-                      color: '#137333',
-                      padding: '10px 14px',
-                      borderRadius: 'var(--radius-sm)',
-                      fontSize: '13px',
-                      marginBottom: '16px',
-                      textAlign: 'center',
-                      fontWeight: 600,
-                    }}
-                  >
-                    Active Recovery Code: <strong style={{ letterSpacing: '2px' }}>{activeCodeHint}</strong>
-                  </div>
-                )}
-
-                <div style={{ marginBottom: '14px' }}>
+                <div style={{ marginBottom: '16px' }}>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
-                    Recovery Code
+                    Email Recovery Code
                   </label>
                   <input
                     type="text"
                     required
                     value={token}
                     onChange={(e) => setToken(e.target.value)}
-                    placeholder="6-digit recovery code"
+                    placeholder="Enter 6-digit code from email"
+                    maxLength={8}
                     style={{
                       width: '100%',
-                      height: '44px',
+                      height: '46px',
                       padding: '0 12px',
                       borderRadius: 'var(--radius-sm)',
                       border: '1px solid var(--color-border)',
                       fontSize: '16px',
                       textAlign: 'center',
-                      letterSpacing: '2px',
+                      letterSpacing: '3px',
+                      fontFamily: 'monospace',
                     }}
                   />
+                  <span style={{ fontSize: '11px', color: 'var(--color-muted)', display: 'block', marginTop: '5px' }}>
+                    Check your email inbox (and spam/junk folder) for the verification code
+                  </span>
                 </div>
 
                 <div style={{ marginBottom: '14px' }}>
@@ -259,14 +253,25 @@ export default function ForgotPasswordPage() {
                   className="btn btn-primary"
                   style={{
                     width: '100%',
-                    height: '44px',
+                    height: '46px',
                     fontSize: '15px',
                     fontWeight: 700,
                     cursor: loading ? 'not-allowed' : 'pointer',
-                    opacity: loading ? 0.7 : 1,
+                    opacity: loading ? 0.75 : 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px',
                   }}
                 >
-                  {loading ? 'Updating Password...' : 'Reset Password'}
+                  {loading ? (
+                    <>
+                      <Spinner size={16} color="#FFFFFF" strokeWidth={2.5} />
+                      <span>Updating Password...</span>
+                    </>
+                  ) : (
+                    'Reset Password'
+                  )}
                 </button>
               </form>
             )}
