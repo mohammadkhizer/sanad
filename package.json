@@ -1,27 +1,33 @@
 {
-  "name": "sanad-monorepo",
-  "version": "0.1.0",
+  "name": "sanad",
+  "version": "1.0.0",
   "private": true,
-  "description": "Sanad - Trusted Religious Scholar Publishing and Community Learning Platform",
+  "description": "Sanad - Verified-scholars-only social and learning platform",
+  "engines": {
+    "node": ">=20",
+    "npm": ">=10"
+  },
   "workspaces": [
     "packages/*",
     "apps/*"
   ],
   "scripts": {
-    "start": "npx expo start apps/mobile -c",
-    "android": "npx expo start apps/mobile --android",
-    "ios": "npx expo start apps/mobile --ios",
-    "web": "npx expo start apps/mobile --web",
-    "build:types": "npm --workspace=@sanad/types run build",
-    "build:api": "npm --workspace=@sanad/api run build",
-    "build": "npm run build:types && npm run build:api",
-    "test": "npm --workspace=@sanad/api run test",
-    "dev:api": "npm --workspace=@sanad/api run dev",
-    "dev:mobile": "npx expo start apps/mobile -c",
-    "lint:api": "npm --workspace=@sanad/api run lint",
-    "lint:mobile": "npm --workspace=sanad-mobile run lint"
+    "preinstall": "npx --yes only-allow npm",
+    "start": "npx expo start apps/mobile",
+    "db:seed": "npm --workspace=apps/api run seed",
+    "build": "npm --workspace=packages/shared run build && npm --workspace=apps/api run build",
+    "dev:api": "npm --workspace=apps/api run dev",
+    "dev:mobile": "npx expo start apps/mobile",
+    "dev:web": "npm --workspace=apps/web run dev",
+    "build:web": "npm --workspace=packages/shared run build && npm --workspace=apps/web run build",
+    "dev:admin": "npm --workspace=apps/admin-portal run dev",
+    "build:admin": "npm --workspace=packages/shared run build && npm --workspace=apps/admin-portal run build",
+    "test": "npm run test --workspace=packages/shared && npm run test --workspace=apps/api && npm run test --workspace=apps/mobile",
+    "lint": "npm run lint --workspace=packages/shared && npm run lint --workspace=apps/api && npm run lint --workspace=apps/mobile",
+    "typecheck": "npm run typecheck --workspace=packages/shared && npm run typecheck --workspace=apps/api && npm run typecheck --workspace=apps/mobile"
   },
   "devDependencies": {
-    "typescript": "^5.5.4"
+    "prettier": "^3.3.3",
+    "typescript": "~6.0.3"
   }
 }

@@ -1,28 +1,23 @@
 import React from 'react';
 import { Stack } from 'expo-router';
-import { theme } from '../../src/theme/colors';
+import { colors } from '../../src/theme/colors';
 
 export default function AuthLayout() {
   return (
     <Stack
       screenOptions={{
-        headerStyle: {
-          backgroundColor: theme.colors.brand.emerald,
-        },
-        headerTintColor: theme.colors.text.onEmerald,
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
-        contentStyle: {
-          backgroundColor: theme.colors.background.light,
-        },
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.light.background },
       }}
     >
-      <Stack.Screen name="login" options={{ title: 'Sign In' }} />
-      <Stack.Screen name="register" options={{ title: 'Create Account' }} />
-      <Stack.Screen name="otp" options={{ title: 'Verify OTP' }} />
-      <Stack.Screen name="two-factor" options={{ title: 'Two-Factor Authentication' }} />
+      <Stack.Screen name="login" />
+      <Stack.Screen name="register" />
+      <Stack.Screen name="admin-register" />
+      <Stack.Screen name="otp" />
+      <Stack.Screen name="two-factor" />
+      <Stack.Screen name="2fa-setup" />
+      <Stack.Screen name="forgot-password" />
+      <Stack.Screen name="onboarding" />
     </Stack>
   );
 }
-

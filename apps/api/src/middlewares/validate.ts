@@ -1,27 +1,26 @@
 import { Request, Response, NextFunction } from 'express';
-import { ZodSchema } from 'zod';
+import { ZodTypeAny } from 'zod';
 
-export function validateBody<T>(schema: ZodSchema<T>) {
-  return (req: Request, _res: Response, next: NextFunction): void => {
-    const result = schema.safeParse(req.body);
-    if (!result.success) {
-      next(result.error);
-      return;
+export function validate(schema: ZodTypeAny) {
+  return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const parsed = await schema.parseAsync(req.body);
+      req.body = parsed;
+      next();
+    } catch (error) {
+      next(error);
     }
-    req.body = result.data;
-    next();
   };
 }
 
-export function validateQuery<T>(schema: ZodSchema<T>) {
-  return (req: Request, _res: Response, next: NextFunction): void => {
-    const result = schema.safeParse(req.query);
-    if (!result.success) {
-      next(result.error);
-      return;
+export function validateQuery(schema: ZodTypeAny) {
+  return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const parsed = await schema.parseAsync(req.query);
+      req.query = parsed;
+      next();
+    } catch (error) {
+      next(error);
     }
-    req.query = result.data as unknown as Request['query'];
-    next();
   };
 }
-

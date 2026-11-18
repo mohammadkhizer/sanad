@@ -1,136 +1,124 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { theme } from '../../src/theme/colors';
+import { useRouter } from 'expo-router';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
-import { apiFetch, ApiError } from '../../src/api/client';
-import { useAuthStore } from '../../src/store/authStore';
+import { AppHeader } from '../../src/components/AppHeader';
+import { colors } from '../../src/theme/colors';
+import { api } from '../../src/api';
 
-export default function TwoFactorScreen() {
+export default function TwoFactorAuthScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ email?: string; password?: string }>();
-  const setAuth = useAuthStore((s) => s.setAuth);
 
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const handleVerify = async () => {
     if (code.length !== 6) {
-      setErrorMsg('Please enter a valid 6-digit code.');
+      setError('Please enter the 6-digit authenticator code');
       return;
     }
 
-    setLoading(true);
-    setErrorMsg('');
-
     try {
-      const response = await apiFetch<any>('/auth/login', {
-        method: 'POST',
-        skipAuth: true,
-        body: JSON.stringify({
-          email: params.email,
-          password: params.password,
-          twoFactorCode: code,
-        }),
-      });
+      setLoading(true);
+      setError(null);
 
-      const { user, tokens } = response.data;
-      await setAuth(user, tokens.accessToken, tokens.refreshToken);
+      await api.auth.verify2FA(code.trim());
       router.replace('/(tabs)/feed');
-    } catch (err: any) {
-      if (err instanceof ApiError) {
-        setErrorMsg(err.message);
-      } else {
-        setErrorMsg('Authentication verification failed.');
-      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Two-factor verification failed';
+      setError(msg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.card}>
-        <Text style={styles.title}>Two-Factor Authentication</Text>
-        <Text style={styles.subtext}>
-          Open your authenticator app (such as Google Authenticator) and enter the 6-digit code.
-        </Text>
+    <View style={styles.screen}>
+      <AppHeader
+        title="Two-Factor Security"
+        subtitle="Cryptographic Verification"
+        showBack
+      />
 
-        {errorMsg ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{errorMsg}</Text>
-          </View>
-        ) : null}
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.card}>
+          <Text style={styles.title}>Authenticator Verification</Text>
+          <Text style={styles.subtitle}>
+            Scholarly and staff accounts require mandatory 2FA. Open your authenticator app (Google Authenticator, Aegis, Apple Passwords) and enter the 6-digit code.
+          </Text>
 
-        <Input
-          label="6-Digit Verification Code"
-          placeholder="000000"
-          keyboardType="number-pad"
-          maxLength={6}
-          value={code}
-          onChangeText={setCode}
-          style={styles.codeInput}
-        />
+          {Boolean(error) && (
+            <View style={styles.errorBox}>
+              <Text style={styles.errorBanner}>{error}</Text>
+            </View>
+          )}
 
-        <Button
-          title="Verify & Continue"
-          variant="primary"
-          onPress={handleVerify}
-          loading={loading}
-          style={styles.verifyBtn}
-        />
-      </View>
-    </ScrollView>
+          <Input
+            label="6-Digit Security Code"
+            placeholder="123456"
+            value={code}
+            onChangeText={setCode}
+            keyboardType="number-pad"
+            maxLength={6}
+          />
+
+          <Button
+            title="Authenticate and Continue"
+            variant="primary"
+            onPress={handleVerify}
+            loading={loading}
+            style={styles.submitBtn}
+          />
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: colors.light.background,
+  },
   container: {
-    flexGrow: 1,
-    padding: theme.spacing.lg,
+    padding: 20,
     justifyContent: 'center',
-    backgroundColor: theme.colors.background.light,
+    flexGrow: 1,
   },
   card: {
-    backgroundColor: theme.colors.surface.light,
-    borderRadius: theme.radius.card,
-    padding: theme.spacing.lg,
+    backgroundColor: colors.light.surface,
+    padding: 20,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: theme.colors.border.light,
+    borderColor: colors.light.border,
+    gap: 12,
   },
   title: {
-    fontSize: theme.typography.fontSize.xl,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
+    fontSize: 20,
+    fontWeight: '800',
+    color: colors.light.primary,
   },
-  subtext: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondaryLight,
-    marginTop: 4,
-    marginBottom: theme.spacing.base,
-  },
-  codeInput: {
-    textAlign: 'center',
-    fontSize: 24,
-    letterSpacing: 6,
-    fontWeight: 'bold',
+  subtitle: {
+    fontSize: 13,
+    color: colors.light.textSecondary,
+    lineHeight: 18,
   },
   errorBox: {
     backgroundColor: '#FDF2F2',
-    borderColor: theme.colors.semantic.error,
+    padding: 10,
+    borderRadius: 8,
     borderWidth: 1,
-    borderRadius: theme.radius.input,
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.base,
+    borderColor: '#FEE2E2',
   },
-  errorText: {
-    color: theme.colors.semantic.error,
-    fontSize: theme.typography.fontSize.sm,
+  errorBanner: {
+    color: colors.light.error,
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
   },
-  verifyBtn: {
-    marginTop: theme.spacing.sm,
+  submitBtn: {
+    marginTop: 6,
   },
 });
-

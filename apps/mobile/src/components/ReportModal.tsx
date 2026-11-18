@@ -6,123 +6,119 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from 'react-native';
-import { theme } from '../theme/colors';
+import { colors } from '../theme/colors';
 import { Button } from './Button';
 import { Input } from './Input';
-import { ReportReason } from '@sanad/types';
+import { api } from '../api';
 
 interface ReportModalProps {
   visible: boolean;
-  targetType: 'post' | 'comment' | 'user' | 'live';
-  targetId: string;
   onClose: () => void;
-  onSubmit: (reason: ReportReason, details?: string) => Promise<void>;
+  targetType: 'post' | 'comment' | 'user' | 'message' | 'live';
+  targetId: string;
 }
 
-const REASONS: Array<{ key: ReportReason; label: string; description: string }> = [
-  {
-    key: 'misinformation',
-    label: 'Misleading Religious Guidance',
-    description: 'Inaccurate quotation, fabricated texts, or unverified claims.',
-  },
-  {
-    key: 'sectarian_conflict',
-    label: 'Sectarian Conflict or Takfir',
-    description: 'Divisive hostility, incitement, or sectarian insults.',
-  },
-  {
-    key: 'impersonation',
-    label: 'Impersonation of Scholar',
-    description: 'Pretending to be a qualified scholar without verification.',
-  },
-  {
-    key: 'hate_speech',
-    label: 'Hate Speech or Harassment',
-    description: 'Targeted abuse, derogatory language, or threats.',
-  },
-  {
-    key: 'other',
-    label: 'Other Policy Violation',
-    description: 'Any other breach of platform safety standards.',
-  },
+const REPORT_REASONS = [
+  'Misrepresentation of religious qualifications or credentials',
+  'Sectarian hostility or abusive speech',
+  'Harassment or personal attack',
+  'Inappropriate or offensive content',
+  'Commercial spam or advertising',
+  'Other policy violation',
 ];
 
 export const ReportModal: React.FC<ReportModalProps> = ({
   visible,
-  targetType,
   onClose,
-  onSubmit,
+  targetType,
+  targetId,
 }) => {
-  const [selectedReason, setSelectedReason] = useState<ReportReason | null>(null);
-  const [details, setDetails] = useState('');
+  const [selectedReason, setSelectedReason] = useState(REPORT_REASONS[0]);
+  const [customDetails, setCustomDetails] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSend = async () => {
-    if (!selectedReason) return;
-    setLoading(true);
+  const handleSubmit = async () => {
     try {
-      await onSubmit(selectedReason, details);
+      setLoading(true);
+      const reasonText = customDetails.trim()
+        ? `${selectedReason}: ${customDetails.trim()}`
+        : selectedReason;
+
+      await api.moderation.createReport({
+        targetType,
+        targetId,
+        reason: reasonText,
+      });
+
+      Alert.alert(
+        'Report Received',
+        'Thank you for helping keep Sanad trustworthy. Our moderation panel will review this item within 24 hours.'
+      );
       onClose();
-      setSelectedReason(null);
-      setDetails('');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to submit report';
+      Alert.alert('Error', msg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={styles.backdrop}>
+    <Modal visible={visible} animationType="slide" transparent>
+      <View style={styles.overlay}>
         <View style={styles.sheet}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Report {targetType}</Text>
-            <TouchableOpacity onPress={onClose} accessibilityRole="button">
-              <Text style={styles.closeText}>Close</Text>
-            </TouchableOpacity>
-          </View>
+          <Text style={styles.sheetTitle}>Report Content or User</Text>
+          <Text style={styles.sheetSubtitle}>
+            Select the reason for reporting this {targetType}. Every report is logged and
+            independently triaged.
+          </Text>
 
-          <ScrollView style={styles.scroll}>
-            <Text style={styles.subtext}>
-              Sanad maintains strict standards for religious credibility and community safety.
-              Please select the primary reason for this report:
-            </Text>
-
-            {REASONS.map((item) => {
-              const isSelected = selectedReason === item.key;
-              return (
-                <TouchableOpacity
-                  key={item.key}
-                  style={[styles.reasonOption, isSelected ? styles.reasonOptionActive : null]}
-                  onPress={() => setSelectedReason(item.key)}
-                  activeOpacity={0.7}
+          <ScrollView style={styles.reasonsList}>
+            {REPORT_REASONS.map((reason, idx) => (
+              <TouchableOpacity
+                key={idx}
+                style={[
+                  styles.reasonOption,
+                  selectedReason === reason && styles.reasonOptionActive,
+                ]}
+                onPress={() => setSelectedReason(reason)}
+              >
+                <Text
+                  style={[
+                    styles.reasonText,
+                    selectedReason === reason && styles.reasonTextActive,
+                  ]}
                 >
-                  <Text style={[styles.reasonLabel, isSelected ? styles.reasonLabelActive : null]}>
-                    {item.label}
-                  </Text>
-                  <Text style={styles.reasonDesc}>{item.description}</Text>
-                </TouchableOpacity>
-              );
-            })}
-
-            <Input
-              label="Additional context (optional)"
-              placeholder="Provide specific timestamps or context..."
-              value={details}
-              onChangeText={setDetails}
-              multiline
-              numberOfLines={3}
-              style={styles.detailInput}
-            />
+                  {reason}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </ScrollView>
 
-          <View style={styles.footer}>
+          <Input
+            label="Additional Context (Optional)"
+            placeholder="Explain relevant facts or cite specific instances..."
+            value={customDetails}
+            onChangeText={setCustomDetails}
+            multiline
+            numberOfLines={2}
+          />
+
+          <View style={styles.btnRow}>
             <Button
-              title="Submit Confidential Report"
+              title="Cancel"
+              variant="outline"
+              onPress={onClose}
+              style={styles.cancelBtn}
+            />
+            <Button
+              title="Submit Report"
               variant="danger"
-              onPress={handleSend}
-              disabled={!selectedReason}
+              onPress={handleSubmit}
               loading={loading}
+              style={styles.submitBtn}
             />
           </View>
         </View>
@@ -132,71 +128,63 @@ export const ReportModal: React.FC<ReportModalProps> = ({
 };
 
 const styles = StyleSheet.create({
-  backdrop: {
+  overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: theme.colors.surface.light,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: colors.light.surface,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 24,
     maxHeight: '85%',
-    padding: theme.spacing.base,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: theme.spacing.md,
+  sheetTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: colors.light.text,
+    marginBottom: 4,
   },
-  title: {
-    fontSize: theme.typography.fontSize.lg,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
+  sheetSubtitle: {
+    fontSize: 13,
+    color: colors.light.textSecondary,
+    marginBottom: 16,
+    lineHeight: 18,
   },
-  closeText: {
-    fontSize: theme.typography.fontSize.base,
-    color: theme.colors.text.secondaryLight,
-  },
-  scroll: {
-    marginBottom: theme.spacing.md,
-  },
-  subtext: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondaryLight,
-    marginBottom: theme.spacing.base,
+  reasonsList: {
+    maxHeight: 180,
+    marginBottom: 16,
   },
   reasonOption: {
-    padding: theme.spacing.md,
-    borderRadius: theme.radius.input,
+    padding: 12,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: theme.colors.border.light,
-    marginBottom: theme.spacing.sm,
-    backgroundColor: '#FAF8F3',
+    borderColor: colors.light.border,
+    marginBottom: 8,
   },
   reasonOptionActive: {
-    borderColor: theme.colors.semantic.error,
-    backgroundColor: '#FDF2F2',
+    borderColor: colors.light.primary,
+    backgroundColor: colors.light.surfaceElevated,
   },
-  reasonLabel: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
+  reasonText: {
+    fontSize: 13,
+    color: colors.light.text,
   },
-  reasonLabelActive: {
-    color: theme.colors.semantic.error,
+  reasonTextActive: {
+    fontWeight: '700',
+    color: colors.light.primary,
   },
-  reasonDesc: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.text.secondaryLight,
-    marginTop: 2,
+  btnRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 8,
   },
-  detailInput: {
-    minHeight: 80,
+  cancelBtn: {
+    flex: 1,
   },
-  footer: {
-    paddingTop: theme.spacing.sm,
+  submitBtn: {
+    flex: 1,
   },
 });
 

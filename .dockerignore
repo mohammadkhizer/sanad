@@ -1,0 +1,12 @@
+node_modules
+apps/api/dist
+packages/shared/dist
+apps/mobile
+apps/web
+.git
+.gitignore
+.env
+.env.*
+*.log
+.DS_Store
+

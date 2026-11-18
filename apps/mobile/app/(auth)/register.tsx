@@ -1,187 +1,221 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { theme } from '../../src/theme/colors';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
-import { apiFetch, ApiError } from '../../src/api/client';
-import { useAuthStore } from '../../src/store/authStore';
+import { AppHeader } from '../../src/components/AppHeader';
+import { BrandLogo } from '../../src/components/BrandLogo';
+import { colors } from '../../src/theme/colors';
+import { api } from '../../src/api';
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const setAuth = useAuthStore((s) => s.setAuth);
 
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const handleRegister = async () => {
-    if (!displayName || !email || !password) {
-      setErrorMsg('Please complete all required fields.');
+    if (!displayName.trim() || (!email.trim() && !phone.trim()) || !password.trim() || !dateOfBirth.trim()) {
+      setError('Please provide name, email or phone, date of birth, and password');
+      return;
+    }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth.trim())) {
+      setError('Date of birth must be in YYYY-MM-DD format (e.g. 2000-01-15)');
+      return;
+    }
+
+    const birthDate = new Date(dateOfBirth.trim());
+    if (isNaN(birthDate.getTime())) {
+      setError('Invalid date of birth provided');
+      return;
+    }
+
+    const today = new Date();
+    let calculatedAge = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      calculatedAge--;
+    }
+
+    if (calculatedAge < 13) {
+      setError('Learners must be at least 13 years of age to register on Sanad');
       return;
     }
 
     if (password.length < 10) {
-      setErrorMsg('Password must be at least 10 characters long.');
+      setError('Password must be at least 10 characters long');
       return;
     }
 
-    setLoading(true);
-    setErrorMsg('');
-
     try {
-      const response = await apiFetch<any>('/auth/register', {
-        method: 'POST',
-        skipAuth: true,
-        body: JSON.stringify({
-          displayName,
-          email,
-          password,
-          phone: phone || undefined,
-        }),
+      setLoading(true);
+      setError(null);
+
+      const targetIdentifier = email.trim() || phone.trim();
+      await api.auth.register({
+        displayName: displayName.trim(),
+        email: email.trim() || undefined,
+        phone: phone.trim() || undefined,
+        dateOfBirth: dateOfBirth.trim(),
+        password,
       });
 
-      const { user, tokens } = response.data;
-      await setAuth(user, tokens.accessToken, tokens.refreshToken);
-      router.replace('/(tabs)/feed');
-    } catch (err: any) {
-      if (err instanceof ApiError) {
-        setErrorMsg(err.message);
-      } else {
-        setErrorMsg('An error occurred during account creation.');
-      }
+      router.push({
+        pathname: '/(auth)/otp',
+        params: { identifier: targetIdentifier },
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Registration failed';
+      setError(msg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.formCard}>
-        <Text style={styles.title}>Join Sanad</Text>
-        <Text style={styles.subtext}>
-          Learn from verified scholars in an authenticated, respectful environment.
-        </Text>
+    <View style={styles.screen}>
+      <AppHeader
+        title="Create Account"
+        subtitle="Join the Sanad Learning Community"
+        showBack
+      />
 
-        {errorMsg ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{errorMsg}</Text>
-          </View>
-        ) : null}
+      <ScrollView contentContainerStyle={styles.container}>
+        <BrandLogo size="small" variant="horizontal" style={styles.brandLogoHeader} />
+        <View style={styles.card}>
+          {Boolean(error) && (
+            <View style={styles.errorBox}>
+              <Text style={styles.errorBanner}>{error}</Text>
+            </View>
+          )}
 
-        <Input
-          label="Full Name"
-          placeholder="e.g. Abdullah bin Khalid"
-          value={displayName}
-          onChangeText={setDisplayName}
-        />
-
-        <Input
-          label="Email Address"
-          placeholder="your.email@example.com"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={email}
-          onChangeText={setEmail}
-        />
-
-        <Input
-          label="Phone Number (optional)"
-          placeholder="+1234567890"
-          keyboardType="phone-pad"
-          value={phone}
-          onChangeText={setPhone}
-        />
-
-        <Input
-          label="Password (min 10 characters)"
-          placeholder="Create a strong password"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-          helperText="Requires at least 10 characters for platform security."
-        />
-
-        <Button
-          title="Create Account"
-          variant="primary"
-          onPress={handleRegister}
-          loading={loading}
-          style={styles.submitBtn}
-        />
-
-        <View style={styles.switchRow}>
-          <Text style={styles.switchText}>Already registered?</Text>
-          <Button
-            title="Sign In"
-            variant="outline"
-            size="sm"
-            onPress={() => router.push('/(auth)/login')}
-            style={styles.switchBtn}
+          <Input
+            label="Full Name *"
+            placeholder="Enter your full name"
+            value={displayName}
+            onChangeText={setDisplayName}
           />
+
+          <Input
+            label="Email Address"
+            placeholder="learner@institution.edu"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+
+          <Input
+            label="Phone Number (Optional)"
+            placeholder="+966 50 123 4567"
+            value={phone}
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
+          />
+
+          <View>
+            <Input
+              label="Date of Birth (YYYY-MM-DD) *"
+              placeholder="e.g. 2000-01-15"
+              value={dateOfBirth}
+              onChangeText={setDateOfBirth}
+              maxLength={10}
+            />
+            <Text style={styles.hintText}>
+              Required for safety and compliance. Learners must be at least 13 years of age.
+            </Text>
+          </View>
+
+          <Input
+            label="Password (Minimum 10 Characters) *"
+            placeholder="Create a strong password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+
+          <Button
+            title="Create Student Account"
+            variant="primary"
+            onPress={handleRegister}
+            loading={loading}
+            style={styles.submitBtn}
+          />
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Already have an account? </Text>
+            <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
+              <Text style={styles.footerLink}>Sign In</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  brandLogoHeader: {
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  screen: {
+    flex: 1,
+    backgroundColor: colors.light.background,
+  },
   container: {
-    flexGrow: 1,
-    padding: theme.spacing.lg,
-    justifyContent: 'center',
-    backgroundColor: theme.colors.background.light,
+    padding: 20,
+    paddingBottom: 40,
   },
-  formCard: {
-    backgroundColor: theme.colors.surface.light,
-    borderRadius: theme.radius.card,
-    padding: theme.spacing.lg,
+  card: {
+    backgroundColor: colors.light.surface,
+    padding: 20,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: theme.colors.border.light,
-  },
-  title: {
-    fontSize: theme.typography.fontSize.xl,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
-  },
-  subtext: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondaryLight,
-    marginTop: 4,
-    marginBottom: theme.spacing.base,
+    borderColor: colors.light.border,
+    gap: 12,
   },
   errorBox: {
     backgroundColor: '#FDF2F2',
-    borderColor: theme.colors.semantic.error,
+    padding: 10,
+    borderRadius: 8,
     borderWidth: 1,
-    borderRadius: theme.radius.input,
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.base,
+    borderColor: '#FEE2E2',
   },
-  errorText: {
-    color: theme.colors.semantic.error,
-    fontSize: theme.typography.fontSize.sm,
+  errorBanner: {
+    color: colors.light.error,
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  hintText: {
+    fontSize: 11,
+    color: colors.light.textSecondary,
+    marginTop: 4,
+    lineHeight: 15,
   },
   submitBtn: {
-    marginTop: theme.spacing.sm,
+    marginTop: 6,
   },
-  switchRow: {
-    marginTop: theme.spacing.lg,
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border.light,
-    paddingTop: theme.spacing.base,
+    marginTop: 8,
   },
-  switchText: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondaryLight,
-    marginBottom: theme.spacing.sm,
+  footerText: {
+    fontSize: 13,
+    color: colors.light.textSecondary,
   },
-  switchBtn: {
-    width: '100%',
+  footerLink: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.light.primary,
   },
 });
-

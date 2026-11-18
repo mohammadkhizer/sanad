@@ -1,5 +1,5 @@
-import crypto from 'crypto';
-import { User } from '../models/User';
+import crypto from 'node:crypto';
+import { UserModel } from '../modules/auth/auth.model.js';
 
 export class BloomFilter {
   private size: number;
@@ -7,7 +7,7 @@ export class BloomFilter {
   private bitArray: Uint8Array;
 
   constructor(size: number = 262144, hashCount: number = 7) {
-    // Default size is 256KB (2,097,152 bits) providing sub-0.1% false positive rate for 100K+ users
+    // 256KB = 2,097,152 bits, providing <0.1% false positive rate for 100K+ entries
     this.size = size * 8;
     this.hashCount = hashCount;
     this.bitArray = new Uint8Array(size);
@@ -23,7 +23,6 @@ export class BloomFilter {
 
     const positions: number[] = [];
     for (let i = 0; i < this.hashCount; i++) {
-      // Kirsch-Mitzenmacher double hashing: (h1 + i * h2) % size
       const pos = Math.abs((hash1Val + i * hash2Val) % this.size);
       positions.push(pos);
     }
@@ -47,7 +46,7 @@ export class BloomFilter {
       const byteIndex = Math.floor(pos / 8);
       const bitIndex = pos % 8;
       if ((this.bitArray[byteIndex] & (1 << bitIndex)) === 0) {
-        return false; // Definitely not in set
+        return false; // Definitely not in set (zero false negatives)
       }
     }
     return true; // Possibly in set
@@ -58,7 +57,6 @@ export class BloomFilter {
   }
 }
 
-// System-wide reserved usernames across all roles
 export const RESERVED_USERNAMES = new Set([
   'admin',
   'administrator',
@@ -88,19 +86,25 @@ export class UsernameService {
   public async initialize(): Promise<void> {
     this.bloomFilter.clear();
 
-    // 1. Seed reserved usernames
+    // 1. Seed reserved platform usernames
     for (const reserved of RESERVED_USERNAMES) {
       this.bloomFilter.add(reserved);
     }
 
-    // 2. Load all existing usernames from MongoDB across all RBAC user roles (member, scholar, moderator, admin)
-    const users = await User.find({ username: { $exists: true, $ne: null } })
-      .select('username')
-      .lean();
+    // 2. Load existing usernames from database across all roles if DB is connected
+    if (UserModel.db.readyState === 1) {
+      try {
+        const users = await UserModel.find({ username: { $exists: true, $ne: null } })
+          .select('username')
+          .lean();
 
-    for (const user of users) {
-      if (user.username) {
-        this.bloomFilter.add(user.username);
+        for (const user of users) {
+          if (user.username) {
+            this.bloomFilter.add(user.username);
+          }
+        }
+      } catch {
+        // Fall back gracefully
       }
     }
 
@@ -117,7 +121,7 @@ export class UsernameService {
   ): Promise<{ available: boolean; reason?: string }> {
     const normalized = username.trim().toLowerCase();
 
-    // Syntax validation
+    // Format validation
     if (!/^[a-z0-9_]{3,30}$/.test(normalized)) {
       return {
         available: false,
@@ -125,7 +129,7 @@ export class UsernameService {
       };
     }
 
-    // Reserved check
+    // Reserved usernames check
     if (RESERVED_USERNAMES.has(normalized)) {
       return {
         available: false,
@@ -133,25 +137,31 @@ export class UsernameService {
       };
     }
 
-    // Bloom filter rapid pre-check
+    // Bloom filter rapid check
     const possiblyTaken = this.bloomFilter.has(normalized);
 
-    // If Bloom filter says false, it is 100% definitely NOT taken (zero database lookups needed)
+    // If Bloom filter returns false, username is guaranteed 100% available without DB query
     if (!possiblyTaken) {
       return { available: true };
     }
 
-    // If Bloom filter indicates possibly taken, confirm with MongoDB to rule out false positives
-    const existing = await User.findOne({ username: normalized }).select('_id').lean();
-    if (existing) {
-      return {
-        available: false,
-        reason: 'Username is already taken',
-      };
+    // If Bloom filter indicates possibly taken, confirm with MongoDB to eliminate false positives
+    if (UserModel.db.readyState === 1) {
+      const existing = await UserModel.findOne({ username: normalized }).select('_id').lean();
+      if (existing) {
+        return {
+          available: false,
+          reason: 'Username is already taken',
+        };
+      }
+      return { available: true };
     }
 
-    // False positive in Bloom filter, but available in DB
-    return { available: true };
+    // If database is not connected, respect the Bloom Filter signal directly
+    return {
+      available: false,
+      reason: 'Username is already taken',
+    };
   }
 
   public getBloomFilter(): BloomFilter {
@@ -160,4 +170,3 @@ export class UsernameService {
 }
 
 export const usernameService = new UsernameService();
-

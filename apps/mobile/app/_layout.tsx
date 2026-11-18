@@ -1,70 +1,89 @@
 import React, { useEffect } from 'react';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '../src/store/authStore';
-import { theme } from '../src/theme/colors';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
+import { colors } from '../src/theme/colors';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 2,
-      staleTime: 1000 * 60 * 5,
+      retry: 1,
+      refetchOnWindowFocus: false,
     },
   },
 });
 
-export default function RootLayout() {
-  const loadStoredAuth = useAuthStore((state) => state.loadStoredAuth);
+function NavigationAuthGuard({ children }: { children: React.ReactNode }) {
+  const segments = useSegments();
+  const router = useRouter();
+  const { isAuthenticated, isLoading, initialize } = useAuthStore();
 
   useEffect(() => {
-    loadStoredAuth();
-  }, [loadStoredAuth]);
+    initialize();
+  }, [initialize]);
 
-  return (
-    <QueryClientProvider client={queryClient}>
-      <StatusBar style="light" backgroundColor={theme.colors.brand.emerald} />
-      <Stack
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: theme.colors.brand.emerald,
-          },
-          headerTintColor: theme.colors.text.onEmerald,
-          headerTitleStyle: {
-            fontWeight: 'bold',
-          },
-          contentStyle: {
-            backgroundColor: theme.colors.background.light,
-          },
-        }}
-      >
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="scholar/apply"
-          options={{ title: 'Apply for Scholar Verification' }}
-        />
-        <Stack.Screen
-          name="scholar/upload"
-          options={{ title: 'Publish Reel or Lecture' }}
-        />
-        <Stack.Screen
-          name="scholar/dashboard"
-          options={{ title: 'Scholar Dashboard' }}
-        />
-        <Stack.Screen
-          name="admin/review-queue"
-          options={{ title: 'Scholar Verification Queue' }}
-        />
-        <Stack.Screen
-          name="admin/reports"
-          options={{ title: 'Moderation Reports' }}
-        />
-        <Stack.Screen name="chat/[id]" options={{ title: '1:1 Consultation' }} />
-        <Stack.Screen name="live/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="call/[id]" options={{ headerShown: false }} />
-      </Stack>
-    </QueryClientProvider>
-  );
+  useEffect(() => {
+    if (isLoading) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (!isAuthenticated && !inAuthGroup) {
+      // Compulsory login: redirect any unauthenticated user directly to login
+      router.replace('/(auth)/login');
+    } else if (isAuthenticated && inAuthGroup) {
+      // Authenticated users are directed to the primary app feed
+      router.replace('/(tabs)/feed');
+    }
+  }, [isAuthenticated, isLoading, segments, router]);
+
+  return <>{children}</>;
 }
 
+export default function RootLayout() {
+  return (
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <StatusBar style="dark" />
+        <NavigationAuthGuard>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: colors.light.background, overflow: 'hidden' },
+              animation: 'slide_from_right',
+            }}
+          >
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="scholar/apply" options={{ presentation: 'modal', headerShown: false }} />
+            <Stack.Screen name="scholar/status" options={{ headerShown: false }} />
+            <Stack.Screen name="scholar/dashboard" options={{ headerShown: false }} />
+            <Stack.Screen name="scholar/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="post/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="profile/[id]/network" options={{ headerShown: false }} />
+            <Stack.Screen name="settings/index" options={{ headerShown: false }} />
+            <Stack.Screen name="settings/account" options={{ headerShown: false }} />
+            <Stack.Screen name="settings/sessions" options={{ headerShown: false }} />
+            <Stack.Screen name="settings/two-factor" options={{ headerShown: false }} />
+            <Stack.Screen name="settings/notifications" options={{ headerShown: false }} />
+            <Stack.Screen name="settings/language-theme" options={{ headerShown: false }} />
+            <Stack.Screen name="settings/privacy-terms" options={{ headerShown: false }} />
+            <Stack.Screen name="settings/delete-account" options={{ headerShown: false }} />
+            <Stack.Screen name="settings/data-export" options={{ headerShown: false }} />
+            <Stack.Screen name="settings/blocked-users" options={{ headerShown: false }} />
+            <Stack.Screen name="chat/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="call/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="admin/review-queue" options={{ headerShown: false }} />
+            <Stack.Screen name="admin/applications/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="admin/reports" options={{ headerShown: false }} />
+            <Stack.Screen name="admin/reports/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="admin/audit-logs" options={{ headerShown: false }} />
+            <Stack.Screen name="admin/roles" options={{ headerShown: false }} />
+            <Stack.Screen name="admin/config" options={{ headerShown: false }} />
+          </Stack>
+        </NavigationAuthGuard>
+      </QueryClientProvider>
+    </SafeAreaProvider>
+  );
+}

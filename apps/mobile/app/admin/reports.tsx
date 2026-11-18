@@ -1,244 +1,243 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   FlatList,
   StyleSheet,
-  Alert,
+  TouchableOpacity,
   ActivityIndicator,
-  RefreshControl,
 } from 'react-native';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { theme } from '../../src/theme/colors';
-import { Button } from '../../src/components/Button';
-import { apiFetch } from '../../src/api/client';
+import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
+import { api } from '../../src/api';
+import { colors } from '../../src/theme/colors';
+import { Card } from '../../src/components/Card';
+import { AppHeader } from '../../src/components/AppHeader';
+import { AccessGuard } from '../../src/components/AccessGuard';
+import { Icon } from '../../src/components/Icon';
+import { EmptyState } from '../../src/components/EmptyState';
+import { ReportEntity } from '@sanad/shared';
 
-export default function ReportsTriageScreen() {
-  const queryClient = useQueryClient();
+export default function AdminReportsScreen() {
+  const router = useRouter();
+  const [priorityFilter, setPriorityFilter] = useState<'all' | 'P0' | 'P1' | 'P2'>('all');
 
-  const { data: reports, isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['adminReports'],
-    queryFn: async () => {
-      const res = await apiFetch<any>('/admin/reports?status=pending');
-      return res.data;
-    },
+  const { data: reports, isLoading } = useQuery<ReportEntity[]>({
+    queryKey: ['adminReports', priorityFilter],
+    queryFn: () => api.moderation.getReports({ priority: priorityFilter }),
   });
 
-  const actionMutation = useMutation({
-    mutationFn: async ({
-      id,
-      action,
-      removeContent,
-      suspendUser,
-    }: {
-      id: string;
-      action: 'resolve' | 'dismiss';
-      removeContent?: boolean;
-      suspendUser?: boolean;
-    }) => {
-      return apiFetch(`/admin/reports/${id}/action`, {
-        method: 'POST',
-        body: JSON.stringify({ action, removeContent, suspendUser }),
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminReports'] });
-      Alert.alert('Report Processed', 'Moderation action executed and logged in audit trails.');
-    },
-    onError: (err: any) => {
-      Alert.alert('Action Error', err.message || 'Operation failed.');
-    },
-  });
-
-  const handleAction = (
-    id: string,
-    action: 'resolve' | 'dismiss',
-    removeContent: boolean = false,
-    suspendUser: boolean = false
-  ) => {
-    Alert.alert(
-      'Confirm Moderation Action',
-      `Execute ${action}${removeContent ? ' with content takedown' : ''}${
-        suspendUser ? ' and account suspension' : ''
-      }?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Proceed',
-          style: suspendUser ? 'destructive' : 'default',
-          onPress: () => actionMutation.mutate({ id, action, removeContent, suspendUser }),
-        },
-      ]
-    );
-  };
+  const list = reports || [];
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Moderation & Safety Triage</Text>
-        <Text style={styles.headerSub}>
-          Protecting community harmony against sectarian conflict, hate speech, and unverified fatwas.
-        </Text>
+    <AccessGuard
+      requiredRole={['admin', 'moderator']}
+      title="Trust and Safety"
+      subtitle="Moderation Clearance Required"
+    >
+      <View style={styles.screen}>
+      <AppHeader
+        title="Trust and Safety"
+        subtitle="Reported Content and Conduct"
+        showBack
+      />
+
+      {/* Priority Filter Bar */}
+      <View style={styles.filterBar}>
+        {(['all', 'P0', 'P1', 'P2'] as const).map((p) => {
+          const isSelected = priorityFilter === p;
+          return (
+            <TouchableOpacity
+              key={p}
+              style={[styles.filterBtn, isSelected && styles.filterBtnActive]}
+              onPress={() => setPriorityFilter(p)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.filterText, isSelected && styles.filterTextActive]}>
+                {p === 'all' ? 'All Reports' : `${p} Priority`}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       {isLoading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color={theme.colors.brand.emerald} />
+          <ActivityIndicator size="large" color={colors.light.primary} />
         </View>
       ) : (
         <FlatList
-          data={reports || []}
-          keyExtractor={(item) => item.id || item._id}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={refetch}
-              tintColor={theme.colors.brand.emerald}
-            />
-          }
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.reasonBadge}>{item.reason?.toUpperCase()}</Text>
-                <Text style={styles.targetType}>Target: {item.targetType}</Text>
-              </View>
+          data={list}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.list}
+          renderItem={({ item }) => {
+            const isP0 = item.priority === 'P0';
 
-              <Text style={styles.reporter}>
-                Reported by: {item.reporterId?.displayName || 'Community Member'}
-              </Text>
+            return (
+              <Card style={styles.reportCard}>
+                <TouchableOpacity
+                  onPress={() => router.push(`/admin/reports/${item._id}`)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.headerRow}>
+                    <View style={[styles.priorityBadge, isP0 ? styles.p0Badge : styles.p1Badge]}>
+                      <Text style={styles.priorityText}>{item.priority}</Text>
+                    </View>
+                    <View style={styles.typeBadge}>
+                      <Text style={styles.targetTypeBadge}>{item.targetType.toUpperCase()}</Text>
+                    </View>
+                    <Text style={styles.statusText}>{item.status.toUpperCase()}</Text>
+                  </View>
 
-              {item.details ? (
-                <Text style={styles.detailsBox}>Context: {item.details}</Text>
-              ) : null}
+                  <Text style={styles.reasonText}>{item.reason}</Text>
+                  <Text style={styles.summaryText} numberOfLines={2}>
+                    {item.targetSummary || `Target: ${item.targetId}`}
+                  </Text>
 
-              <View style={styles.actionRow}>
-                <Button
-                  title="Dismiss"
-                  variant="outline"
-                  size="sm"
-                  onPress={() => handleAction(item.id || item._id, 'dismiss')}
-                  style={{ flex: 1, marginRight: 6 }}
-                />
-                <Button
-                  title="Takedown Content"
-                  variant="danger"
-                  size="sm"
-                  onPress={() => handleAction(item.id || item._id, 'resolve', true, false)}
-                  style={{ flex: 1.2, marginRight: 6 }}
-                />
-                <Button
-                  title="Suspend User"
-                  variant="danger"
-                  size="sm"
-                  onPress={() => handleAction(item.id || item._id, 'resolve', true, true)}
-                  style={{ flex: 1.2 }}
-                />
-              </View>
-            </View>
-          )}
+                  <View style={styles.footerRow}>
+                    <Text style={styles.dateText}>
+                      {new Date(item.createdAt).toLocaleDateString()}
+                    </Text>
+                    <View style={styles.reviewAction}>
+                      <Text style={styles.actionPromptText}>Review and Enforce</Text>
+                      <Icon name="chevron-right" size={14} color={colors.light.primary} />
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              </Card>
+            );
+          }}
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyTitle}>Reports Queue Clear</Text>
-              <Text style={styles.emptySub}>
-                Zero outstanding community safety flags.
-              </Text>
-            </View>
+            <EmptyState
+              title="Reports Queue Clear"
+              description="No open reports matching selected priority criteria."
+            />
           }
         />
       )}
     </View>
+    </AccessGuard>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: theme.colors.background.light,
+    backgroundColor: colors.light.background,
   },
-  header: {
-    backgroundColor: theme.colors.brand.emeraldDark,
-    padding: theme.spacing.base,
+  filterBar: {
+    flexDirection: 'row',
+    padding: 12,
+    backgroundColor: colors.light.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.light.border,
+    gap: 8,
   },
-  headerTitle: {
+  filterBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: colors.light.background,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    alignItems: 'center',
+  },
+  filterBtnActive: {
+    backgroundColor: colors.light.primary,
+    borderColor: colors.light.primaryDark,
+  },
+  filterText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.light.textSecondary,
+  },
+  filterTextActive: {
     color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: theme.typography.fontSize.base,
-  },
-  headerSub: {
-    color: '#C0D2CC',
-    fontSize: theme.typography.fontSize.xs,
-    marginTop: 2,
   },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  listContent: {
-    padding: theme.spacing.base,
+  list: {
+    padding: 16,
+    gap: 12,
   },
-  card: {
-    backgroundColor: theme.colors.surface.light,
-    borderRadius: theme.radius.card,
-    padding: theme.spacing.base,
-    borderWidth: 1,
-    borderColor: theme.colors.border.light,
-    marginBottom: theme.spacing.base,
+  reportCard: {
+    padding: 16,
+    borderRadius: 14,
+    gap: 8,
   },
-  cardHeader: {
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 2,
+  },
+  priorityBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  p0Badge: {
+    backgroundColor: colors.light.error,
+  },
+  p1Badge: {
+    backgroundColor: colors.light.accent,
+  },
+  priorityText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  typeBadge: {
+    backgroundColor: 'rgba(15, 76, 69, 0.08)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  targetTypeBadge: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: colors.light.primary,
+  },
+  statusText: {
+    marginLeft: 'auto',
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.light.textMuted,
+  },
+  reasonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.light.text,
+  },
+  summaryText: {
+    fontSize: 12,
+    color: colors.light.textSecondary,
+    lineHeight: 18,
+  },
+  footerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    borderTopWidth: 1,
+    borderTopColor: colors.light.border,
+    paddingTop: 10,
+    marginTop: 4,
   },
-  reasonBadge: {
-    backgroundColor: '#FDF2F2',
-    color: theme.colors.semantic.error,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-    fontSize: 10,
-    fontWeight: 'bold',
+  dateText: {
+    fontSize: 11,
+    color: colors.light.textMuted,
   },
-  targetType: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.text.secondaryLight,
-    fontWeight: '600',
-  },
-  reporter: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.text.secondaryLight,
-    marginTop: 2,
-  },
-  detailsBox: {
-    backgroundColor: '#F8F5EE',
-    padding: theme.spacing.sm,
-    borderRadius: 6,
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.text.primaryLight,
-    marginTop: 8,
-    fontStyle: 'italic',
-  },
-  actionRow: {
+  reviewAction: {
     flexDirection: 'row',
-    marginTop: theme.spacing.md,
-  },
-  emptyContainer: {
-    padding: theme.spacing.xl,
     alignItems: 'center',
-    marginTop: 60,
+    gap: 4,
   },
-  emptyTitle: {
-    fontSize: theme.typography.fontSize.lg,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
-  },
-  emptySub: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondaryLight,
-    textAlign: 'center',
-    marginTop: theme.spacing.sm,
+  actionPromptText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.light.primary,
   },
 });
-

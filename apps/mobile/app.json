@@ -2,10 +2,12 @@
   "expo": {
     "name": "Sanad",
     "slug": "sanad",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "scheme": "sanad",
     "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -13,22 +15,33 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.sanad.app"
+      "bundleIdentifier": "com.sanad.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Sanad requires camera access for recording scholarly videos and participating in live sessions.",
+        "NSMicrophoneUsageDescription": "Sanad requires microphone access for recording scholarly videos and live calls.",
+        "NSPhotoLibraryUsageDescription": "Sanad requires access to your photo library to select educational reels, profile images, and credential documents."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0F4C45"
       },
-      "package": "com.sanad.app"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
+      "package": "com.sanad.app",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.INTERNET"
+      ]
     },
     "plugins": [
       "expo-router",
       "expo-secure-store"
     ],
-    "scheme": "sanad"
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    }
   }
 }
+

@@ -1,0 +1,59 @@
+{
+  "type": "FeatureCollection",
+  "name": "SanadGlobalScholarshipNetwork",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "region": "Hejaz & Two Holy Sanctuaries",
+        "primaryTradition": "Hadith Sciences & Usul al-Fiqh",
+        "locale": "ar",
+        "status": "hub"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [39.6111, 24.4672]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "region": "Al-Azhar & North Africa",
+        "primaryTradition": "Comparative Jurisprudence & Arabic Grammar",
+        "locale": "ar",
+        "status": "hub"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [31.2357, 30.0444]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "region": "South Asia & Central Traditions",
+        "primaryTradition": "Hanafi Fiqh & Hadith Verification",
+        "locale": "ur",
+        "status": "hub"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [67.0011, 24.8607]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "region": "Global Western & International Hubs",
+        "primaryTradition": "Contemporary Bioethics & Legal Theory",
+        "locale": "en",
+        "status": "hub"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-0.1278, 51.5074]
+      }
+    }
+  ]
+}
+

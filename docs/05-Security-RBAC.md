@@ -27,22 +27,22 @@
 ## 4. Permission Matrix
 | Permission | Guest | Member | Scholar | Moderator | Admin |
 |---|:-:|:-:|:-:|:-:|:-:|
-| content:view | ✅ | ✅ | ✅ | ✅ | ✅ |
-| content:like_comment | ❌ | ✅ | ✅ | ✅ | ✅ |
-| content:create (video/reel) | ❌ | ❌ | ✅ | ❌ | ✅ |
-| content:edit_own / delete_own | ❌ | ❌ | ✅ | ❌ | ✅ |
-| content:remove_any | ❌ | ❌ | ❌ | ✅ | ✅ |
-| live:host | ❌ | ❌ | ✅ | ❌ | ✅ |
-| live:watch_chat | ❌ | ✅ | ✅ | ✅ | ✅ |
-| chat:request | ❌ | ✅ | ✅ | ✅ | ✅ |
-| chat:accept_initiate | ❌ | ❌ | ✅ | ✅ | ✅ |
-| call:initiate | ❌ | ❌ | ✅ | ❌ | ✅ |
-| application:submit | ❌ | ✅ | ❌ | ❌ | ❌ |
-| application:review | ❌ | ❌ | ❌ | ✅ | ✅ |
-| application:approve | ❌ | ❌ | ❌ | ❌ | ✅ |
-| user:suspend | ❌ | ❌ | ❌ | ✅ | ✅ |
-| role:assign / revoke_scholar | ❌ | ❌ | ❌ | ❌ | ✅ |
-| audit:view | ❌ | ❌ | ❌ | ❌ | ✅ |
+| content:view | YES | YES | YES | YES | YES |
+| content:like_comment | NO | YES | YES | YES | YES |
+| content:create (video/reel) | NO | NO | YES | NO | YES |
+| content:edit_own / delete_own | NO | NO | YES | NO | YES |
+| content:remove_any | NO | NO | NO | YES | YES |
+| live:host | NO | NO | YES | NO | YES |
+| live:watch_chat | NO | YES | YES | YES | YES |
+| chat:request | NO | YES | YES | YES | YES |
+| chat:accept_initiate | NO | NO | YES | YES | YES |
+| call:initiate | NO | NO | YES | NO | YES |
+| application:submit | NO | YES | NO | NO | NO |
+| application:review | NO | NO | NO | YES | YES |
+| application:approve | NO | NO | NO | NO | YES |
+| user:suspend | NO | NO | NO | YES | YES |
+| role:assign / revoke_scholar | NO | NO | NO | NO | YES |
+| audit:view | NO | NO | NO | NO | YES |
 
 ## 5. Middleware Pattern
 ```ts

@@ -1,54 +1,93 @@
 import React from 'react';
+import { View, StyleSheet, Platform } from 'react-native';
 import { Tabs } from 'expo-router';
-import { Text } from 'react-native';
-import { theme } from '../../src/theme/colors';
+import { useAuthStore } from '../../src/store/authStore';
+import { Icon } from '../../src/components/Icon';
+import { colors } from '../../src/theme/colors';
 
-export default function TabLayout() {
+export default function TabsLayout() {
+  const user = useAuthStore((state) => state.user);
+  const isScholar = Boolean(user?.roles?.includes('scholar') || user?.roles?.includes('admin'));
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: theme.colors.accent.gold,
-        tabBarInactiveTintColor: '#A0B2AC',
+        headerShown: false,
         tabBarStyle: {
-          backgroundColor: theme.colors.brand.emerald,
-          borderTopColor: theme.colors.brand.emeraldDark,
-          height: 60,
-          paddingBottom: 8,
+          backgroundColor: colors.light.surface,
+          borderTopWidth: 1,
+          borderTopColor: colors.light.border,
+          height: Platform.OS === 'ios' ? 84 : 64,
+          paddingBottom: Platform.OS === 'ios' ? 24 : 8,
           paddingTop: 8,
+          elevation: 8,
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.04,
+          shadowRadius: 4,
         },
-        headerStyle: {
-          backgroundColor: theme.colors.brand.emerald,
-        },
-        headerTintColor: theme.colors.text.onEmerald,
-        headerTitleStyle: {
-          fontWeight: 'bold',
+        tabBarActiveTintColor: colors.light.primary,
+        tabBarInactiveTintColor: colors.light.textMuted,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+          letterSpacing: 0.3,
+          marginTop: 2,
         },
       }}
     >
       <Tabs.Screen
         name="feed"
         options={{
-          title: 'Feed',
-          tabBarLabel: ({ color }) => (
-            <Text style={{ color, fontSize: 11, fontWeight: '600' }}>Feed</Text>
+          title: 'Sanad',
+          tabBarLabel: 'Home',
+          tabBarIcon: ({ color, focused }) => (
+            <Icon
+              name={focused ? 'home' : 'home-outline'}
+              size={22}
+              color={focused ? colors.light.primary : (color as string)}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="reels"
+        options={{
+          title: 'Reels',
+          tabBarLabel: 'Reels',
+          tabBarIcon: ({ color, focused }) => (
+            <Icon
+              name={focused ? 'reels' : 'reels-outline'}
+              size={22}
+              color={focused ? colors.light.primary : (color as string)}
+            />
           ),
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Scholars',
-          tabBarLabel: ({ color }) => (
-            <Text style={{ color, fontSize: 11, fontWeight: '600' }}>Scholars</Text>
+          title: 'Explore',
+          tabBarLabel: 'Discover',
+          tabBarIcon: ({ color, focused }) => (
+            <Icon
+              name={focused ? 'explore' : 'explore-outline'}
+              size={22}
+              color={focused ? colors.light.primary : (color as string)}
+            />
           ),
         }}
       />
       <Tabs.Screen
-        name="live"
+        name="create"
         options={{
-          title: 'Live',
-          tabBarLabel: ({ color }) => (
-            <Text style={{ color, fontSize: 11, fontWeight: '600' }}>Live</Text>
+          title: 'Publish',
+          tabBarLabel: 'Publish',
+          href: isScholar ? '/(tabs)/create' : null,
+          tabBarIcon: ({ focused }) => (
+            <View style={styles.createButtonContainer}>
+              <Icon name="create" size={24} color="#FFFFFF" />
+            </View>
           ),
         }}
       />
@@ -56,8 +95,13 @@ export default function TabLayout() {
         name="inbox"
         options={{
           title: 'Inbox',
-          tabBarLabel: ({ color }) => (
-            <Text style={{ color, fontSize: 11, fontWeight: '600' }}>Inbox</Text>
+          tabBarLabel: 'Inbox',
+          tabBarIcon: ({ color, focused }) => (
+            <Icon
+              name={focused ? 'inbox' : 'inbox-outline'}
+              size={22}
+              color={focused ? colors.light.primary : (color as string)}
+            />
           ),
         }}
       />
@@ -65,8 +109,13 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: 'Profile',
-          tabBarLabel: ({ color }) => (
-            <Text style={{ color, fontSize: 11, fontWeight: '600' }}>Profile</Text>
+          tabBarLabel: 'Profile',
+          tabBarIcon: ({ color, focused }) => (
+            <Icon
+              name={focused ? 'profile' : 'profile-outline'}
+              size={22}
+              color={focused ? colors.light.primary : (color as string)}
+            />
           ),
         }}
       />
@@ -74,3 +123,16 @@ export default function TabLayout() {
   );
 }
 
+const styles = StyleSheet.create({
+  createButtonContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.light.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 2,
+    borderWidth: 1.5,
+    borderColor: colors.light.accent,
+  },
+});

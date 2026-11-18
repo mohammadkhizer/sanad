@@ -4,400 +4,699 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Alert,
   TouchableOpacity,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { theme } from '../../src/theme/colors';
-import { Button } from '../../src/components/Button';
-import { VerifiedBadge } from '../../src/components/VerifiedBadge';
 import { useAuthStore } from '../../src/store/authStore';
-import { apiFetch } from '../../src/api/client';
+import { colors } from '../../src/theme/colors';
+import { Avatar } from '../../src/components/Avatar';
+import { VerifiedBadge } from '../../src/components/VerifiedBadge';
+import { Card } from '../../src/components/Card';
+import { Button } from '../../src/components/Button';
+import { AppHeader } from '../../src/components/AppHeader';
+import { Icon } from '../../src/components/Icon';
+import { useRouter } from 'expo-router';
+import { api } from '../../src/api';
+import { useQuery } from '@tanstack/react-query';
+import { PostEntity } from '@sanad/shared';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const user = useAuthStore((s) => s.user);
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const logout = useAuthStore((s) => s.logout);
-  const updateUser = useAuthStore((s) => s.updateUser);
+  const { user, isAuthenticated, logout } = useAuthStore();
+  const [activeTab, setActiveTab] = useState<'reels' | 'videos' | 'saved'>('reels');
 
-  const [loading2Fa, setLoading2Fa] = useState(false);
+  const isScholar = Boolean(user?.roles?.includes('scholar') || user?.roles?.includes('admin'));
+  const isModOrAdmin = Boolean(
+    user?.roles?.includes('moderator') || user?.roles?.includes('admin')
+  );
+
+  const { data: postsData } = useQuery<{ items: PostEntity[] }>({
+    queryKey: ['myPosts', activeTab],
+    queryFn: () => api.content.getFeed(),
+  });
+
+  const { data: profileData } = useQuery<any>({
+    queryKey: ['myProfile'],
+    queryFn: () => api.users.getMe(),
+  });
+
+  const handleLogout = async () => {
+    Alert.alert('Log Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Log Out',
+        style: 'destructive',
+        onPress: async () => {
+          await logout();
+          router.replace('/(auth)/login');
+        },
+      },
+    ]);
+  };
 
   if (!isAuthenticated || !user) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.guestTitle}>Welcome to Sanad</Text>
-        <Text style={styles.guestSub}>
-          Sign in to interact with verified religious scholars, save lectures, and customize your study preferences.
-        </Text>
-        <Button
-          title="Sign In"
-          variant="primary"
-          onPress={() => router.push('/(auth)/login')}
-          style={styles.guestBtn}
-        />
-        <Button
-          title="Create Account"
-          variant="outline"
-          onPress={() => router.push('/(auth)/register')}
-          style={[styles.guestBtn, { marginTop: 12 }]}
-        />
+      <View style={styles.container}>
+        <AppHeader title="Profile" />
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={colors.light.primary} />
+        </View>
       </View>
     );
   }
 
-  const isScholar = user.roles.includes('scholar');
-  const isModerator = user.roles.includes('moderator');
-  const isAdmin = user.roles.includes('admin');
-
-  const handleSetup2FA = async () => {
-    setLoading2Fa(true);
-    try {
-      const res = await apiFetch<any>('/auth/2fa/setup', { method: 'POST' });
-      Alert.prompt
-        ? Alert.prompt(
-            'Two-Factor Setup',
-            `Secret key: ${res.data.secret}\n\nAdd this key to Google Authenticator or 1Password, then enter the 6-digit verification code:`,
-            async (code) => {
-              try {
-                await apiFetch('/auth/2fa/verify', {
-                  method: 'POST',
-                  body: JSON.stringify({ code }),
-                });
-                updateUser({ twoFA: { enabled: true } });
-                Alert.alert('2FA Enabled', 'Two-factor authentication is active on your account.');
-              } catch (verifyErr: any) {
-                Alert.alert('Verification Failed', verifyErr.message || 'Invalid code.');
-              }
-            }
-          )
-        : Alert.alert(
-            'Two-Factor Setup',
-            `Secret key: ${res.data.secret}\n\nPlease enter the verification code in your settings to finalize.`
-          );
-    } catch (err: any) {
-      Alert.alert('2FA Setup Error', err.message || 'Failed to initialize 2FA.');
-    } finally {
-      setLoading2Fa(false);
-    }
-  };
-
-  const handleDeleteAccount = () => {
-    Alert.alert(
-      'Delete Account',
-      'Are you sure you want to delete your Sanad account? This will permanently deactivate your profile, comments, and sessions per privacy guidelines.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Confirm Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await apiFetch('/users/me', { method: 'DELETE' });
-              await logout();
-              Alert.alert('Account Deleted', 'Your account has been deleted.');
-            } catch (err: any) {
-              Alert.alert('Error', err.message || 'Could not delete account.');
-            }
-          },
-        },
-      ]
-    );
-  };
-
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Profile Header */}
-      <View style={styles.profileHeader}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarInitial}>
-            {user.displayName.charAt(0).toUpperCase()}
-          </Text>
-        </View>
+    <View style={styles.container}>
+      <AppHeader
+        title="My Profile"
+        subtitle={isScholar ? 'Accredited Scholar' : 'Registered Member'}
+        rightIcon="settings"
+        onRightPress={() => router.push('/settings')}
+      />
 
-        <View style={styles.headerInfo}>
-          <View style={styles.nameRow}>
-            <Text style={styles.displayName}>{user.displayName}</Text>
-            {isScholar && (
-              <View style={styles.badgeWrap}>
-                <VerifiedBadge size="md" />
+      <ScrollView contentContainerStyle={styles.content}>
+        {/* Profile Card */}
+        <Card style={styles.profileCard}>
+          <View style={styles.avatarRow}>
+            <Avatar name={user.displayName} url={profileData?.user?.avatarUrl} size={64} />
+            <View style={styles.userDetails}>
+              <View style={styles.nameRow}>
+                <Text style={styles.userName}>{profileData?.user?.displayName || user.displayName}</Text>
+                {isScholar && <VerifiedBadge />}
               </View>
-            )}
-          </View>
-          <Text style={styles.emailText}>{user.email}</Text>
-          <View style={styles.rolesRow}>
-            {user.roles.map((role) => (
-              <View key={role} style={styles.rolePill}>
-                <Text style={styles.roleText}>{role.toUpperCase()}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      </View>
-
-      {/* Scholar Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Scholarly Authority</Text>
-        {isScholar ? (
-          <View style={styles.scholarCard}>
-            <View style={styles.scholarCardHeader}>
-              <VerifiedBadge size="md" showLabel />
+              {Boolean(profileData?.user?.username || user.username) && (
+                <Text style={styles.userHandle}>
+                  @{profileData?.user?.username || user.username}
+                </Text>
+              )}
+              <Text style={styles.userRole}>
+                {isScholar ? 'Accredited Religious Scholar' : 'Registered Member'}
+              </Text>
+              <Text style={styles.userEmail}>{user.email || user.phone || ''}</Text>
             </View>
-            <Text style={styles.scholarInst}>
-              Institution: {user.scholarProfile?.institution || 'Verified Academy'}
-            </Text>
-            <Button
-              title="Scholar Creator Dashboard"
-              variant="outline"
-              size="sm"
+          </View>
+
+          {Boolean(profileData?.user?.bio || profileData?.bio) && (
+            <Text style={styles.userBio}>{profileData?.user?.bio || profileData?.bio}</Text>
+          )}
+
+          {/* High-Visibility Community Stats Deck */}
+          <View style={styles.statsCardContainer}>
+            <TouchableOpacity
+              style={styles.statBox}
+              onPress={() => router.push(`/profile/${user.id}/network`)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.statValue}>
+                {profileData?.counts?.followers ?? 0}
+              </Text>
+              <Text style={styles.statCaption}>Followers</Text>
+            </TouchableOpacity>
+
+            <View style={styles.statVerticalSeparator} />
+
+            <TouchableOpacity
+              style={styles.statBox}
+              onPress={() => router.push(`/profile/${user.id}/network`)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.statValue}>
+                {profileData?.counts?.following ?? 0}
+              </Text>
+              <Text style={styles.statCaption}>Following</Text>
+            </TouchableOpacity>
+
+            <View style={styles.statVerticalSeparator} />
+
+            <View style={styles.statBox}>
+              <Text style={styles.statValue}>
+                {profileData?.counts?.lessons ?? postsData?.items?.length ?? 0}
+              </Text>
+              <Text style={styles.statCaption}>Lessons</Text>
+            </View>
+          </View>
+
+          {/* Action Row */}
+          <View style={styles.profileActionRow}>
+            <TouchableOpacity
+              style={styles.editProfileBtn}
+              onPress={() => router.push('/profile/edit')}
+              activeOpacity={0.8}
+            >
+              <Icon name="pencil" size={15} color={colors.light.primary} />
+              <Text style={styles.editProfileBtnText}>Edit Profile</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.shareProfileBtn}
+              onPress={() => {
+                Alert.alert('Share Profile', `Profile handle: @${profileData?.user?.username || profileData?.username || user.username || user.displayName}`);
+              }}
+              activeOpacity={0.8}
+            >
+              <Icon name="share" size={15} color={colors.light.textMuted} />
+              <Text style={styles.shareProfileBtnText}>Share</Text>
+            </TouchableOpacity>
+          </View>
+        </Card>
+
+        {/* Scholar Control Panel CTA */}
+        {isScholar && (
+          <Card style={styles.scholarHubCard}>
+            <View style={styles.hubHeaderRow}>
+              <View style={styles.hubIconCircle}>
+                <Icon name="verified" size={20} color={colors.light.accentText} />
+              </View>
+              <View style={styles.hubTextCol}>
+                <Text style={styles.hubTitle}>Scholar Studio & Curriculum</Text>
+                <Text style={styles.hubSubtitle}>
+                  Schedule study circles, publish lessons, and review consultation inquiries
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.hubButton}
               onPress={() => router.push('/scholar/dashboard')}
-              style={styles.actionBtn}
+            >
+              <Text style={styles.hubButtonText}>Open Scholar Panel</Text>
+              <Icon name="chevron-right" size={16} color="#FFFFFF" />
+            </TouchableOpacity>
+          </Card>
+        )}
+
+        {/* Non-scholar member: Application CTA */}
+        {!isScholar && (
+          <Card style={styles.applyCard}>
+            <View style={styles.applyRow}>
+              <View style={styles.applyInfo}>
+                <Text style={styles.applyTitle}>Apply for Scholar Accreditation</Text>
+                <Text style={styles.applySubtitle}>
+                  Submit degrees, ijazahs, and institutional credentials to publish lessons and host study circles.
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.applyButton}
+                onPress={() => router.push('/scholar/apply')}
+              >
+                <Text style={styles.applyButtonText}>Apply</Text>
+              </TouchableOpacity>
+            </View>
+          </Card>
+        )}
+
+        {/* Staff Administration Links for Moderator / Admin */}
+        {isModOrAdmin && (
+          <Card style={styles.adminCard}>
+            <Text style={styles.adminSectionTitle}>Platform Governance</Text>
+            <TouchableOpacity
+              style={styles.adminLink}
+              onPress={() => router.push('/admin/review-queue')}
+            >
+              <View style={styles.adminLinkLeft}>
+                <Icon name="shield" size={18} color={colors.light.primary} />
+                <Text style={styles.adminLinkText}>Applicant Verification Queue</Text>
+              </View>
+              <Icon name="chevron-right" size={16} color={colors.light.textMuted} />
+            </TouchableOpacity>
+
+            <View style={styles.adminDivider} />
+
+            <TouchableOpacity
+              style={styles.adminLink}
+              onPress={() => router.push('/admin/reports')}
+            >
+              <View style={styles.adminLinkLeft}>
+                <Icon name="filter" size={18} color={colors.light.primary} />
+                <Text style={styles.adminLinkText}>Trust & Safety Queue (P0/P1/P2)</Text>
+              </View>
+              <Icon name="chevron-right" size={16} color={colors.light.textMuted} />
+            </TouchableOpacity>
+
+            <View style={styles.adminDivider} />
+
+            <TouchableOpacity
+              style={styles.adminLink}
+              onPress={() => router.push('/admin/audit-logs')}
+            >
+              <View style={styles.adminLinkLeft}>
+                <Icon name="lock" size={18} color={colors.light.primary} />
+                <Text style={styles.adminLinkText}>Immutable Audit Trail</Text>
+              </View>
+              <Icon name="chevron-right" size={16} color={colors.light.textMuted} />
+            </TouchableOpacity>
+          </Card>
+        )}
+
+        {/* Published Media Tabs */}
+        <View style={styles.mediaTabsRow}>
+          <TouchableOpacity
+            style={[styles.mediaTab, activeTab === 'reels' && styles.mediaTabActive]}
+            onPress={() => setActiveTab('reels')}
+          >
+            <Icon
+              name="reels"
+              size={18}
+              color={activeTab === 'reels' ? colors.light.primary : colors.light.textMuted}
             />
+            <Text style={[styles.mediaTabText, activeTab === 'reels' && styles.mediaTabTextActive]}>
+              Reels
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.mediaTab, activeTab === 'videos' && styles.mediaTabActive]}
+            onPress={() => setActiveTab('videos')}
+          >
+            <Icon
+              name="play"
+              size={18}
+              color={activeTab === 'videos' ? colors.light.primary : colors.light.textMuted}
+            />
+            <Text style={[styles.mediaTabText, activeTab === 'videos' && styles.mediaTabTextActive]}>
+              Masterclasses
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.mediaTab, activeTab === 'saved' && styles.mediaTabActive]}
+            onPress={() => setActiveTab('saved')}
+          >
+            <Icon
+              name="bookmark"
+              size={18}
+              color={activeTab === 'saved' ? colors.light.primary : colors.light.textMuted}
+            />
+            <Text style={[styles.mediaTabText, activeTab === 'saved' && styles.mediaTabTextActive]}>
+              Saved
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Lessons Grid Preview */}
+        {(postsData?.items || []).length === 0 ? (
+          <View style={styles.emptyLessonsContainer}>
+            <Text style={styles.emptyLessonsTitle}>No Lessons Published</Text>
+            <Text style={styles.emptyLessonsSub}>
+              Lessons published to the feed will appear in your curriculum portfolio.
+            </Text>
           </View>
         ) : (
-          <View style={styles.applyCard}>
-            <Text style={styles.applyTitle}>Are you a qualified Islamic scholar or academic?</Text>
-            <Text style={styles.applySub}>
-              Apply for transparent verification with your credentials, degrees, or ijazahs to publish authentic lectures.
-            </Text>
-            <Button
-              title="Apply for Verification"
-              variant="accent"
-              size="sm"
-              onPress={() => router.push('/scholar/apply')}
-              style={styles.actionBtn}
-            />
+          <View style={styles.gridContainer}>
+            {(postsData?.items || []).slice(0, 6).map((post) => (
+              <TouchableOpacity
+                key={post._id}
+                style={styles.gridItem}
+                onPress={() => router.push(`/post/${post._id}`)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.gridPlaceholder}>
+                  <Icon name="play" size={20} color={colors.light.accent} />
+                </View>
+                <Text style={styles.gridCaption} numberOfLines={2}>
+                  {post.caption}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         )}
-      </View>
-
-      {/* Staff & Moderation Panel */}
-      {(isModerator || isAdmin) && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Administration & Moderation</Text>
-          <Button
-            title="Scholar Verification Queue"
-            variant="primary"
-            size="sm"
-            onPress={() => router.push('/admin/review-queue')}
-            style={styles.actionBtn}
-          />
-          <Button
-            title="Moderation & Reports Triage"
-            variant="outline"
-            size="sm"
-            onPress={() => router.push('/admin/reports')}
-            style={[styles.actionBtn, { marginTop: 8 }]}
-          />
-        </View>
-      )}
-
-      {/* Security & 2FA */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Account Security</Text>
-        <View style={styles.settingRow}>
-          <View>
-            <Text style={styles.settingLabel}>Two-Factor Authentication (TOTP)</Text>
-            <Text style={styles.settingDesc}>
-              {user.twoFA?.enabled
-                ? 'Active (mandatory for verified scholars and moderators)'
-                : 'Not enabled. Recommended for all accounts.'}
-            </Text>
-          </View>
-          {!user.twoFA?.enabled && (
-            <Button
-              title="Enable 2FA"
-              variant="primary"
-              size="sm"
-              onPress={handleSetup2FA}
-              loading={loading2Fa}
-            />
-          )}
-        </View>
-      </View>
-
-      {/* Actions */}
-      <View style={styles.section}>
-        <Button
-          title="Sign Out"
-          variant="outline"
-          onPress={() => logout()}
-          style={styles.actionBtn}
-        />
-
-        <TouchableOpacity
-          onPress={handleDeleteAccount}
-          style={styles.deleteBtn}
-          accessibilityRole="button"
-          accessibilityLabel="Delete Account Permanently"
-        >
-          <Text style={styles.deleteText}>Delete Account Permanently</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: theme.spacing.base,
-    backgroundColor: theme.colors.background.light,
-  },
-  centerContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: theme.spacing.xl,
+    backgroundColor: colors.light.background,
   },
-  guestTitle: {
-    fontSize: theme.typography.fontSize.xl,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
+  content: {
+    padding: 16,
+    paddingBottom: 90,
   },
-  guestSub: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondaryLight,
-    textAlign: 'center',
-    marginTop: theme.spacing.sm,
-    marginBottom: theme.spacing.xl,
-    lineHeight: 22,
+  profileCard: {
+    padding: 16,
+    marginBottom: 16,
   },
-  guestBtn: {
-    width: 220,
-  },
-  profileHeader: {
+  avatarRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.surface.light,
-    padding: theme.spacing.base,
-    borderRadius: theme.radius.card,
-    borderWidth: 1,
-    borderColor: theme.colors.border.light,
-    marginBottom: theme.spacing.base,
+    gap: 16,
+    marginBottom: 16,
   },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: theme.colors.brand.emerald,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarInitial: {
-    color: '#FFFFFF',
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  headerInfo: {
-    marginLeft: theme.spacing.base,
+  userDetails: {
     flex: 1,
   },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
   },
-  displayName: {
-    fontSize: theme.typography.fontSize.lg,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
+  userName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.light.text,
   },
-  badgeWrap: {
-    marginLeft: 6,
+  userHandle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.light.primary,
+    marginBottom: 2,
   },
-  emailText: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.text.secondaryLight,
+  publicIdText: {
+    fontSize: 11,
+    fontFamily: 'monospace',
+    color: colors.light.textMuted,
+    marginBottom: 2,
+  },
+  userRole: {
+    fontSize: 13,
+    color: colors.light.textMuted,
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  userEmail: {
+    fontSize: 12,
+    color: colors.light.textMuted,
+  },
+  userBio: {
+    fontSize: 13,
+    color: colors.light.text,
+    lineHeight: 18,
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  profileActionRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 14,
+  },
+  editProfileBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    height: 38,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.light.primary,
+    backgroundColor: '#FAF5EC',
+  },
+  editProfileBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.light.primary,
+  },
+  shareProfileBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    height: 38,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    backgroundColor: colors.light.surface,
+  },
+  shareProfileBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.light.text,
+  },
+  statsCardContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    backgroundColor: '#FAF7F0',
+    borderWidth: 1,
+    borderColor: '#E6E0D2',
+    borderRadius: 12,
+    paddingVertical: 14,
+    marginBottom: 16,
+  },
+  statBox: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statValue: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: colors.light.primary,
+  },
+  statCaption: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.light.textMuted,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginTop: 3,
+  },
+  statVerticalSeparator: {
+    width: 1,
+    height: 32,
+    backgroundColor: '#E2DDD0',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    borderTopWidth: 1,
+    borderTopColor: colors.light.border,
+    paddingTop: 12,
+  },
+  statCol: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.light.text,
+  },
+  statLabel: {
+    fontSize: 11,
+    color: colors.light.textMuted,
     marginTop: 2,
   },
-  rolesRow: {
+  statDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: colors.light.border,
+  },
+  scholarHubCard: {
+    backgroundColor: colors.light.primary,
+    padding: 16,
+    marginBottom: 16,
+  },
+  hubHeaderRow: {
     flexDirection: 'row',
-    marginTop: 6,
+    gap: 12,
+    marginBottom: 14,
   },
-  rolePill: {
-    backgroundColor: '#EAE6DC',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: theme.radius.pill,
-    marginRight: 6,
+  hubIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.light.accent,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  roleText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
+  hubTextCol: {
+    flex: 1,
   },
-  section: {
-    backgroundColor: theme.colors.surface.light,
-    padding: theme.spacing.base,
-    borderRadius: theme.radius.card,
+  hubTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 3,
+  },
+  hubSubtitle: {
+    fontSize: 12,
+    color: '#CDE0DA',
+    lineHeight: 16,
+  },
+  hubButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    paddingVertical: 10,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: theme.colors.border.light,
-    marginBottom: theme.spacing.base,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
   },
-  sectionTitle: {
-    fontSize: theme.typography.fontSize.base,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
-    marginBottom: theme.spacing.sm,
-  },
-  scholarCard: {
-    backgroundColor: '#F7F4EC',
-    padding: theme.spacing.md,
-    borderRadius: theme.radius.input,
-  },
-  scholarCardHeader: {
-    marginBottom: 6,
-  },
-  scholarInst: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondaryLight,
-    marginBottom: theme.spacing.sm,
+  hubButtonText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
   },
   applyCard: {
-    backgroundColor: '#F3EFE3',
-    padding: theme.spacing.md,
-    borderRadius: theme.radius.input,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.light.accent,
+  },
+  applyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  applyInfo: {
+    flex: 1,
   },
   applyTitle: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.light.primary,
+    marginBottom: 4,
   },
-  applySub: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.text.secondaryLight,
-    marginTop: 4,
-    marginBottom: theme.spacing.sm,
-    lineHeight: 18,
+  applySubtitle: {
+    fontSize: 12,
+    color: colors.light.textMuted,
+    lineHeight: 16,
   },
-  actionBtn: {
-    marginTop: 4,
+  applyButton: {
+    backgroundColor: colors.light.accent,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
   },
-  settingRow: {
+  applyButtonText: {
+    color: colors.light.accentText,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  adminCard: {
+    padding: 16,
+    marginBottom: 16,
+  },
+  adminSectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.light.primary,
+    marginBottom: 12,
+    letterSpacing: 0.3,
+  },
+  adminLink: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 4,
+    paddingVertical: 10,
   },
-  settingLabel: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: '600',
-    color: theme.colors.text.primaryLight,
-  },
-  settingDesc: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.text.secondaryLight,
-    marginTop: 2,
-    maxWidth: 240,
-  },
-  deleteBtn: {
-    marginTop: theme.spacing.base,
+  adminLinkLeft: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: theme.spacing.sm,
+    gap: 10,
   },
-  deleteText: {
-    color: theme.colors.semantic.error,
-    fontSize: theme.typography.fontSize.xs,
+  adminLinkText: {
+    fontSize: 14,
     fontWeight: '600',
+    color: colors.light.text,
+  },
+  adminDivider: {
+    height: 1,
+    backgroundColor: colors.light.border,
+  },
+  mediaTabsRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.light.border,
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  mediaTab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  mediaTabActive: {
+    borderBottomColor: colors.light.primary,
+  },
+  mediaTabText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.light.textMuted,
+  },
+  mediaTabTextActive: {
+    color: colors.light.primary,
+    fontWeight: '700',
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  emptyLessonsContainer: {
+    padding: 24,
+    borderRadius: 12,
+    backgroundColor: colors.light.surface,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  emptyLessonsTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.light.text,
+    marginBottom: 4,
+  },
+  emptyLessonsSub: {
+    fontSize: 12,
+    color: colors.light.textMuted,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  gridItem: {
+    width: '48%',
+    backgroundColor: colors.light.surface,
+    borderRadius: 10,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    padding: 10,
+  },
+  gridPlaceholder: {
+    height: 90,
+    backgroundColor: '#0D1A17',
+    borderRadius: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  gridCaption: {
+    fontSize: 12,
+    color: colors.light.text,
+    lineHeight: 16,
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+    gap: 12,
+  },
+  guestTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.light.text,
+  },
+  guestSub: {
+    fontSize: 14,
+    color: colors.light.textMuted,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  guestBtn: {
+    marginTop: 12,
+    width: '100%',
   },
 });
-

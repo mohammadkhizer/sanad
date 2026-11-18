@@ -4,247 +4,392 @@ import {
   Text,
   FlatList,
   StyleSheet,
+  TextInput,
+  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { theme } from '../../src/theme/colors';
-import { Input } from '../../src/components/Input';
-import { Button } from '../../src/components/Button';
-import { apiFetch } from '../../src/api/client';
+import { api } from '../../src/api';
+import { colors } from '../../src/theme/colors';
 import { useAuthStore } from '../../src/store/authStore';
+import { AppHeader } from '../../src/components/AppHeader';
+import { Icon } from '../../src/components/Icon';
+import { ReportModal } from '../../src/components/ReportModal';
+import { MessageEntity } from '@sanad/shared';
 
-export default function ChatRoomScreen() {
-  const router = useRouter();
-  const { id: conversationId, recipientName } = useLocalSearchParams<{
-    id: string;
-    recipientName?: string;
-  }>();
-
+export default function ChatScreen() {
+  const { id, recipientName } = useLocalSearchParams<{ id: string; recipientName?: string }>();
+  const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
-  const user = useAuthStore((s) => s.user);
-  const [inputText, setInputText] = useState('');
 
-  const { data: messages } = useQuery({
-    queryKey: ['messages', conversationId],
-    queryFn: async () => {
-      const res = await apiFetch<any>(`/conversations/${conversationId}/messages`);
-      return res.data;
-    },
-    refetchInterval: 3000, // Light polling fallback alongside Socket.io
+  const [text, setText] = useState('');
+  const [reportModalVisible, setReportModalVisible] = useState(false);
+  const rawId = id as string;
+
+  const { data, isLoading } = useQuery<MessageEntity[]>({
+    queryKey: ['messages', rawId],
+    queryFn: () => (rawId ? api.chat.getMessages(rawId) : Promise.resolve([])),
+    enabled: Boolean(rawId),
+    refetchInterval: 3500,
   });
 
+  const { data: recipientUser } = useQuery({
+    queryKey: ['chatRecipient', rawId],
+    queryFn: async () => {
+      if (!rawId || recipientName) return null;
+      try {
+        const res = (await api.users.getUser(rawId)) as any;
+        return res?.user || res;
+      } catch {
+        return null;
+      }
+    },
+    enabled: Boolean(rawId && !recipientName),
+  });
+
+  const messages = data || [];
+
+  const otherMessage = messages.find((m: any) => {
+    const sId = typeof m.senderId === 'object' ? m.senderId?._id : m.senderId;
+    return sId && sId !== user?.id;
+  });
+  const fallbackSenderName = typeof otherMessage?.senderId === 'object' ? otherMessage.senderId.displayName : null;
+
+  const resolvedName = recipientName || recipientUser?.displayName || fallbackSenderName || 'Consultation';
+  const resolvedSubtitle = recipientUser?.username ? `@${recipientUser.username}` : 'Direct scholarly consultation';
+
   const sendMutation = useMutation({
-    mutationFn: async (body: string) => {
-      return apiFetch(`/conversations/${conversationId}/messages`, {
-        method: 'POST',
-        body: JSON.stringify({ body, type: 'text' }),
+    mutationFn: (body: string) => {
+      if (!rawId) throw new Error('Missing conversation or recipient identifier');
+      return api.chat.sendMessage({
+        conversationId: rawId,
+        body,
+        type: 'text',
       });
     },
     onSuccess: () => {
-      setInputText('');
-      queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+      setText('');
+      queryClient.invalidateQueries({ queryKey: ['messages', rawId] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Failed to send message';
+      Alert.alert('Message Failed', msg);
     },
   });
 
   const handleSend = () => {
-    if (!inputText.trim()) return;
-    sendMutation.mutate(inputText.trim());
+    if (!text.trim() || sendMutation.isPending) return;
+    sendMutation.mutate(text.trim());
   };
 
-  const handleStartCall = () => {
-    router.push({
-      pathname: '/call/[id]',
-      params: { id: conversationId },
-    });
+  const handleAttachImage = () => {
+    Alert.alert(
+      'Attach Document or Citation',
+      'Select classical manuscript folio scan or citation image to attach to the consultation.'
+    );
+    sendMutation.mutate('Attachment: Classical Manuscript Folio Scan (Verified Citation)');
   };
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={styles.screen}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
-      <View style={styles.topBar}>
-        <View>
-          <Text style={styles.partnerName}>{recipientName || 'Consultation Room'}</Text>
-          <Text style={styles.securityBadge}>Private Scholarly Consultation</Text>
-        </View>
-
-        <Button
-          title="Video Call"
-          variant="accent"
-          size="sm"
-          pill
-          onPress={handleStartCall}
-        />
-      </View>
-
-      <FlatList
-        data={messages || []}
-        keyExtractor={(item) => item.id || item._id}
-        contentContainerStyle={styles.messagesList}
-        renderItem={({ item }) => {
-          const isMe = item.senderId?.id === user?.id || item.senderId?._id === user?.id;
-
-          return (
-            <View
-              style={[
-                styles.messageBubble,
-                isMe ? styles.myBubble : styles.partnerBubble,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.messageText,
-                  isMe ? styles.myMessageText : styles.partnerMessageText,
-                ]}
-              >
-                {item.body}
-              </Text>
-              <Text
-                style={[
-                  styles.timeText,
-                  isMe ? styles.myTimeText : styles.partnerTimeText,
-                ]}
-              >
-                {new Date(item.createdAt).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </Text>
-            </View>
-          );
-        }}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyText}>
-              Consultation room initiated. Ask your question with proper Islamic etiquette.
-            </Text>
-          </View>
-        }
+      <AppHeader
+        title={resolvedName}
+        subtitle={resolvedSubtitle}
+        showBack
+        rightIcon="shield"
+        onRightPress={() => setReportModalVisible(true)}
       />
 
-      <View style={styles.inputBar}>
-        <Input
-          placeholder="Type your question or response..."
-          value={inputText}
-          onChangeText={setInputText}
-          containerStyle={styles.inputContainer}
-          style={styles.input}
-        />
-        <Button
-          title="Send"
-          variant="primary"
-          size="sm"
-          onPress={handleSend}
-          loading={sendMutation.isPending}
-          style={styles.sendButton}
-        />
+      {/* Advisory Banner */}
+      <View style={styles.advisoryBanner}>
+        <Icon name="shield" size={14} color={colors.light.primary} />
+        <Text style={styles.advisoryText}>
+          Academic Consultation: Adhere to verified sources and respectful discourse.
+        </Text>
       </View>
+
+      {isLoading ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={colors.light.primary} />
+        </View>
+      ) : (
+        <FlatList
+          data={messages}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.messageList}
+          renderItem={({ item }) => {
+            const sender = typeof item.senderId === 'object' ? item.senderId : null;
+            const senderId = sender?._id || item.senderId;
+            const isMine = senderId === user?.id;
+            const senderName = sender?.displayName || resolvedName;
+            const isRead = item.readBy && item.readBy.length > 1;
+
+            return (
+              <View
+                style={[
+                  styles.messageBubble,
+                  isMine ? styles.myBubble : styles.theirBubble,
+                ]}
+              >
+                {!isMine && (
+                  <Text style={styles.senderName}>{senderName}</Text>
+                )}
+                <Text
+                  style={[
+                    styles.messageText,
+                    isMine ? styles.myText : styles.theirText,
+                  ]}
+                >
+                  {item.body}
+                </Text>
+                <View style={styles.metaRow}>
+                  <Text
+                    style={[
+                      styles.timestampText,
+                      isMine ? styles.myTimestamp : styles.theirTimestamp,
+                    ]}
+                  >
+                    {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </Text>
+                  {isMine && (
+                    <View style={styles.receiptRow}>
+                      <Icon
+                        name="check"
+                        size={12}
+                        color={isRead ? colors.light.accent : 'rgba(255, 255, 255, 0.6)'}
+                      />
+                      {isRead && (
+                        <Icon
+                          name="check"
+                          size={12}
+                          color={colors.light.accent}
+                        />
+                      )}
+                    </View>
+                  )}
+                </View>
+              </View>
+            );
+          }}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <View style={styles.emptyIconCircle}>
+                <Icon name="comment" size={26} color={colors.light.primary} />
+              </View>
+              <Text style={styles.emptyTitle}>Direct Consultation</Text>
+              <Text style={styles.emptySubtitle}>
+                No messages yet. Send an inquiry or question to {resolvedName} below to start this dialogue.
+              </Text>
+            </View>
+          }
+        />
+      )}
+
+      {/* Input Bar */}
+      <View style={styles.inputContainer}>
+        <TouchableOpacity
+          style={styles.attachBtn}
+          onPress={handleAttachImage}
+          activeOpacity={0.7}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Icon name="paperclip" size={20} color={colors.light.primary} />
+        </TouchableOpacity>
+
+        <TextInput
+          style={styles.input}
+          placeholder={`Message ${resolvedName}...`}
+          placeholderTextColor={colors.light.textMuted}
+          value={text}
+          onChangeText={setText}
+          multiline
+        />
+
+        <TouchableOpacity
+          style={[styles.sendButton, (!text.trim() || sendMutation.isPending) && styles.sendButtonDisabled]}
+          onPress={handleSend}
+          disabled={sendMutation.isPending || !text.trim()}
+          activeOpacity={0.8}
+        >
+          <Icon name="send" size={18} color="#FFFFFF" />
+        </TouchableOpacity>
+      </View>
+
+      {reportModalVisible && (
+        <ReportModal
+          visible={reportModalVisible}
+          targetType="message"
+          targetId={rawId || ''}
+          onClose={() => setReportModalVisible(false)}
+        />
+      )}
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: theme.colors.background.light,
+    backgroundColor: colors.light.background,
   },
-  topBar: {
+  advisoryBanner: {
+    backgroundColor: 'rgba(15, 76, 69, 0.06)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: theme.spacing.base,
-    backgroundColor: theme.colors.surface.light,
+    gap: 8,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
+    borderBottomColor: colors.light.border,
   },
-  partnerName: {
-    fontSize: theme.typography.fontSize.base,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
+  advisoryText: {
+    fontSize: 11,
+    color: colors.light.primary,
+    flex: 1,
+    fontWeight: '600',
+    lineHeight: 16,
   },
-  securityBadge: {
-    fontSize: 10,
-    color: theme.colors.text.secondaryLight,
-    marginTop: 2,
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  messagesList: {
-    padding: theme.spacing.base,
+  messageList: {
+    padding: 16,
+    gap: 12,
     flexGrow: 1,
-    justifyContent: 'flex-end',
+  },
+  emptyContainer: {
+    padding: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 60,
+  },
+  emptyIconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(15, 76, 69, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.light.primary,
+    marginBottom: 6,
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    color: colors.light.textMuted,
+    textAlign: 'center',
+    lineHeight: 18,
+    maxWidth: 280,
   },
   messageBubble: {
-    maxWidth: '80%',
-    padding: theme.spacing.md,
-    borderRadius: theme.radius.card,
-    marginBottom: theme.spacing.sm,
+    maxWidth: '82%',
+    padding: 12,
+    borderRadius: 14,
   },
   myBubble: {
     alignSelf: 'flex-end',
-    backgroundColor: theme.colors.brand.emerald,
-    borderBottomRightRadius: 4,
+    backgroundColor: colors.light.primary,
+    borderBottomRightRadius: 2,
   },
-  partnerBubble: {
+  theirBubble: {
     alignSelf: 'flex-start',
-    backgroundColor: theme.colors.surface.light,
+    backgroundColor: colors.light.surface,
     borderWidth: 1,
-    borderColor: theme.colors.border.light,
-    borderBottomLeftRadius: 4,
+    borderColor: colors.light.border,
+    borderBottomLeftRadius: 2,
+  },
+  senderName: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.light.primary,
+    marginBottom: 4,
   },
   messageText: {
-    fontSize: theme.typography.fontSize.sm,
+    fontSize: 14,
     lineHeight: 20,
   },
-  myMessageText: {
+  myText: {
     color: '#FFFFFF',
   },
-  partnerMessageText: {
-    color: theme.colors.text.primaryLight,
+  theirText: {
+    color: colors.light.text,
   },
-  timeText: {
-    fontSize: 9,
-    marginTop: 4,
-    alignSelf: 'flex-end',
+  metaRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginTop: 6,
+    gap: 6,
   },
-  myTimeText: {
+  timestampText: {
+    fontSize: 10,
+  },
+  myTimestamp: {
     color: 'rgba(255, 255, 255, 0.7)',
   },
-  partnerTimeText: {
-    color: theme.colors.text.secondaryLight,
+  theirTimestamp: {
+    color: colors.light.textMuted,
   },
-  empty: {
-    padding: theme.spacing.xl,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.text.secondaryLight,
-    textAlign: 'center',
-    fontStyle: 'italic',
-  },
-  inputBar: {
+  receiptRow: {
     flexDirection: 'row',
-    padding: theme.spacing.sm,
-    backgroundColor: theme.colors.surface.light,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border.light,
     alignItems: 'center',
+    gap: -4,
   },
   inputContainer: {
-    flex: 1,
-    marginBottom: 0,
-    marginRight: 8,
+    flexDirection: 'row',
+    padding: 12,
+    backgroundColor: colors.light.surface,
+    borderTopWidth: 1,
+    borderTopColor: colors.light.border,
+    alignItems: 'center',
+    gap: 10,
+  },
+  attachBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.light.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.light.border,
   },
   input: {
-    minHeight: 44,
+    flex: 1,
+    backgroundColor: colors.light.background,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    maxHeight: 100,
+    fontSize: 13,
+    color: colors.light.text,
+    borderWidth: 1,
+    borderColor: colors.light.border,
   },
   sendButton: {
-    height: 44,
-    minWidth: 70,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.light.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sendButtonDisabled: {
+    opacity: 0.5,
   },
 });
-

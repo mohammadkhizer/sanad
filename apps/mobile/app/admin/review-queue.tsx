@@ -4,300 +4,325 @@ import {
   Text,
   FlatList,
   StyleSheet,
+  TouchableOpacity,
   Alert,
   ActivityIndicator,
-  RefreshControl,
 } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { theme } from '../../src/theme/colors';
-import { Button } from '../../src/components/Button';
-import { apiFetch } from '../../src/api/client';
-import { useAuthStore } from '../../src/store/authStore';
+import { useRouter } from 'expo-router';
+import { api } from '../../src/api';
+import { colors } from '../../src/theme/colors';
+import { Card } from '../../src/components/Card';
+import { AppHeader } from '../../src/components/AppHeader';
+import { AccessGuard } from '../../src/components/AccessGuard';
+import { Icon } from '../../src/components/Icon';
+import { EmptyState } from '../../src/components/EmptyState';
+import { ScholarApplicationEntity } from '@sanad/shared';
 
 export default function ReviewQueueScreen() {
+  const router = useRouter();
   const queryClient = useQueryClient();
-  const user = useAuthStore((s) => s.user);
+  const [filter, setFilter] = useState<'pending' | 'more_info' | 'all'>('pending');
 
-  const isAdmin = user?.roles?.includes('admin');
-  const isModerator = user?.roles?.includes('moderator');
-
-  const { data: applications, isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['adminApplications'],
-    queryFn: async () => {
-      const res = await apiFetch<any>('/admin/applications?status=pending');
-      return res.data;
-    },
+  const { data: applications, isLoading } = useQuery<ScholarApplicationEntity[]>({
+    queryKey: ['adminApplications', filter],
+    queryFn: () => api.verification.getApplications(filter),
   });
 
   const decisionMutation = useMutation({
-    mutationFn: async ({
-      id,
-      status,
-      reviewNote,
-    }: {
-      id: string;
-      status: 'approved' | 'rejected' | 'more_info';
-      reviewNote?: string;
-    }) => {
-      return apiFetch(`/admin/applications/${id}/decision`, {
-        method: 'POST',
-        body: JSON.stringify({ status, reviewNote }),
-      });
-    },
+    mutationFn: ({ id, decision, reviewNote }: { id: string; decision: 'approved' | 'rejected' | 'more_info'; reviewNote?: string }) =>
+      api.verification.reviewApplication(id, { decision, reviewNote }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminApplications'] });
-      Alert.alert('Decision Recorded', 'Scholar application updated successfully.');
+      Alert.alert('Decision Recorded', 'The scholar application status has been updated.');
     },
-    onError: (err: any) => {
-      Alert.alert('Action Denied', err.message || 'Operation failed.');
+    onError: (err: Error) => {
+      Alert.alert('Error', err.message || 'Failed to process decision');
     },
   });
 
-  const handleDecision = (id: string, status: 'approved' | 'rejected' | 'more_info') => {
-    if (status === 'approved' && !isAdmin) {
-      Alert.alert(
-        'Policy Restriction',
-        'Separation of Duties: Only administrators hold authority to approve scholar verification.'
-      );
-      return;
-    }
-
+  const handleQuickApprove = (id: string, name: string) => {
     Alert.alert(
-      'Confirm Decision',
-      `Record application status as "${status}"?`,
+      'Approve Scholar',
+      `Accredit ${name} as a verified scholar and issue official platform credentials?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Confirm',
+          text: 'Approve',
           onPress: () => {
-            decisionMutation.mutate({
-              id,
-              status,
-              reviewNote: `Decision by ${user?.displayName} (${isAdmin ? 'Admin' : 'Moderator'})`,
-            });
+            decisionMutation.mutate({ id, decision: 'approved', reviewNote: 'Approved in quick triage.' });
           },
         },
       ]
     );
   };
 
+  const list = applications || [];
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return { label: 'Approved', bg: 'rgba(15, 76, 69, 0.1)', text: colors.light.primary };
+      case 'more_info':
+        return { label: 'Needs Info', bg: '#FFFBEB', text: colors.light.accentDark };
+      case 'rejected':
+        return { label: 'Declined', bg: '#FDF2F2', text: colors.light.error };
+      case 'pending':
+      default:
+        return { label: 'Pending Review', bg: 'rgba(201, 162, 39, 0.15)', text: colors.light.primary };
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      <View style={styles.headerBanner}>
-        <Text style={styles.bannerTitle}>Scholar Verification Queue</Text>
-        <Text style={styles.bannerSub}>
-          Separation of duties: Moderators verify documents; Administrators grant publishing authority.
-        </Text>
+    <AccessGuard
+      requiredRole={['admin', 'moderator']}
+      title="Scholar Admissions"
+      subtitle="Moderation Clearance"
+    >
+      <View style={styles.screen}>
+      <AppHeader
+        title="Scholar Admissions"
+        subtitle="Verification and Dossier Queue"
+        showBack
+      />
+
+      {/* Filter Tabs */}
+      <View style={styles.filterBar}>
+        {(['pending', 'more_info', 'all'] as const).map((f) => {
+          const isSelected = filter === f;
+          return (
+            <TouchableOpacity
+              key={f}
+              style={[styles.filterBtn, isSelected && styles.filterBtnActive]}
+              onPress={() => setFilter(f)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.filterText, isSelected && styles.filterTextActive]}>
+                {f === 'pending' ? 'Pending Review' : f === 'more_info' ? 'Needs Info' : 'All Dossiers'}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       {isLoading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color={theme.colors.brand.emerald} />
+          <ActivityIndicator size="large" color={colors.light.primary} />
         </View>
       ) : (
         <FlatList
-          data={applications || []}
-          keyExtractor={(item) => item.id || item._id}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={refetch}
-              tintColor={theme.colors.brand.emerald}
-            />
-          }
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.applicantName}>
-                  {item.userId?.displayName || 'Applicant'}
-                </Text>
-                <View style={styles.pendingBadge}>
-                  <Text style={styles.pendingText}>PENDING REVIEW</Text>
-                </View>
-              </View>
+          data={list}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.list}
+          renderItem={({ item }) => {
+            const applicant = typeof item.userId === 'object' ? item.userId : null;
+            const applicantName = applicant?.displayName || 'Applicant';
+            const badge = getStatusBadge(item.status);
 
-              <Text style={styles.email}>{item.userId?.email}</Text>
-              <Text style={styles.institution}>Institution: {item.institution}</Text>
-
-              <View style={styles.specialtiesRow}>
-                {item.specialties?.map((spec: string, idx: number) => (
-                  <View key={idx} style={styles.specPill}>
-                    <Text style={styles.specText}>{spec}</Text>
+            return (
+              <Card style={styles.appCard}>
+                <TouchableOpacity
+                  onPress={() => router.push(`/admin/applications/${item._id}`)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.headerRow}>
+                    <Text style={styles.applicantName}>{applicantName}</Text>
+                    <View style={[styles.statusBadge, { backgroundColor: badge.bg }]}>
+                      <Text style={[styles.statusBadgeText, { color: badge.text }]}>
+                        {badge.label}
+                      </Text>
+                    </View>
                   </View>
-                ))}
-              </View>
 
-              <Text style={styles.statementLabel}>Lineage & Statement:</Text>
-              <Text style={styles.statementText}>{item.statement}</Text>
+                  <Text style={styles.institution}>{item.institution}</Text>
+                  <Text style={styles.specialties}>
+                    Specialties: {item.specialties?.join(', ')}
+                  </Text>
+                  <Text style={styles.statementText} numberOfLines={2}>
+                    "{item.statement}"
+                  </Text>
 
-              <View style={styles.buttonRow}>
-                {isAdmin && (
-                  <Button
-                    title="Approve Scholar"
-                    variant="primary"
-                    size="sm"
-                    onPress={() => handleDecision(item.id || item._id, 'approved')}
-                    style={styles.decisionBtn}
-                  />
+                  <View style={styles.credentialsSummary}>
+                    <Icon name="paperclip" size={14} color={colors.light.primary} />
+                    <Text style={styles.credCountText}>
+                      {item.credentials.length} credential document(s) attached
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
+                {item.status === 'pending' && (
+                  <View style={styles.actionRow}>
+                    <TouchableOpacity
+                      style={styles.reviewFullBtn}
+                      onPress={() => router.push(`/admin/applications/${item._id}`)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.reviewFullText}>View Dossier</Text>
+                      <Icon name="chevron-right" size={14} color={colors.light.primary} />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.quickApproveBtn}
+                      onPress={() => handleQuickApprove(item._id, applicantName)}
+                      activeOpacity={0.7}
+                    >
+                      <Icon name="check" size={14} color="#FFFFFF" />
+                      <Text style={styles.quickApproveText}>Approve</Text>
+                    </TouchableOpacity>
+                  </View>
                 )}
-
-                <Button
-                  title="Request Info"
-                  variant="outline"
-                  size="sm"
-                  onPress={() => handleDecision(item.id || item._id, 'more_info')}
-                  style={styles.decisionBtn}
-                />
-
-                <Button
-                  title="Reject"
-                  variant="danger"
-                  size="sm"
-                  onPress={() => handleDecision(item.id || item._id, 'rejected')}
-                  style={styles.decisionBtn}
-                />
-              </View>
-            </View>
-          )}
+              </Card>
+            );
+          }}
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyTitle}>Queue Clear</Text>
-              <Text style={styles.emptySub}>
-                There are no pending scholar applications awaiting verification.
-              </Text>
-            </View>
+            <EmptyState
+              title="Queue Clear"
+              description="No applications currently awaiting verification review."
+            />
           }
         />
       )}
     </View>
+    </AccessGuard>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: theme.colors.background.light,
+    backgroundColor: colors.light.background,
   },
-  headerBanner: {
-    backgroundColor: theme.colors.brand.emeraldDark,
-    padding: theme.spacing.base,
+  filterBar: {
+    flexDirection: 'row',
+    padding: 12,
+    backgroundColor: colors.light.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.light.border,
+    gap: 8,
   },
-  bannerTitle: {
+  filterBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: colors.light.background,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    alignItems: 'center',
+  },
+  filterBtnActive: {
+    backgroundColor: colors.light.primary,
+    borderColor: colors.light.primaryDark,
+  },
+  filterText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.light.textSecondary,
+  },
+  filterTextActive: {
     color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: theme.typography.fontSize.base,
-  },
-  bannerSub: {
-    color: '#C0D2CC',
-    fontSize: theme.typography.fontSize.xs,
-    marginTop: 2,
   },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  listContent: {
-    padding: theme.spacing.base,
+  list: {
+    padding: 16,
+    gap: 14,
   },
-  card: {
-    backgroundColor: theme.colors.surface.light,
-    borderRadius: theme.radius.card,
-    padding: theme.spacing.base,
-    borderWidth: 1,
-    borderColor: theme.colors.border.light,
-    marginBottom: theme.spacing.base,
+  appCard: {
+    padding: 16,
+    borderRadius: 14,
+    gap: 10,
   },
-  cardHeader: {
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   applicantName: {
-    fontSize: theme.typography.fontSize.base,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.light.primary,
   },
-  pendingBadge: {
-    backgroundColor: '#FAF3E0',
+  statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: theme.colors.accent.gold,
+    borderRadius: 6,
   },
-  pendingText: {
-    color: theme.colors.accent.goldDark,
+  statusBadgeText: {
     fontSize: 10,
-    fontWeight: 'bold',
-  },
-  email: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.text.secondaryLight,
-    marginTop: 2,
+    fontWeight: '800',
   },
   institution: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: '600',
-    color: theme.colors.brand.emerald,
-    marginTop: 6,
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.light.text,
   },
-  specialtiesRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 6,
-  },
-  specPill: {
-    backgroundColor: '#EAE6DC',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: theme.radius.pill,
-    marginRight: 6,
-    marginBottom: 4,
-  },
-  specText: {
-    fontSize: 11,
-    color: theme.colors.text.primaryLight,
-  },
-  statementLabel: {
-    fontSize: theme.typography.fontSize.xs,
-    fontWeight: 'bold',
-    color: theme.colors.text.secondaryLight,
-    marginTop: 8,
+  specialties: {
+    fontSize: 12,
+    color: colors.light.textSecondary,
   },
   statementText: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.text.primaryLight,
-    backgroundColor: '#FAF8F3',
-    padding: theme.spacing.sm,
-    borderRadius: 6,
-    marginTop: 4,
+    fontSize: 12,
+    color: colors.light.text,
+    fontStyle: 'italic',
     lineHeight: 18,
   },
-  buttonRow: {
+  credentialsSummary: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: theme.spacing.base,
-  },
-  decisionBtn: {
-    flex: 1,
-  },
-  emptyContainer: {
-    padding: theme.spacing.xl,
     alignItems: 'center',
-    marginTop: 60,
+    gap: 8,
+    backgroundColor: colors.light.background,
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    marginTop: 2,
   },
-  emptyTitle: {
-    fontSize: theme.typography.fontSize.lg,
-    fontWeight: 'bold',
-    color: theme.colors.text.primaryLight,
+  credCountText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.light.primary,
   },
-  emptySub: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.text.secondaryLight,
-    textAlign: 'center',
-    marginTop: theme.spacing.sm,
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderTopWidth: 1,
+    borderTopColor: colors.light.border,
+    paddingTop: 12,
+    gap: 10,
+  },
+  reviewFullBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: colors.light.background,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.light.border,
+    gap: 6,
+  },
+  reviewFullText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.light.primary,
+  },
+  quickApproveBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: colors.light.primary,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  quickApproveText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 12,
   },
 });
-
