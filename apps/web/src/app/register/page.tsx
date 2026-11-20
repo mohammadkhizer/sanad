@@ -269,9 +269,8 @@ export default function RegisterAndOnboardingPage() {
               {[1, 2, 3, 4].map((s) => (
                 <div key={s} className="flex-1 flex items-center gap-1.5">
                   <div
-                    className={`h-1.5 w-full rounded-full transition-all duration-300 ${
-                      step >= s ? 'bg-sanad-emerald' : 'bg-sanad-border'
-                    }`}
+                    className={`h-1.5 w-full rounded-full transition-all duration-300 ${step >= s ? 'bg-sanad-emerald' : 'bg-sanad-border'
+                      }`}
                   />
                 </div>
               ))}
@@ -307,7 +306,7 @@ export default function RegisterAndOnboardingPage() {
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-sanad-emerald uppercase tracking-wider block flex items-center gap-1.5">
                       <User className="w-3.5 h-3.5 text-sanad-gold" />
-                      Full Name / Scholarly Name *
+                      Full Name *
                     </label>
                     <Input
                       type="text"
@@ -565,11 +564,10 @@ export default function RegisterAndOnboardingPage() {
                               setAvatarUrl(preset.url);
                               setCustomAvatarUrl('');
                             }}
-                            className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center gap-3 ${
-                              isSelected
+                            className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center gap-3 ${isSelected
                                 ? 'border-sanad-emerald bg-sanad-gold-subtle/60 shadow-sm ring-1 ring-sanad-emerald'
                                 : 'border-sanad-border bg-white hover:border-sanad-gold/60'
-                            }`}
+                              }`}
                           >
                             <div className="w-12 h-12 rounded-xl border border-sanad-gold/60 overflow-hidden shrink-0 bg-sanad-emerald flex items-center justify-center">
                               {/* eslint-disable-next-line @next/next/no-img-element */}

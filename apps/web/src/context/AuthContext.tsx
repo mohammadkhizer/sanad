@@ -66,8 +66,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(newUser);
     localStorage.setItem('sanad_member_token', newToken);
     localStorage.setItem('sanad_member_user', JSON.stringify(newUser));
+    localStorage.setItem('sanad_token', newToken);
+    localStorage.setItem('sanad_user', JSON.stringify(newUser));
     if (refreshToken) {
       localStorage.setItem('sanad_member_refresh_token', refreshToken);
+      localStorage.setItem('sanad_refresh_token', refreshToken);
     }
   };
 

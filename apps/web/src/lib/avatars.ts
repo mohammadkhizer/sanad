@@ -36,3 +36,4 @@ export const PRESET_AVATARS: PresetAvatar[] = [
     url: 'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?auto=format&fit=crop&w=400&q=80',
   },
 ];
+
