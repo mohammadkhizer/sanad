@@ -15,6 +15,8 @@ export interface User {
   bio?: string;
   avatarUrl?: string;
   isPrivate?: boolean;
+  twoFactorEnabled?: boolean;
+  scholarProfile?: Record<string, unknown>;
   institution?: string;
   specialties?: string[];
   languages?: string[];
