@@ -338,6 +338,9 @@ export const platformApi = {
       displayName?: string;
       bio?: string;
       avatarUrl?: string;
+      phone?: string;
+      email?: string;
+      dateOfBirth?: string;
       isPrivate?: boolean;
       specialties?: string[];
       languages?: string[];
@@ -425,13 +428,14 @@ export const platformApi = {
       email?: string;
       phone?: string;
       username?: string;
-      dateOfBirth: string;
+      dateOfBirth?: string;
       password: string;
     }) => {
       return await apiFetch<{
         message?: string;
         identifier?: string;
         accessToken?: string;
+        refreshToken?: string;
         user?: any;
       }>('/auth/register', {
         method: 'POST',

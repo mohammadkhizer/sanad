@@ -16,6 +16,7 @@ const PUBLIC_PATHS = [
   '/reels',
   '/login',
   '/register',
+  '/onboarding',
   '/forgot-password',
   '/reset-password',
   '/how-verification-works',
