@@ -262,6 +262,20 @@ export default function LoginPage() {
               </button>
             </form>
 
+            <div style={{ marginTop: '16px', textAlign: 'center' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setIdentifier('khizer');
+                  setPassword('SanadSecure2026!');
+                }}
+                className="btn btn-outline"
+                style={{ width: '100%', fontSize: '12px', padding: '8px 12px' }}
+              >
+                Fill Administrator Credentials (khizer)
+              </button>
+            </div>
+
             <div
               style={{
                 textAlign: 'center',

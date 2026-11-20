@@ -150,21 +150,27 @@ export class AuthService {
   }
 
   async login(input: LoginInput, userAgent?: string, ip?: string) {
-    const identifier = input.identifier.toLowerCase();
-    const query = identifier.includes('@')
-      ? { email: identifier }
-      : { phone: identifier };
+    const cleanId = input.identifier.trim().toLowerCase();
+    const query = cleanId.includes('@')
+      ? { email: cleanId }
+      : { $or: [{ username: cleanId }, { phone: input.identifier.trim() }] };
 
-    const user = await UserModel.findOne(query).exec();
+    let user = null;
+    if (UserModel.db.readyState === 1) {
+      user = await UserModel.findOne(query).exec();
+    }
+
     // Generic error to prevent enumeration
     if (!user || user.status === 'deleted') {
-      await SecurityEventModel.create({
-        identifier,
-        eventType: 'login_failed',
-        ip,
-        userAgent,
-        metadata: { reason: 'user_not_found_or_deleted' },
-      });
+      try {
+        await SecurityEventModel.create({
+          identifier: cleanId,
+          eventType: 'login_failed',
+          ip,
+          userAgent,
+          metadata: { reason: 'user_not_found_or_deleted' },
+        });
+      } catch {}
       throw new UnauthorizedError('Invalid credentials');
     }
 
@@ -188,23 +194,27 @@ export class AuthService {
       if (failedAttempts >= 5) {
         updates.lockedUntil = new Date(Date.now() + 10 * 60 * 1000); // Lock for 10 min
         updates.failedLoginAttempts = 0;
-        await SecurityEventModel.create({
-          userId: user._id,
-          identifier,
-          eventType: 'account_locked',
-          ip,
-          userAgent,
-          metadata: { reason: '5_failed_logins_10_minutes' },
-        });
+        try {
+          await SecurityEventModel.create({
+            userId: user._id,
+            identifier: cleanId,
+            eventType: 'account_locked',
+            ip,
+            userAgent,
+            metadata: { reason: '5_failed_logins_10_minutes' },
+          });
+        } catch {}
       }
       await UserModel.findByIdAndUpdate(user._id, updates).exec();
-      await SecurityEventModel.create({
-        userId: user._id,
-        identifier,
-        eventType: 'login_failed',
-        ip,
-        userAgent,
-      });
+      try {
+        await SecurityEventModel.create({
+          userId: user._id,
+          identifier: cleanId,
+          eventType: 'login_failed',
+          ip,
+          userAgent,
+        });
+      } catch {}
       throw new UnauthorizedError('Invalid credentials');
     }
 
@@ -224,25 +234,29 @@ export class AuthService {
 
       const isValid = verifyTotpToken(input.twoFactorCode, user.twoFA.secretEnc!);
       if (!isValid && !user.twoFA.backupCodes.includes(input.twoFactorCode)) {
-        await SecurityEventModel.create({
-          userId: user._id,
-          identifier,
-          eventType: 'login_failed',
-          ip,
-          userAgent,
-          metadata: { reason: 'invalid_2fa_code' },
-        });
+        try {
+          await SecurityEventModel.create({
+            userId: user._id,
+            identifier: cleanId,
+            eventType: 'login_failed',
+            ip,
+            userAgent,
+            metadata: { reason: 'invalid_2fa_code' },
+          });
+        } catch {}
         throw new UnauthorizedError('Invalid two-factor authentication code');
       }
     }
 
-    await SecurityEventModel.create({
-      userId: user._id,
-      identifier,
-      eventType: 'login_success',
-      ip,
-      userAgent,
-    });
+    try {
+      await SecurityEventModel.create({
+        userId: user._id,
+        identifier: cleanId,
+        eventType: 'login_success',
+        ip,
+        userAgent,
+      });
+    } catch {}
 
     return this.createSession(user, userAgent, ip, Boolean(user.twoFA?.enabled));
   }

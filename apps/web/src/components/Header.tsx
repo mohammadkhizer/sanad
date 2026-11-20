@@ -118,7 +118,12 @@ export default function Header() {
               <div className="flex items-center gap-2">
                 {isAdmin && (
                   <a
-                    href="https://app-admin-sanad.netlify.app"
+                    href={
+                      process.env.NEXT_PUBLIC_ADMIN_URL ||
+                      (typeof window !== 'undefined' && window.location.hostname === 'localhost'
+                        ? 'http://localhost:3000'
+                        : 'https://app-admin-sanad.netlify.app')
+                    }
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-amber-900 bg-amber-100 border border-amber-300 hover:bg-amber-200 transition-colors shadow-sm"
