@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -34,6 +34,12 @@ function InboxMain() {
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom whenever messages update
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   // New Chat Modal state
   const [showNewModal, setShowNewModal] = useState(false);
@@ -103,7 +109,7 @@ function InboxMain() {
     };
   }, [targetUserIdParam]);
 
-  // Load messages whenever active conversation changes
+  // Load & continuously poll active conversation messages (every 2.5s)
   useEffect(() => {
     if (!activeConvId) {
       setMessages([]);
@@ -111,19 +117,74 @@ function InboxMain() {
     }
 
     let isMounted = true;
-    platformApi.chat
-      .getMessages(activeConvId)
-      .then((res) => {
-        if (isMounted) {
-          setMessages(res.messages || []);
+
+    const fetchMessages = async () => {
+      try {
+        const res = await platformApi.chat.getMessages(activeConvId);
+        if (!isMounted) return;
+        const newMsgs = res.messages || [];
+
+        setMessages((prev) => {
+          if (prev.length !== newMsgs.length) {
+            return newMsgs;
+          }
+          const lastPrev = prev[prev.length - 1];
+          const lastNew = newMsgs[newMsgs.length - 1];
+          if (lastPrev?.id !== lastNew?.id || lastPrev?.text !== lastNew?.text) {
+            return newMsgs;
+          }
+          return prev;
+        });
+
+        // If activeConvId was a temporary target user ID, update to permanent conversationId
+        if (res.conversationId && res.conversationId !== activeConvId) {
+          setActiveConvId(res.conversationId);
         }
-      })
-      .catch(() => {
-        if (isMounted) setMessages([]);
-      });
+      } catch {
+        // Continue quietly
+      }
+    };
+
+    fetchMessages();
+    const interval = setInterval(fetchMessages, 2500);
 
     return () => {
       isMounted = false;
+      clearInterval(interval);
+    };
+  }, [activeConvId]);
+
+  // Background thread poller for new incoming conversations and threads (every 3.5s)
+  useEffect(() => {
+    let isMounted = true;
+
+    const pollThreads = async () => {
+      try {
+        const res = await platformApi.chat.getConversations();
+        if (!isMounted || !res.conversations) return;
+
+        setConversations((prev) => {
+          const prevMap = new Map(prev.map((c) => [c.id, c.lastMessage]));
+          const hasChange =
+            prev.length !== res.conversations.length ||
+            res.conversations.some((c) => prevMap.get(c.id) !== c.lastMessage);
+          return hasChange ? res.conversations : prev;
+        });
+
+        // Auto-select first thread if none is currently selected
+        if (!activeConvId && res.conversations.length > 0) {
+          setActiveConvId(res.conversations[0].id);
+        }
+      } catch {
+        // Silently continue polling
+      }
+    };
+
+    const interval = setInterval(pollThreads, 3500);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
     };
   }, [activeConvId]);
 
@@ -198,9 +259,10 @@ function InboxMain() {
     setSending(true);
 
     const tempMsgId = `msg-${Date.now()}`;
+    const myId = user?.id || (user as any)?._id || 'me';
     const optimisticMsg = {
       id: tempMsgId,
-      senderId: user?.id || 'me',
+      senderId: myId,
       text,
       createdAt: 'Just now',
     };
@@ -208,20 +270,26 @@ function InboxMain() {
     setMessages((prev) => [...prev, optimisticMsg]);
 
     try {
-      await platformApi.chat.sendMessage(activeConvId, text);
-      // Refresh conversation list to capture real conversation ID and updated last message
+      const sendRes = await platformApi.chat.sendMessage(activeConvId, text);
+      if (sendRes?.conversationId && sendRes.conversationId !== activeConvId) {
+        setActiveConvId(sendRes.conversationId);
+      }
+
+      // Refresh conversation list immediately
       const updatedRes = await platformApi.chat.getConversations();
       if (updatedRes.conversations && updatedRes.conversations.length > 0) {
         setConversations(updatedRes.conversations);
       }
-    } catch {
-      // Message delivered optimistically
+    } catch (sendErr) {
+      console.error('Send message error:', sendErr);
     } finally {
       setSending(false);
     }
   };
 
-  const activeConv = conversations.find((c) => c.id === activeConvId);
+  const activeConv = conversations.find(
+    (c) => c.id === activeConvId || c.participant.id === activeConvId
+  );
 
   const filteredDirectoryUsers = directoryUsers.filter((u) => {
     const q = searchDirectoryQuery.toLowerCase().trim();
@@ -391,7 +459,8 @@ function InboxMain() {
                     </div>
                   ) : (
                     messages.map((m) => {
-                      const isMe = m.senderId === user?.id || m.senderId === 'me';
+                      const myId = user?.id || (user as any)?._id;
+                      const isMe = m.senderId === myId || m.senderId === 'me';
                       return (
                         <div
                           key={m.id}
@@ -417,6 +486,7 @@ function InboxMain() {
                       );
                     })
                   )}
+                  <div ref={messagesEndRef} />
                 </div>
 
                 {/* Message Input Form */}
