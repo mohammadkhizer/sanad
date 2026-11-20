@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ShieldCheck, BookOpen, KeyRound, AlertCircle, Shield } from 'lucide-react';
+import { KeyRound, AlertCircle } from 'lucide-react';
 import PasswordInput from '../../components/PasswordInput';
 import { Spinner } from '../../components/Preloader';
 import { webApi } from '../../lib/api';
@@ -78,18 +78,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleDemoLogin = (role: 'admin' | 'scholar' | 'seeker') => {
-    if (role === 'admin') {
-      setIdentifier('khizer');
-      setPassword('SanadSecure2026!');
-    } else if (role === 'scholar') {
-      setIdentifier('scholar.hadith@sanad.app');
-      setPassword('SanadFaithSecure10#');
-    } else {
-      setIdentifier('student.ilm@sanad.app');
-      setPassword('SanadLearner2026!');
-    }
-  };
 
   return (
     <div className="min-h-[82vh] flex items-center justify-center py-12 px-4 sm:px-6">
@@ -204,47 +192,7 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            {/* Fast Demo Credentials Picker */}
-            <div className="mt-6 pt-5 border-t border-sanad-border/60">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-sanad-slate block text-center mb-2.5">
-                Quick Credentials
-              </span>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleDemoLogin('admin')}
-                  className="p-2 rounded-lg border border-sanad-gold/40 bg-sanad-gold-subtle/50 hover:bg-sanad-gold/20 text-left transition-colors"
-                >
-                  <div className="flex items-center gap-1 text-xs font-bold text-sanad-emerald">
-                    <Shield className="w-3.5 h-3.5 text-sanad-gold-dark" />
-                    Admin
-                  </div>
-                  <span className="text-[10px] text-sanad-slate block mt-0.5">Dual Portal</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDemoLogin('scholar')}
-                  className="p-2 rounded-lg border border-sanad-border bg-sanad-ivory-warm/60 hover:bg-sanad-ivory-warm text-left transition-colors"
-                >
-                  <div className="flex items-center gap-1 text-xs font-bold text-sanad-emerald">
-                    <ShieldCheck className="w-3.5 h-3.5 text-sanad-gold" />
-                    Scholar
-                  </div>
-                  <span className="text-[10px] text-sanad-slate block mt-0.5">Faculty</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDemoLogin('seeker')}
-                  className="p-2 rounded-lg border border-sanad-border bg-sanad-ivory-warm/60 hover:bg-sanad-ivory-warm text-left transition-colors"
-                >
-                  <div className="flex items-center gap-1 text-xs font-bold text-sanad-emerald">
-                    <BookOpen className="w-3.5 h-3.5 text-sanad-emerald" />
-                    Student
-                  </div>
-                  <span className="text-[10px] text-sanad-slate block mt-0.5">Learner</span>
-                </button>
-              </div>
-            </div>
+
           </CardContent>
 
           <CardFooter className="flex flex-col gap-2 pt-0 pb-6 text-center text-xs text-sanad-slate">
