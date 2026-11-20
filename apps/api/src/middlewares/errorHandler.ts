@@ -11,15 +11,42 @@ export function errorHandler(
 ): void {
   const requestId = req.headers['x-request-id'] as string;
 
-  if (err instanceof AppError) {
-    res.status(err.statusCode).json({
-      code: err.code,
-      message: err.message,
-      details: err.details,
+  // Handle custom AppError or errors with explicit statusCode
+  const customStatus = (err as any).statusCode || (err instanceof AppError ? err.statusCode : undefined);
+  if (customStatus) {
+    const code = (err as any).code || 'ERROR';
+    const message = err.message || 'An error occurred';
+    res.status(customStatus).json({
+      code,
+      message,
+      details: (err as any).details,
       error: {
-        code: err.code,
-        message: err.message,
-        details: err.details,
+        code,
+        message,
+        details: (err as any).details,
+      },
+    });
+    return;
+  }
+
+  // Handle MongoDB E11000 Duplicate Key Errors
+  if ((err as any).code === 11000 || err.name === 'MongoServerError') {
+    const keyPattern = (err as any).keyPattern || {};
+    let message = 'An account with this information already exists.';
+    if (keyPattern.email) {
+      message = 'An account with this email address already exists. Please sign in instead.';
+    } else if (keyPattern.username) {
+      message = 'This username handle is already taken. Please choose another username.';
+    } else if (keyPattern.phone) {
+      message = 'An account with this contact phone number already exists.';
+    }
+
+    res.status(409).json({
+      code: 'CONFLICT',
+      message,
+      error: {
+        code: 'CONFLICT',
+        message,
       },
     });
     return;

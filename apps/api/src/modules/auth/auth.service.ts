@@ -86,6 +86,10 @@ export class AuthService {
 
   async register(input: RegisterInput) {
     if (input.username) {
+      const existingUser = await UserModel.findOne({ username: input.username.toLowerCase() }).exec();
+      if (existingUser) {
+        throw new ConflictError('This username is already taken. Please choose another username.', 'USERNAME_TAKEN');
+      }
       const check = await usernameService.checkAvailability(input.username);
       if (!check.available) {
         throw new ConflictError(check.reason || 'Username is already taken', 'USERNAME_UNAVAILABLE');
@@ -93,11 +97,9 @@ export class AuthService {
     }
 
     const query = input.email ? { email: input.email.toLowerCase() } : { phone: input.phone };
-    if (UserModel.db.readyState === 1) {
-      const existing = await UserModel.findOne(query).exec();
-      if (existing) {
-        throw new ConflictError('An account with this email or phone already exists', 'ACCOUNT_EXISTS');
-      }
+    const existing = await UserModel.findOne(query).exec();
+    if (existing) {
+      throw new ConflictError('An account with this email or phone already exists. Please sign in instead.', 'ACCOUNT_EXISTS');
     }
 
     const passwordHash = await argon2.hash(input.password);
