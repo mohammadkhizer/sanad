@@ -141,15 +141,24 @@ export default function Header() {
                   href="/profile"
                   className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg border border-sanad-border bg-white hover:bg-sanad-ivory-warm transition-all"
                 >
-                  <div className="w-8 h-8 rounded-full bg-sanad-ivory-warm border border-sanad-gold/60 flex items-center justify-center text-xs font-bold text-sanad-emerald">
-                    {user.displayName.charAt(0)}
+                  <div className="w-8 h-8 rounded-full bg-sanad-ivory-warm border border-sanad-gold/60 flex items-center justify-center text-xs font-bold text-sanad-emerald overflow-hidden shrink-0">
+                    {user.avatarUrl ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={user.avatarUrl}
+                        alt={user.displayName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      user.displayName.charAt(0)
+                    )}
                   </div>
                   <div className="hidden lg:block text-left">
                     <div className="text-xs font-bold text-sanad-charcoal leading-none">
                       {user.displayName}
                     </div>
                     <div className="text-[10px] font-semibold text-sanad-gold-dark capitalize mt-0.5">
-                      {isScholar ? 'Accredited Scholar' : 'Verified Member'}
+                      {user.username ? `@${user.username}` : (isScholar ? 'Accredited Scholar' : 'Verified Member')}
                     </div>
                   </div>
                 </Link>
