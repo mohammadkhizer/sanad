@@ -47,11 +47,17 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
           {/* Brand Logo & Typography */}
           <Link href="/" className="flex items-center gap-3 select-none group">
-            <div className="relative w-11 h-11 rounded-xl border border-sanad-gold bg-gradient-to-br from-sanad-emerald to-sanad-emerald-deep flex items-center justify-center shadow-sm overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
+            <div
+              className="relative w-11 h-11 rounded-xl border border-sanad-gold bg-gradient-to-br from-sanad-emerald to-sanad-emerald-deep flex items-center justify-center shadow-sm overflow-hidden shrink-0 group-hover:scale-105 transition-transform"
+              style={{ width: '44px', height: '44px', minWidth: '44px', minHeight: '44px' }}
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/assets/splash-mark.png"
                 alt="Sanad Crest"
+                width={44}
+                height={44}
+                style={{ width: '44px', height: '44px', objectFit: 'cover', display: 'block' }}
                 className="w-full h-full object-cover block"
               />
             </div>
