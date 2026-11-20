@@ -64,6 +64,7 @@ export default function RegisterAndOnboardingPage() {
 
     const cleanName = displayName.trim();
     const cleanEmail = email.trim().toLowerCase();
+    const cleanDob = dateOfBirth.trim();
 
     if (!cleanName || cleanName.length < 2) {
       setError('Please provide your full legal or scholarly name (at least 2 characters).');
@@ -72,6 +73,32 @@ export default function RegisterAndOnboardingPage() {
 
     if (!cleanEmail || !cleanEmail.includes('@')) {
       setError('Please enter a valid academic or personal email address.');
+      return;
+    }
+
+    if (!cleanDob) {
+      setError('Please provide your date of birth to verify eligibility (must be 13 or older).');
+      return;
+    }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(cleanDob)) {
+      setError('Date of birth must be in YYYY-MM-DD format (e.g. 1998-05-20).');
+      return;
+    }
+
+    const birthDate = new Date(cleanDob);
+    if (isNaN(birthDate.getTime())) {
+      setError('Invalid date of birth provided.');
+      return;
+    }
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    if (age < 13) {
+      setError('Members must be at least 13 years of age to participate on Sanad.');
       return;
     }
 
@@ -93,19 +120,33 @@ export default function RegisterAndOnboardingPage() {
         .toLowerCase()
         .replace(/[^a-z0-9]/g, '_')
         .replace(/_+/g, '_')
+        .replace(/^_+|_+$/g, '')
         .slice(0, 20);
+      const safeHandle = autoHandle.length >= 3 ? autoHandle : `user_${Date.now().toString().slice(-4)}`;
       if (!username) {
-        setUsername(autoHandle);
+        setUsername(safeHandle);
       }
 
-      const res = await webApi.auth.register({
+      await webApi.auth.register({
         displayName: cleanName,
         email: cleanEmail,
         password,
+        dateOfBirth: cleanDob,
+        username: safeHandle,
       });
 
-      if (res?.accessToken && res?.user) {
-        login(res.accessToken, res.user, res.refreshToken);
+      // Automatically authenticate session immediately after registration
+      try {
+        const loginRes = await webApi.auth.login({
+          identifier: cleanEmail,
+          password,
+        });
+
+        if (loginRes?.accessToken && loginRes?.user) {
+          login(loginRes.accessToken, loginRes.user, loginRes.refreshToken);
+        }
+      } catch (loginErr) {
+        console.warn('Auto-login note:', loginErr);
       }
 
       setSuccess('Account created successfully! Proceeding to your onboarding dossier...');
@@ -121,42 +162,17 @@ export default function RegisterAndOnboardingPage() {
     }
   };
 
-  // STEP 2 SUBMIT: Contact Number & Date of Birth
+  // STEP 2 SUBMIT: Contact Number Verification
   const handleStep2Submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
-    if (dateOfBirth) {
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth.trim())) {
-        setError('Date of birth must be in YYYY-MM-DD format (e.g. 1998-05-20).');
-        return;
-      }
-      const birthDate = new Date(dateOfBirth.trim());
-      if (isNaN(birthDate.getTime())) {
-        setError('Invalid date of birth provided.');
-        return;
-      }
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const m = today.getMonth() - birthDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
-      if (age < 13) {
-        setError('Members must be at least 13 years of age to participate on Sanad.');
-        return;
-      }
-    }
-
     setLoading(true);
 
     try {
-      const updatePayload: Record<string, any> = {};
-      if (phone.trim()) updatePayload.phone = phone.trim();
-      if (dateOfBirth.trim()) updatePayload.dateOfBirth = dateOfBirth.trim();
-
-      if (Object.keys(updatePayload).length > 0) {
-        const res = await platformApi.users.updateMe(updatePayload);
+      if (phone.trim()) {
+        const res = await platformApi.users.updateMe({
+          phone: phone.trim(),
+        });
         if (res?.user) {
           updateUser(res.user);
         }
@@ -253,13 +269,13 @@ export default function RegisterAndOnboardingPage() {
             </div>
             <CardTitle className="font-serif text-2xl font-bold text-sanad-emerald">
               {step === 1 && 'Create Sanad Account'}
-              {step === 2 && 'Contact & Age Verification'}
+              {step === 2 && 'Contact Verification'}
               {step === 3 && 'Academic Dossier & Username'}
               {step === 4 && 'Profile Crest & Identity'}
             </CardTitle>
             <CardDescription className="text-xs text-sanad-slate max-w-md mx-auto">
-              {step === 1 && 'Step 1 of 4: Define your account credentials to begin verified scholarship transmission.'}
-              {step === 2 && 'Step 2 of 4: Provide verification contact and date of birth (collected once for account safety).'}
+              {step === 1 && 'Step 1 of 4: Account credentials & eligibility verification (Name, Email, Date of Birth, Password).'}
+              {step === 2 && 'Step 2 of 4: Provide your contact number for administrative alerts (optional).'}
               {step === 3 && 'Step 3 of 4: Craft your scholarly username handle and academic areas of study.'}
               {step === 4 && 'Step 4 of 4: Select an authenticated classical crest or provide a custom portrait.'}
             </CardDescription>
@@ -334,6 +350,23 @@ export default function RegisterAndOnboardingPage() {
                   </div>
 
                   <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-sanad-emerald uppercase tracking-wider block flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-sanad-gold" />
+                      Date of Birth *
+                    </label>
+                    <Input
+                      type="date"
+                      value={dateOfBirth}
+                      onChange={(e) => setDateOfBirth(e.target.value)}
+                      required
+                      disabled={loading}
+                    />
+                    <p className="text-[11px] text-sanad-muted">
+                      Required for identity verification (participants must be 13 years of age or older).
+                    </p>
+                  </div>
+
+                  <div className="space-y-1.5">
                     <label className="text-xs font-bold text-sanad-emerald uppercase tracking-wider block">
                       Secure Password *
                     </label>
@@ -386,7 +419,7 @@ export default function RegisterAndOnboardingPage() {
                 </motion.form>
               )}
 
-              {/* STEP 2: Contact Number & Date of Birth */}
+              {/* STEP 2: Contact Number Verification */}
               {step === 2 && (
                 <motion.form
                   key="step-2"
@@ -399,14 +432,14 @@ export default function RegisterAndOnboardingPage() {
                   <div className="p-3 rounded-lg border border-sanad-gold/30 bg-sanad-gold-subtle/30 text-xs text-sanad-slate flex items-start gap-2.5 mb-2">
                     <ShieldCheck className="w-4 h-4 text-sanad-gold-dark shrink-0 mt-0.5" />
                     <span>
-                      Welcome, <strong className="text-sanad-emerald">{displayName || user?.displayName}</strong>. Please enter your contact number and birthdate. These fields verify compliance with academic age standards and are kept private.
+                      Welcome, <strong className="text-sanad-emerald">{displayName || user?.displayName}</strong>. Please provide your contact number. This is used for urgent notifications and account recovery alerts, and is kept strictly private.
                     </span>
                   </div>
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-sanad-emerald uppercase tracking-wider block flex items-center gap-1.5">
                       <Phone className="w-3.5 h-3.5 text-sanad-gold" />
-                      Contact Number
+                      Contact Number (Phone)
                     </label>
                     <Input
                       type="tel"
@@ -417,22 +450,6 @@ export default function RegisterAndOnboardingPage() {
                     />
                     <p className="text-[11px] text-sanad-muted">
                       Optional: Used for account security alerts and urgent administrative communications.
-                    </p>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-sanad-emerald uppercase tracking-wider block flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-sanad-gold" />
-                      Date of Birth
-                    </label>
-                    <Input
-                      type="date"
-                      value={dateOfBirth}
-                      onChange={(e) => setDateOfBirth(e.target.value)}
-                      disabled={loading}
-                    />
-                    <p className="text-[11px] text-sanad-muted">
-                      Sanad requires all participating scholars and students to be 13 years of age or older.
                     </p>
                   </div>
 

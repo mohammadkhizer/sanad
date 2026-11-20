@@ -84,7 +84,19 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
   const data = isJson ? await res.json() : null;
 
   if (!res.ok) {
-    const errorMsg = data?.message || data?.error?.message || `Request failed with status ${res.status}`;
+    let detailMsg = '';
+    const details = data?.details || data?.error?.details;
+    if (Array.isArray(details) && details.length > 0) {
+      detailMsg = details
+        .map((d: any) => {
+          const field = Array.isArray(d.path) ? d.path.join('.') : (d.path || '');
+          return field ? `${field}: ${d.message}` : d.message;
+        })
+        .filter(Boolean)
+        .join(', ');
+    }
+    const baseMsg = data?.message || data?.error?.message || `Request failed with status ${res.status}`;
+    const errorMsg = detailMsg ? `${baseMsg} (${detailMsg})` : baseMsg;
     throw new Error(errorMsg);
   }
 
