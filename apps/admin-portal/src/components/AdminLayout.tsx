@@ -64,6 +64,7 @@ export default function AdminLayout({ children, title, subtitle }: AdminLayoutPr
     { href: '/admin/activity', label: 'Scholar Activity & Security' },
     { href: '/admin/reports', label: 'Trust & Safety Queue' },
     { href: '/admin/audit-logs', label: 'Audit Trail' },
+    { href: '/admin/settings', label: 'Platform Settings' },
   ];
 
   return (

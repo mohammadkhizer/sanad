@@ -26,6 +26,8 @@ export interface AuthUser {
   username?: string;
   email?: string;
   phone?: string;
+  bio?: string;
+  isPrivate?: boolean;
   roles: Role[];
   twoFactorEnabled?: boolean;
 }
