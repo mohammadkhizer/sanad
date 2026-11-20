@@ -119,8 +119,19 @@ export default function PublicUserProfilePage() {
           <div className="px-6 sm:px-8 pb-8 pt-0 relative">
             {/* Avatar and Action Controls */}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-12 sm:-mt-14 mb-4">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-4 border-white bg-gradient-to-br from-sanad-emerald to-sanad-emerald-deep text-white font-serif text-3xl font-bold flex items-center justify-center shadow-lg ring-1 ring-sanad-border/30 shrink-0 select-none">
-                {profile.displayName ? profile.displayName.charAt(0) : 'U'}
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-4 border-white bg-gradient-to-br from-sanad-emerald to-sanad-emerald-deep text-white font-serif text-3xl font-bold flex items-center justify-center shadow-lg ring-1 ring-sanad-border/30 shrink-0 select-none overflow-hidden">
+                {profile.avatarUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={profile.avatarUrl}
+                    alt={profile.displayName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : profile.displayName ? (
+                  profile.displayName.charAt(0)
+                ) : (
+                  'U'
+                )}
               </div>
 
               <div className="flex items-center gap-2 pb-1 self-start sm:self-auto">

@@ -12,6 +12,8 @@ import {
   Calendar,
   GraduationCap,
   PlusCircle,
+  Mail,
+  Phone,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { platformApi, Post } from '../../lib/api';
@@ -80,8 +82,17 @@ export default function CurrentUserProfilePage() {
           <div className="px-6 sm:px-8 pb-8 pt-0 relative">
             {/* Avatar and Action Controls */}
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-12 sm:-mt-14 mb-4">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-4 border-white bg-gradient-to-br from-sanad-emerald to-sanad-emerald-deep text-white font-serif text-3xl font-bold flex items-center justify-center shadow-lg ring-1 ring-sanad-border/30 shrink-0 select-none">
-                {displayName.charAt(0)}
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-4 border-white bg-gradient-to-br from-sanad-emerald to-sanad-emerald-deep text-white font-serif text-3xl font-bold flex items-center justify-center shadow-lg ring-1 ring-sanad-border/30 shrink-0 select-none overflow-hidden">
+                {user?.avatarUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={user.avatarUrl}
+                    alt={displayName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  displayName.charAt(0)
+                )}
               </div>
 
               <div className="flex items-center gap-2 pb-1 self-start sm:self-auto">
@@ -113,7 +124,7 @@ export default function CurrentUserProfilePage() {
                   </div>
                 )}
               </div>
-              <p className="text-xs font-semibold text-sanad-slate mt-1">
+              <p className="text-xs font-semibold text-sanad-slate mt-1 font-mono">
                 @{username}
               </p>
             </div>
@@ -127,10 +138,24 @@ export default function CurrentUserProfilePage() {
               <Badge variant={isScholar ? 'gold' : 'outline'} className="text-[11px]">
                 {roleName}
               </Badge>
-              <span className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-sanad-slate" />
-                Active Sanad Member
-              </span>
+              {user?.email && (
+                <span className="flex items-center gap-1.5 font-medium">
+                  <Mail className="w-3.5 h-3.5 text-sanad-gold-dark" />
+                  {user.email}
+                </span>
+              )}
+              {user?.phone && (
+                <span className="flex items-center gap-1.5 font-medium">
+                  <Phone className="w-3.5 h-3.5 text-sanad-gold-dark" />
+                  {user.phone}
+                </span>
+              )}
+              {user?.dateOfBirth && (
+                <span className="flex items-center gap-1.5 font-medium">
+                  <Calendar className="w-3.5 h-3.5 text-sanad-gold-dark" />
+                  DOB: {new Date(user.dateOfBirth).toISOString().slice(0, 10)}
+                </span>
+              )}
               {!isScholar && (
                 <Link
                   href="/scholar/apply"

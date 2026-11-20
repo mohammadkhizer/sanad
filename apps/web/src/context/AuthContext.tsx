@@ -10,6 +10,7 @@ export interface User {
   username?: string;
   email?: string;
   phone?: string;
+  dateOfBirth?: string;
   roles: string[];
   bio?: string;
   avatarUrl?: string;
@@ -79,10 +80,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateUser = (data: Partial<User>) => {
-    if (!user) return;
-    const updated = { ...user, ...data };
+    let base = user;
+    if (!base && typeof window !== 'undefined') {
+      const savedUser = localStorage.getItem('sanad_member_user') || localStorage.getItem('sanad_user');
+      if (savedUser) {
+        try {
+          base = JSON.parse(savedUser);
+        } catch {
+          base = null;
+        }
+      }
+    }
+    const updated = {
+      ...(base || {}),
+      ...data,
+      id: data.id || data._id || base?.id || base?._id || '',
+    } as User;
     setUser(updated);
-    localStorage.setItem('sanad_member_user', JSON.stringify(updated));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sanad_member_user', JSON.stringify(updated));
+      localStorage.setItem('sanad_user', JSON.stringify(updated));
+    }
   };
 
   const isAdmin = Boolean(user?.roles?.includes('admin'));

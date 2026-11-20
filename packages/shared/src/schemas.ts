@@ -28,7 +28,8 @@ export const registerSchema = z.object({
         age--;
       }
       return age >= 13;
-    }, 'Must be at least 13 years old to register'),
+    }, 'Must be at least 13 years old to register')
+    .optional(),
 }).refine((data) => data.email || data.phone, {
   message: 'Either email or phone must be provided',
   path: ['email'],
@@ -74,7 +75,8 @@ export const adminRegisterSchema = z.object({
         age--;
       }
       return age >= 13;
-    }, 'Must be at least 13 years old to register'),
+    }, 'Must be at least 13 years old to register')
+    .optional(),
   adminSecret: z.string().min(1, 'Administrator provisioning secret key is required'),
   institution: z.string().optional(),
 }).refine((data) => data.email || data.phone, {
@@ -133,8 +135,11 @@ export const updateProfileSchema = z.object({
     .regex(/^[a-z0-9_]{3,30}$/, 'Username must be 3-30 lowercase alphanumeric characters or underscores')
     .optional(),
   displayName: z.string().trim().min(2).max(50).optional(),
-  bio: z.string().max(500).optional(),
-  avatarUrl: z.string().url().optional(),
+  bio: z.string().max(1000).optional(),
+  avatarUrl: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().email().optional(),
+  dateOfBirth: z.string().optional(),
   isPrivate: z.boolean().optional(),
   specialties: z.array(z.string().max(40)).max(10).optional(),
   languages: z.array(z.string().max(20)).max(5).optional(),

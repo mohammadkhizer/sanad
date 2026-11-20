@@ -43,15 +43,31 @@ export class UsersController {
 
   async updateMe(req: Request, res: Response, next: NextFunction) {
     try {
-      const { username, displayName, bio, avatarUrl, isPrivate, specialties, languages } = req.body;
+      const {
+        username,
+        displayName,
+        bio,
+        avatarUrl,
+        isPrivate,
+        specialties,
+        languages,
+        phone,
+        email,
+        dateOfBirth,
+      } = req.body;
       const updateData: Record<string, unknown> = {};
+
+      const currentUserId = req.user!.id;
+      const userIdFilter = mongoose.Types.ObjectId.isValid(currentUserId)
+        ? new mongoose.Types.ObjectId(currentUserId)
+        : currentUserId;
 
       if (username !== undefined) {
         const cleanUsername = username.trim().toLowerCase();
         if (cleanUsername) {
           const existing = await UserModel.findOne({
             username: cleanUsername,
-            _id: { $ne: req.user!.id },
+            _id: { $ne: userIdFilter },
           }).exec();
 
           if (existing) {
@@ -61,14 +77,60 @@ export class UsersController {
         }
       }
 
-      if (displayName) updateData.displayName = displayName.trim();
-      if (bio !== undefined) updateData.bio = bio.trim();
-      if (avatarUrl) updateData.avatarUrl = avatarUrl;
-      if (isPrivate !== undefined) updateData.isPrivate = Boolean(isPrivate);
-      if (specialties) updateData['scholarProfile.specialties'] = specialties;
-      if (languages) updateData['scholarProfile.languages'] = languages;
+      if (email !== undefined) {
+        const cleanEmail = email.trim().toLowerCase();
+        if (cleanEmail) {
+          const existingEmail = await UserModel.findOne({
+            email: cleanEmail,
+            _id: { $ne: userIdFilter },
+          }).exec();
+          if (existingEmail) {
+            throw new ConflictError('Email is already registered to another account');
+          }
+          updateData.email = cleanEmail;
+        }
+      }
 
-      const user = await UserModel.findByIdAndUpdate(req.user!.id, { $set: updateData }, { new: true })
+      if (phone !== undefined) {
+        const cleanPhone = phone.trim();
+        if (cleanPhone) {
+          const existingPhone = await UserModel.findOne({
+            phone: cleanPhone,
+            _id: { $ne: userIdFilter },
+          }).exec();
+          if (existingPhone) {
+            throw new ConflictError('Contact number is already registered to another account');
+          }
+          updateData.phone = cleanPhone;
+        }
+      }
+
+      if (displayName !== undefined && displayName.trim()) {
+        updateData.displayName = displayName.trim();
+      }
+      if (bio !== undefined) {
+        updateData.bio = bio.trim();
+      }
+      if (avatarUrl !== undefined) {
+        updateData.avatarUrl = avatarUrl;
+      }
+      if (dateOfBirth !== undefined) {
+        const parsedDob = new Date(dateOfBirth);
+        if (!isNaN(parsedDob.getTime())) {
+          updateData.dateOfBirth = parsedDob;
+        }
+      }
+      if (isPrivate !== undefined) {
+        updateData.isPrivate = Boolean(isPrivate);
+      }
+      if (specialties) {
+        updateData['scholarProfile.specialties'] = specialties;
+      }
+      if (languages) {
+        updateData['scholarProfile.languages'] = languages;
+      }
+
+      const user = await UserModel.findByIdAndUpdate(userIdFilter, { $set: updateData }, { new: true })
         .select('-passwordHash -twoFA.secretEnc -twoFA.backupCodes')
         .exec();
 
