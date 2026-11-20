@@ -10,13 +10,8 @@ import { Button } from './ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui/card';
 
 const PUBLIC_PATHS = [
-  '/',
-  '/feed',
-  '/explore',
-  '/reels',
   '/login',
   '/register',
-  '/onboarding',
   '/forgot-password',
   '/reset-password',
   '/how-verification-works',
@@ -31,19 +26,16 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, isAuthenticated, isLoading, isScholar, isAdmin } = useAuth();
 
-  const isPublicPath =
-    PUBLIC_PATHS.some((p) => pathname === p || pathname === p + '/') ||
-    (Boolean(pathname?.startsWith('/profile/')) && pathname !== '/profile/edit') ||
-    Boolean(pathname?.startsWith('/scholar/'));
+  const isPublicPath = PUBLIC_PATHS.some((p) => pathname === p || pathname === p + '/');
 
   useEffect(() => {
     if (!isLoading) {
       if (!isAuthenticated && !isPublicPath) {
-        // Redirect unauthenticated visitor to login
+        // Redirect unauthenticated visitor to login with return destination
         router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
       } else if (isAuthenticated && (pathname === '/login' || pathname === '/register')) {
         // Authenticated users shouldn't see login or register again
-        router.push('/feed');
+        router.push('/');
       }
     }
   }, [isLoading, isAuthenticated, isPublicPath, pathname, router]);
@@ -63,8 +55,8 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     return <Preloader fullScreen message="Authentication required. Redirecting to sign in..." />;
   }
 
-  // Route-level authorization check: e.g. /create requires scholar accreditation
-  if (pathname === '/create' && !isScholar) {
+  // Route-level authorization check: e.g. /create requires scholar accreditation or platform admin
+  if (pathname === '/create' && !isScholar && !isAdmin) {
     return (
       <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6">
         <Card className="w-full max-w-lg border-sanad-border bg-white shadow-md text-center p-6 sm:p-8">
