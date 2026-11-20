@@ -44,8 +44,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const savedToken = localStorage.getItem('sanad_token');
-    const savedUser = localStorage.getItem('sanad_user');
+    const savedToken = localStorage.getItem('sanad_token') || localStorage.getItem('sanad_member_token');
+    const savedUser = localStorage.getItem('sanad_user') || localStorage.getItem('sanad_member_user');
 
     if (savedToken && savedUser) {
       try {
@@ -96,8 +96,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(newUser);
     localStorage.setItem('sanad_token', newToken);
     localStorage.setItem('sanad_user', JSON.stringify(newUser));
+    localStorage.setItem('sanad_member_token', newToken);
+    localStorage.setItem('sanad_member_user', JSON.stringify(newUser));
     if (refreshToken) {
       localStorage.setItem('sanad_refresh_token', refreshToken);
+      localStorage.setItem('sanad_member_refresh_token', refreshToken);
     }
   };
 
@@ -105,6 +108,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('sanad_token');
     localStorage.removeItem('sanad_refresh_token');
     localStorage.removeItem('sanad_user');
+    localStorage.removeItem('sanad_member_token');
+    localStorage.removeItem('sanad_member_refresh_token');
+    localStorage.removeItem('sanad_member_user');
     setToken(null);
     setUser(null);
     window.location.href = '/login';
