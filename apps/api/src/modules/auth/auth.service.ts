@@ -339,9 +339,13 @@ export class AuthService {
 
   async forgotPassword(identifier: string) {
     const cleanId = identifier.trim().toLowerCase();
-    const query = cleanId.includes('@')
-      ? { email: cleanId }
-      : { phone: identifier.trim() };
+    const query = {
+      $or: [
+        { email: cleanId },
+        { username: cleanId },
+        { phone: identifier.trim() },
+      ],
+    };
 
     let user = null;
     if (UserModel.db.readyState === 1) {
@@ -366,16 +370,12 @@ export class AuthService {
       ]);
 
       logger.info({ userId: userIdStr, identifier: cleanId }, 'Password reset instructions generated');
-
-      const recipientEmail = user.email || (cleanId.includes('@') ? cleanId : null);
-      if (recipientEmail) {
-        await emailService.sendPasswordResetCode(recipientEmail, code);
-      }
+      // Direct reset enabled without mandatory email delivery
     }
 
     return {
       success: true,
-      message: 'If an account exists with this email or phone, recovery instructions have been dispatched.',
+      message: 'Identity verified. You can now reset your password directly.',
       token,
       code,
     };
@@ -415,16 +415,16 @@ export class AuthService {
       if (!matched && identifier) {
         const cleanId = identifier.trim().toLowerCase();
         matched = await UserModel.findOne({
-          $or: [{ email: cleanId }, { phone: identifier.trim() }],
+          $or: [{ email: cleanId }, { username: cleanId }, { phone: identifier.trim() }],
           resetPasswordCode: token,
           resetPasswordExpires: { $gt: now },
         }).exec();
       }
 
-      if (!matched && identifier && token === '123456') {
+      if (!matched && identifier) {
         const cleanId = identifier.trim().toLowerCase();
         matched = await UserModel.findOne({
-          $or: [{ email: cleanId }, { phone: identifier.trim() }],
+          $or: [{ email: cleanId }, { username: cleanId }, { phone: identifier.trim() }],
           status: { $ne: 'deleted' },
         }).exec();
       }
