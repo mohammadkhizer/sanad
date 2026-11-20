@@ -115,14 +115,14 @@ export default function RegisterAndOnboardingPage() {
     setLoading(true);
 
     try {
-      // Suggest default username from name if not provided
+      // Generate initial unique username handle from displayName with unique suffix to avoid collisions
       const autoHandle = cleanName
         .toLowerCase()
         .replace(/[^a-z0-9]/g, '_')
         .replace(/_+/g, '_')
         .replace(/^_+|_+$/g, '')
-        .slice(0, 20);
-      const safeHandle = autoHandle.length >= 3 ? autoHandle : `user_${Date.now().toString().slice(-4)}`;
+        .slice(0, 16);
+      const safeHandle = `${autoHandle.length >= 3 ? autoHandle : 'user'}_${Date.now().toString().slice(-4)}`;
       if (!username) {
         setUsername(safeHandle);
       }
@@ -297,7 +297,16 @@ export default function RegisterAndOnboardingPage() {
             {error && (
               <div className="mb-5 p-3 rounded-lg bg-red-50 border border-red-200 flex items-start gap-2.5 text-xs text-red-800">
                 <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-                <span>{error}</span>
+                <div className="flex-1">
+                  <span>{error}</span>
+                  {error.toLowerCase().includes('already exists') && (
+                    <div className="mt-1.5">
+                      <Link href="/login" className="font-bold underline text-sanad-emerald hover:text-sanad-emerald-deep">
+                        Click here to sign in with your password &rarr;
+                      </Link>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
