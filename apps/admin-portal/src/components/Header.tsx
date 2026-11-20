@@ -106,6 +106,9 @@ export default function Header() {
             <Link href="/admin/audit-logs" className="nav-link">
               Audit Logs
             </Link>
+            <Link href="/admin/settings" className="nav-link">
+              Settings
+            </Link>
           </nav>
         )}
 
@@ -262,6 +265,13 @@ export default function Header() {
             style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-emerald)' }}
           >
             Audit Trail
+          </Link>
+          <Link
+            href="/admin/settings"
+            onClick={() => setMobileMenuOpen(false)}
+            style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-emerald)' }}
+          >
+            Platform Settings
           </Link>
         </div>
       )}
