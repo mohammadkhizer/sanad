@@ -10,6 +10,10 @@ import { Button } from './ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui/card';
 
 const PUBLIC_PATHS = [
+  '/',
+  '/feed',
+  '/explore',
+  '/reels',
   '/login',
   '/register',
   '/forgot-password',
@@ -26,7 +30,10 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, isAuthenticated, isLoading, isScholar, isAdmin } = useAuth();
 
-  const isPublicPath = PUBLIC_PATHS.some((p) => pathname === p || pathname?.startsWith(p + '/'));
+  const isPublicPath =
+    PUBLIC_PATHS.some((p) => pathname === p || pathname === p + '/') ||
+    (Boolean(pathname?.startsWith('/profile/')) && pathname !== '/profile/edit') ||
+    Boolean(pathname?.startsWith('/scholar/'));
 
   useEffect(() => {
     if (!isLoading) {
@@ -40,13 +47,18 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [isLoading, isAuthenticated, isPublicPath, pathname, router]);
 
-  // While resolving auth state, show preloader
+  // Public paths must never be blocked by a full-screen auth preloader during SSR or initial mount.
+  if (isPublicPath) {
+    return <>{children}</>;
+  }
+
+  // While resolving auth state on protected routes, show preloader
   if (isLoading) {
     return <Preloader fullScreen message="Authenticating session..." />;
   }
 
   // If unauthenticated and on a protected page, wait for redirect
-  if (!isAuthenticated && !isPublicPath) {
+  if (!isAuthenticated) {
     return <Preloader fullScreen message="Authentication required. Redirecting to sign in..." />;
   }
 
